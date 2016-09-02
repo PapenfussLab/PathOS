@@ -1,0 +1,6 @@
+sample
+seqrun
+HGVSg
+numAmps
+ampbias
+homopolymer

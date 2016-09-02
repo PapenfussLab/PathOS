@@ -1,0 +1,41 @@
+
+.sidebar-nav {
+/* 	position: absolute; */
+	top: 0;
+	width: $width;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	li {
+		text-indent: 20px;
+		line-height: 40px;
+		a {
+			display: block;
+			text-decoration: none;
+			color: #999999;
+			&:hover {
+				text-decoration: none;
+				color: #fff;
+				background: rgba(255,255,255,0.2);
+			}
+		}
+		&:active, &:focus {
+			text-decoration: none;
+		}
+	}
+	> .sidebar-brand {
+    height: 65px;
+    font-size: 18px;
+    line-height: 60px;
+    a {
+			color: #999999;
+			&:hover {
+				color: #fff;
+				background: none;
+			}
+		}
+	}
+}
+
+
+

@@ -1,0 +1,13 @@
+##fileformat=VCFv4.1
+##source=VarScan2
+##INFO=<ID=ADP,Number=1,Type=Integer,Description="Average per-sample depth of bases with Phred score >= 20">
+##INFO=<ID=AONLY,Number=0,Type=Flag,Description="SampleA test flag">
+##INFO=<ID=BONLY,Number=0,Type=Flag,Description="SampleB test flag">
+##INFO=<ID=BBB,Number=1,Type=Integer,Description="SampleB data field">
+##FILTER=<ID=str10,Description="Less than 10% or more than 90% of variant supporting reads on one strand">
+##FILTER=<ID=indelError,Description="Likely artifact due to indel reads at this position">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	AR001
+4	55152040	.	C	T	.	PASS	ADP=AandB;AONLY;BONLY	GT:GQ	1/1:271
+4	55599436	.	T	C	.	PASS	ADP=B;AONLY;BBB=123456	GT:GQ	1/1:371

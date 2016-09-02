@@ -1,0 +1,390 @@
+//	build.gradle
+//
+//	Build file for PathosCore
+//
+//	01	kdoig	16-Oct-13
+//  10  kdoig   14-Dec-15   allowed for variable expansion in shell scripts eg GRADLE_PATHOS_HOME
+//
+
+apply plugin: 'groovy'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+//  Release version
+//
+version = '1.2.0'
+
+compileGroovy {
+    groovyOptions.forkOptions.jvmArgs = ['-noverify']
+}
+
+def pathospath = System.getenv().get("PATHOS_HOME")
+def libpath    = pathospath + '/lib'
+def bppath     = pathospath + '/Pipeline/pipelines'
+
+repositories {
+    jcenter()
+    flatDir {
+        dirs "../repos"
+    }
+
+}
+
+//  shadowjar additions
+//
+buildscript {
+    repositories {
+        maven {
+            url "https://jcenter.bintray.com"
+            jcenter()  // this is for shadowjar only
+
+        }
+
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+    }
+}
+
+shadowJar {
+    archiveName = "PathosCore-all-${version}.${extension}"
+
+}
+
+//
+//  Deployment tasks
+//
+
+//  Todo: delete old versions of jars
+
+uploadArchives {
+    repositories
+            {
+                flatDir
+                        {
+                            println "Deploying PathosCore-all-${version}.jar to " + libpath
+                            dirs libpath
+                        }
+            }
+}
+
+//
+//  Copy third party Jars to production
+//
+task copyJars
+uploadArchives.dependsOn copyJars
+copyJars.dependsOn shadowJar
+
+copyJars <<
+        {
+            println "Deploying shadowJar to " + libpath
+
+            ant.copy( toDir: libpath  )
+                    {
+                        fileset(dir: './build/libs')
+                                {
+                                    include(name: "PathosCore-all-${version}.jar")
+                                }
+                    }
+        }
+
+//
+//  Copy etc files to Path-OS
+//
+task copyEtc
+uploadArchives.dependsOn copyEtc
+
+copyEtc <<
+        {
+            String etcpath = pathospath + '/etc'
+            println "Deploying files to " + etcpath
+            ant.copy( toDir: etcpath )
+                    {
+                        fileset(dir: 'src/etc')
+                                {
+                                    include(name: '**')
+                                }
+                    }
+        }
+
+//
+//  Copy Report files to Path-OS
+//
+task copyReport
+uploadArchives.dependsOn copyReport
+
+copyReport <<
+        {
+            String reppath = pathospath + '/Report'
+            println "Deploying files to " + reppath
+            ant.copy( toDir: reppath )
+                    {
+                        fileset(dir: 'src/Report')
+                                {
+                                    include(name: '*.docx')
+                                }
+                    }
+        }
+
+//
+//  Copy CLI launch scripts to bin
+//
+task copyBin
+uploadArchives.dependsOn copyBin
+
+copyBin <<
+        {
+            def binpath = pathospath + '/bin'
+            println "Deploying CLI to " + binpath
+            ant.copy( toDir: binpath, Filtering: true )
+                    {
+                        filterchain()
+                                {
+                                    replacetokens()
+                                            {
+                                                token( key: "GRADLE_PATHOS_HOME", value: pathospath )
+                                            }
+                                }
+                        fileset(dir: 'src/bin')
+                                {
+                                    include(name: '*')
+                                }
+                    }
+
+            //  Make executable
+            //
+            ant.chmod( perm: '+x' )
+                    {
+                        fileset(dir: binpath)
+                                {
+                                    include(name: '*')
+                                }
+                    }
+        }
+
+//
+//  Copy bpipe/seqliner pipeline scripts
+//
+task copyBpipe
+uploadArchives.dependsOn copyBpipe
+
+copyBpipe <<
+        {
+            println "Deploying Pipeline files to " + bppath
+            ant.copy( toDir: bppath )
+                    {
+                        fileset(dir: 'src/main/bpipe/pipeline')
+                                {
+                                    include(name: '*.pipe')
+                                }
+                    }
+
+            ant.copy( toDir: bppath + "/stages" )
+                    {
+                        fileset(dir: 'src/main/bpipe/pipeline/stages')
+                                {
+                                    include(name: '*.groovy')
+                                }
+                    }
+        }
+
+//
+//  Finds groovy here as well as dependent Jars
+//
+dependencies //http://stackoverflow.com/questions/30728533/gradle-override-transitive-dependency-by-version-classifier
+        {
+            compile group: 'org.apache.httpcomponents' ,name: 'httpclient', version: '4.3'
+            compile group: 'org.apache.httpcomponents' , name: 'httpcore', version: '4.3'
+
+             compile group: 'com.google.guava', name: 'guava', version: '14.0.1'
+
+
+            compile group: 'org.slf4j' ,name: 'slf4j-api', version: '1.6.1' //loaderonly USED TO BE 161
+            compile group: 'org.slf4j' ,name: 'slf4j-log4j12', version: '1.6.1' //loaderonly
+            compile group: 'org.slf4j' ,name: 'jcl-over-slf4j', version: '1.6.1'
+            compile group: 'org.apache.ant', name: 'ant', version: '1.8.4'
+            compile group: 'org.apache.ant' ,name: 'ant-launcher', version: '1.8.4'
+            compile group: 'commons-cli' ,name: 'commons-cli', version: '1.2'
+            compile group: 'org.apache.commons' ,name: 'commons-email', version: '1.4'
+            compile group: 'org.gperfutils' ,name: 'gprof', version: '0.3.0-groovy-2.3'
+            compile group: 'org.codehaus.groovy' ,name: 'groovy-all', version: '2.1.9'
+            compile group: 'org.hamcrest' ,name: 'hamcrest-all', version: '1.3'
+            compile group: 'junit' ,name: 'junit', version: '4.10'
+            compile group: 'mysql' ,name: 'mysql-connector-java', version: '5.1.14'
+            compile group: 'au.com.bytecode' ,name: 'opencsv', version: '2.4'
+
+            //  for HTTPbuilder:
+
+
+            compile group: 'antlr' ,name: 'antlr', version: '2.7.7'
+            compile group: 'asm' ,name: 'asm', version: '3.2'
+            compile group: 'asm' ,name: 'asm-analysis', version: '3.2'
+            compile group: 'asm' ,name: 'asm-commons', version: '3.2'
+            compile group: 'asm' ,name: 'asm-tree', version: '3.2'
+            compile group: 'asm' ,name: 'asm-util', version: '3.2'
+            compile group: 'commons-beanutils' ,name: 'commons-beanutils', version: '1.8.0'
+            compile group: 'commons-codec' ,name: 'commons-codec', version: '1.6'
+            compile group: 'commons-collections' ,name: 'commons-collections', version: '3.2.1'
+            compile group: 'commons-lang' ,name: 'commons-lang', version: '2.4'
+            compile group: 'net.sf.ezmorph' ,name: 'ezmorph', version: '1.0.6'
+            compile group: 'org.codehaus.groovy.modules.http-builder' ,name: 'http-builder', version: '0.6'
+            //compile group: 'org.apache.httpcomponents' ,name: 'httpclient', version: '4.2.1'
+            //compile group: 'org.apache.httpcomponents' , name: 'httpcore', version: '4.2.1'
+            compile group: 'net.sf.json-lib', name: 'json-lib', version: '2.3', classifier:'jdk15'
+            compile group: 'net.sourceforge.nekohtml', name: 'nekohtml', version: '1.9.16'
+            compile group: 'oauth.signpost', name: 'signpost-commonshttp4', version: '1.2.1.1'
+            compile group: 'oauth.signpost', name: 'signpost-core', version: '1.2.1.1'
+            compile group: 'xerces', name: 'xercesImpl', version: '2.9.1'
+            compile group: 'xml-apis', name: 'xml-apis', version: '1.4.01'
+            compile group: 'xml-resolver', name: 'xml-resolver', version: '1.2'
+
+            //  files from flatdir repo
+
+            compile name:'ssw'
+            compile name:'Aspose.Words.jdk15'
+            compile name:'broad-sting-util-2.1.8'
+            compile(name:'GenomeAnalysisTK') {
+                exclude group: 'com.google.guava' }
+
+
+        }
+
+//  Unit testing tasks only
+//
+test
+        {
+            jvmArgs '-noverify'
+            //  exclude "**/*IntTest.class"
+            exclude "**/*FilterflagCheckerTest.class"
+            exclude "**/*HouseKeepingTest.class"
+        }
+
+//  Integration testing tasks handled separately
+//
+task intTest(type: Test, dependsOn: testClasses) { include "**/*IntTest.class" }
+
+// Fast computing tests
+//
+task fastTest(type: Test, dependsOn: testClasses) {
+
+    include "**/*util.*"
+    include "**/*pipeline.*"
+
+    exclude "**/*NormaliseVcfTest.class"
+    exclude "**/*MutalyzerIntTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+    exclude "**/*SqlIntTest.class"
+    exclude "**/org.petermac.annotate.*"
+
+
+}
+
+
+task longTest(type: Test, dependsOn: testClasses) {
+
+    exclude "**/*util.*"
+    exclude "**/*pipeline.*"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+
+    include "**/*NormaliseVcfTest.class"
+    include "**/*MutalyzerIntTest.class"
+    //include "**/*FilterflagCheckerTest.class"
+    // include "**/*HouseKeepingTest.class"
+    include "**/*AuditLogTest.class"
+}
+
+
+// Running Only Unit tests without DB
+task UnitTestUtil(type: Test, dependsOn: testClasses){
+
+    exclude "**/*IntTest.class"
+    exclude "**/*pipeline.*"
+    exclude "**/*annotate.*"
+    exclude "**/*clarity.*"
+    exclude "**/*DataSourceTest.class"
+    exclude "**/*MutVarDataSourceTest.class"
+    exclude "**/*DbConnectTest.class"
+    exclude "**/*DbConnectIntTest.class"
+    exclude "**/*DbCountTest.class"
+    exclude "**/*DbLockTest.class"
+    exclude "**/*DbUtilTest.class"
+    exclude "**/*MysqlCommandTest.class"
+    exclude "**/*VcfDbCheckTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+    exclude "**/*MutalyzerIntTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+    exclude "**/*SqlIntTest.class"
+    exclude "**/*MutalyzerUtilTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+
+
+}
+
+// Running Only Unit tests without DB
+task UnitTestPipe(type: Test, dependsOn: testClasses){
+    exclude "**/*annotate.*"
+    exclude "**/*clarity.*"
+    exclude "**/*DbConnectTest.class"
+    exclude "**/*DbConnectIntTest.class"
+    exclude "**/*DbCountTest.class"
+    exclude "**/*DbLockTest.class"
+    exclude "**/*DbUtilTest.class"
+    exclude "**/*MysqlCommandTest.class"
+    exclude "**/*VcfDbCheckTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+    exclude "**/*MutalyzerIntTest.class"
+    exclude "**/*MutalyzerUtilTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+    exclude "**/*SqlIntTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+
+}
+
+
+task DbTesting(type: Test, dependsOn: testClasses){
+    include "**/*DbConnectTest.class"
+    include "**/*DbConnectIntTest.class"
+    include "**/*DbCountTest.class"
+    include "**/*DbLockTest.class"
+    include "**/*DbUtilTest.class"
+    include "**/*MysqlCommandTest.class"
+    include "**/*VcfDbCheckTest.class"
+    include "**/*NormaliseVcfTest.class"
+    include "**/*MutalyzerIntTest.class"
+    include "**/*MutalyzerUtilTest.class"
+    include "**/*SqlIntTest.class"
+    include "**/*NormaliseVcfTest.class"
+    include "**/*MutalyzerIntTest.class"
+}
+
+
+
+
+
+//  Optional JAR settings
+//
+jar
+        {
+            manifest
+                    {
+                        attributes 'Implementation-Title': 'PathOS Core', 'Implementation-Version': version
+                    }
+        }
+
+//
+//  Delete all classes in Ideas project out directory and Grails cached Jar file
+//
+task zapClasses(type: Delete) {
+    println("In zapClasses")
+    delete fileTree(dir: "../out")
+    delete ("~/.grails/ivy-cache/pathos/PathosCore/jars/PathosCore-all-*.jar")
+}
+
+clean.dependsOn zapClasses
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.10'
+}

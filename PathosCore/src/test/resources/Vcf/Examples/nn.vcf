@@ -1,0 +1,70 @@
+##fileformat=VCFv4.1
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=BQ,Number=A,Type=Float,Description="Average base quality for reads supporting alleles">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=DP4,Number=1,Type=String,Description="Strand read counts: ref/fwd, ref/rev, var/fwd, var/rev">
+##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
+##FORMAT=<ID=FREQ,Number=1,Type=String,Description="Variant allele frequency">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PMCAD,Number=1,Type=Integer,Description="Depth of alternate-supporting bases - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCADF,Number=4,Type=String,Description="Depth of alternate-supporting bases on forward strand - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCADR,Number=4,Type=String,Description="Depth of alternate-supporting bases on reverse strand - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCBDIR,Number=1,Type=String,Description="T/F Indicating if variant is bidirectional (N/A if no alt reads) - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCDP,Number=1,Type=Integer,Description="Total read depth (includes bases supporting other alleles) - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCFREQ,Number=1,Type=Float,Description="Variant allele frequency - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCRD,Number=1,Type=Integer,Description="Depth of reference-supporting bases - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCRDF,Number=4,Type=String,Description="Depth of reference-supporting bases on forward strand - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=PMCRDR,Number=4,Type=String,Description="Depth of reference-supporting bases on reverse strand - Calculated By Bioinformatics Dept">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Depth of reference-supporting bases (reads1)">
+##FORMAT=<ID=SS,Number=1,Type=Integer,Description="Variant status relative to non-adjacent Normal,0=wildtype,1=germline,2=somatic,3=LOH,4=post-transcriptional modification,5=unknown">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="dbSNP Membership">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total depth of quality bases">
+##INFO=<ID=GPV,Number=1,Type=Float,Description="Fisher's Exact Test P-value of tumor+normal versus no variant for Germline calls">
+##INFO=<ID=Identified,Number=1,Type=String,Description="Source VCF for the merged record in CombineVariants">
+##INFO=<ID=N_AC,Number=2,Type=Integer,Description="In NORMAL: # of reads supporting consensus indel/any indel at the site">
+##INFO=<ID=N_DP,Number=1,Type=Integer,Description="In NORMAL: total coverage at the site">
+##INFO=<ID=N_MM,Number=2,Type=Float,Description="In NORMAL: average # of mismatches per consensus indel-supporting read/per reference-supporting read">
+##INFO=<ID=N_MQ,Number=2,Type=Float,Description="In NORMAL: average mapping quality of consensus indel-supporting reads/reference-supporting reads">
+##INFO=<ID=N_NQSBQ,Number=2,Type=Float,Description="In NORMAL: Within NQS window: average quality of bases from consensus indel-supporting reads/from reference-supporting reads">
+##INFO=<ID=N_NQSMM,Number=2,Type=Float,Description="In NORMAL: Within NQS window: fraction of mismatching bases in consensus indel-supporting reads/in reference-supporting reads">
+##INFO=<ID=N_SC,Number=4,Type=Integer,Description="In NORMAL: strandness: counts of forward-/reverse-aligned indel-supporting reads / forward-/reverse-aligned reference supporting reads">
+##INFO=<ID=SL_N_AD_INDELOCATOR,Number=A,Type=Integer,Description="NORMAL: Allele Depth: Ref, Alt (from Seqliner)">
+##INFO=<ID=SL_N_AD_MUTECT,Number=A,Type=Integer,Description="NORMAL: Allele Depth: Ref, Alt (from Seqliner)">
+##INFO=<ID=SL_N_AD_VARSCAN,Number=A,Type=Integer,Description="NORMAL: Allele Depth: Ref, Alt (from Seqliner)">
+##INFO=<ID=SL_N_DP_INDELOCATOR,Number=1,Type=Integer,Description="NORMAL: total coverage at the site (from Seqliner)">
+##INFO=<ID=SL_N_DP_MUTECT,Number=1,Type=Integer,Description="NORMAL: total coverage at the site (from Seqliner)">
+##INFO=<ID=SL_N_DP_VARSCAN,Number=1,Type=Integer,Description="NORMAL: total coverage at the site (from Seqliner)">
+##INFO=<ID=SL_T_AD_INDELOCATOR,Number=A,Type=Integer,Description="Allele Depth: Ref, Alt (from Seqliner)">
+##INFO=<ID=SL_T_AD_MUTECT,Number=A,Type=Integer,Description="Allele Depth: Ref, Alt (from Seqliner)">
+##INFO=<ID=SL_T_AD_VARSCAN,Number=A,Type=Integer,Description="Allele Depth: Ref, Alt (from Seqliner)">
+##INFO=<ID=SL_T_DP_INDELOCATOR,Number=1,Type=Integer,Description="TUMOR: total coverage at the site (from Seqliner)">
+##INFO=<ID=SL_T_DP_MUTECT,Number=1,Type=Integer,Description="TUMOR: total coverage at the site (from Seqliner)">
+##INFO=<ID=SL_T_DP_VARSCAN,Number=1,Type=Integer,Description="TUMOR: total coverage at the site (from Seqliner)">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Indicates if record is a somatic mutation">
+##INFO=<ID=SPV,Number=1,Type=Float,Description="Fisher's Exact Test P-value of tumor versus normal for Somatic/LOH calls">
+##INFO=<ID=SS,Number=1,Type=String,Description="Somatic status of variant (0=Reference,1=Germline,2=Somatic,3=LOH, or 5=Unknown)">
+##INFO=<ID=SSC,Number=1,Type=String,Description="Somatic score in Phred scale (0-255) derived from somatic p-value">
+##INFO=<ID=T_AC,Number=2,Type=Integer,Description="In TUMOR: # of reads supporting consensus indel/any indel at the site">
+##INFO=<ID=T_DP,Number=1,Type=Integer,Description="In TUMOR: total coverage at the site">
+##INFO=<ID=T_MM,Number=2,Type=Float,Description="In TUMOR: average # of mismatches per consensus indel-supporting read/per reference-supporting read">
+##INFO=<ID=T_MQ,Number=2,Type=Float,Description="In TUMOR: average mapping quality of consensus indel-supporting reads/reference-supporting reads">
+##INFO=<ID=T_NQSBQ,Number=2,Type=Float,Description="In TUMOR: Within NQS window: average quality of bases from consensus indel-supporting reads/from reference-supporting reads">
+##INFO=<ID=T_NQSMM,Number=2,Type=Float,Description="In TUMOR: Within NQS window: fraction of mismatching bases in consensus indel-supporting reads/in reference-supporting reads">
+##INFO=<ID=T_SC,Number=4,Type=Integer,Description="In TUMOR: strandness: counts of forward-/reverse-aligned indel-supporting reads / forward-/reverse-aligned reference supporting reads">
+##INFO=<ID=VT,Number=1,Type=String,Description="Variant type, can be SNP, INS or DEL">
+##INFO=<ID=HGVSg,Number=1,Type=String,Description="HGVSg format of variant">
+##INFO=<ID=HGVSc,Number=1,Type=String,Description="HGVSc format of variant">
+##INFO=<ID=HGVSp,Number=1,Type=String,Description="HGVSp format of variant">
+##INFO=<ID=gene,Number=1,Type=String,Description="gene of variant">
+##INFO=<ID=lrg,Number=1,Type=String,Description="LRG transcript of variant">
+##INFO=<ID=muterr,Number=1,Type=String,Description="Mutalyzer error message for variant">
+##INFO=<ID=status,Number=1,Type=String,Description="Mutalyzer status of variant">
+##reference=file:///pathology/sequencing/SUPER/Reference/HG19_Merkel/Homo_sapiens.GRCh37.73.dna.toplevel.with.MerkelVirus.NC_010277.1.fa
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	15K0367
+1	3644085	.	G	A	.	PASS	AC=1;AF=0.333;AN=3;DB=true;Identified=mutect;SL_N_AD_MUTECT=38,0;SL_N_DP_MUTECT=38;SL_T_AD_MUTECT=31,4;SL_T_DP_MUTECT=35;SOMATIC=true;VT=SNP;HGVSg=chr1:g.3644085G>A;HGVSc=NM_001126240.2:c.696-107G>A;muterr=(variantchecker):_Intronic_position_given_for_a_non-genomic_reference_sequence.	GT:AD:BQ:DP:FA:PMCAD:PMCADF:PMCADR:PMCBDIR:PMCDP:PMCFREQ:PMCRD:PMCRDF:PMCRDR:SS	0/1:31,4:32:35:0.114:4:4:0:N:35:0.11:31:30:1:2
+1	27684396	.	G	A	.	PASS	AC=1;AF=0.333;AN=3;DB=true;Identified=mutect;SL_N_AD_MUTECT=53,0;SL_N_DP_MUTECT=53;SL_T_AD_MUTECT=53,6;SL_T_DP_MUTECT=59;SOMATIC=true;VT=SNP;HGVSg=chr1:g.27684396G>A;HGVSc=NM_004672.3:c.2916-29C>T;muterr=(variantchecker):_Intronic_position_given_for_a_non-genomic_reference_sequence.	GT:AD:BQ:DP:FA:PMCAD:PMCADF:PMCADR:PMCBDIR:PMCDP:PMCFREQ:PMCRD:PMCRDF:PMCRDR:SS	0/1:53,6:32:59:0.102:7:3:4:Y:67:0.10:60:20:40:2
+1	89236275	.	C	T	.	PASS	AC=1;AF=0.333;AN=3;DB=true;Identified=mutect;SL_N_AD_MUTECT=40,1;SL_N_DP_MUTECT=41;SL_T_AD_MUTECT=44,5;SL_T_DP_MUTECT=49;SOMATIC=true;VT=SNP;HGVSg=chr1:g.89236275C>T;HGVSc=NM_006256.2:c.622+123C>T;muterr=(variantchecker):_Intronic_position_given_for_a_non-genomic_reference_sequence.	GT:AD:BQ:DP:FA:PMCAD:PMCADF:PMCADR:PMCBDIR:PMCDP:PMCFREQ:PMCRD:PMCRDF:PMCRDR:SS	0/1:44,5:30:49:0.102:5:0:5:N:49:0.10:44:0:44:2

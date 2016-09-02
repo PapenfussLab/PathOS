@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+#		PipelineLoadPathOS.sh		Run PathOS Loader
+#
+#		01  Ken Doig    13-Aug-15
+#		02  Ken Doig    14-Dec-15   Remove --from 1
+#		03  Ken Doig    15-Aug-16   Simplified and enhanced for CCP runs
+#
+#vim:ts=4
+
+#
+#	process -options
+#
+HELP=0
+dbname=pa_stage
+ccp=0
+
+while getopts d:ch\? opt					# Add additional options here
+do	case "$opt" in
+	d)		dbname="$OPTARG";;
+	c)		ccp=1;;
+	h)		HELP=1;;
+	[?])	HELP=1;;
+	esac
+done
+shift `expr $OPTIND - 1`
+
+#
+#	output usage if required
+#
+if [ $# -lt 1 -o $HELP -eq 1 ]; then	# Set number of required arguments here
+	echo "
+	Usage: `basename $0` [options] in.sample.tsv
+
+	Options:
+			-d <dbname>   PathOS DB to populate [pa_stage]
+			-p <phase>    Load phase to run [merge]
+
+	PathOS loader for a sequencing run
+	" 1>&2
+
+	exit 1
+fi
+
+#
+#	Start of script
+#
+samfile=$2
+
+if [ ! -s $samfile ];then
+    echo "FATAL: Missing file $samfile"
+    exit 1
+fi
+
+cp -vf $samfile Seqrun.tsv   # Hard-wired seq sample list filename ToDo: pass file into LoadPathOS
+
+export PATHOS_CONFIG=${PATHOS_HOME}/etc/pathos.properties
+
+LoadPathOS --phase merge --rdb $dbname --orm $dbname --config $PATHOS_HOME/etc/AutoLoad.etl

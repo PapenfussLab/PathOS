@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+#	Set PathOS execution environment
+#
+#	01	kdoig	15-Oct-2013     Customised launcher for RunReport
+#
+
+#set -x
+
+#
+#   Pipeline Home env variables
+#
+CMDPATH=`which $0`
+BINDIR=`dirname $CMDPATH`
+export PATHOS_HOME=`dirname $BINDIR`
+export NGS_HOME=`dirname $PATHOS_HOME`
+
+#
+#	Accumulate jar files
+#
+. SetLoaderEnv
+
+#
+#	Export CLASSPATH and Log4j properties file
+#
+export LOGPROP="-Dlog4j.configuration=file:$PATHOS_HOME/lib/loader/loader.properties"
+export JAVA_OPTS="-XX:MaxPermSize=4g -Xmx4g -server"
+export CLASSPATH="-cp $cp"
+
+#
+#	Run Java
+#
+RUN=`basename $0`
+java $LOGPROP $JAVA_OPTS $CLASSPATH org.petermac.pathos.loader.$RUN $*

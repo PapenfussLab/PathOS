@@ -1,0 +1,199 @@
+//	build.gradle
+//
+//	Build file for Loader
+//
+//	01	kdoig	10-Apr-13
+//
+
+apply plugin: 'groovy'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+
+
+//  Release version
+//
+version = '1.2.0'
+
+//  Get install root from PATHOS_HOME environment variable
+//
+def pathospath = System.getenv().get("PATHOS_HOME")
+def libpath    = pathospath + '/lib/loader'
+
+repositories {
+    jcenter()
+}
+
+buildscript {
+    repositories {
+        maven {
+            url "https://jcenter.bintray.com"
+            jcenter()  // this is for shadowjar only
+
+        }
+
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
+    }
+}
+
+shadowJar {
+    archiveName = "Loader-all-${version}.${extension}"
+
+    mergeServiceFiles('META-INF/spring.*')
+}
+
+//
+//  Deployment task
+//
+
+
+//  Todo: delete old versions of jars
+uploadArchives {
+    repositories
+    {
+        flatDir
+        {
+            println "Deploying Loader-all-${version}.jar to " + libpath
+            dirs libpath
+        }
+    }
+}
+
+//
+//  Copy third party Jars to production
+//
+task copyJars
+uploadArchives.dependsOn copyJars
+copyJars.dependsOn shadowJar
+
+copyJars <<
+{
+    println "Deploying " + "Loader-all-${version}.jar" + " to " + libpath
+
+    ant.copy( toDir: libpath  )
+    {
+                fileset(dir: './build/libs')
+                        {
+                            include(name: "Loader-all-${version}.jar")
+                        }
+    }
+}
+
+//
+//  Copy CLI launch scripts to bin
+//
+task copyBin
+uploadArchives.dependsOn copyBin
+
+copyBin <<
+{
+    def binpath = pathospath + '/bin'
+    println "Deploying CLI to " + binpath
+    ant.copy( toDir: binpath, Filtering: true )
+    {
+        filterchain()
+        {
+            replacetokens()
+            {
+                token(key: "GRADLE_PATHOS_HOME", value: pathospath)
+            }
+        }
+        fileset(dir: 'src/bin')
+        {
+            include(name: '*')
+        }
+    }
+
+    //  Make executable
+    //
+    ant.chmod( perm: '+x' )
+    {
+        fileset(dir: binpath)
+        {
+            include(name: '*')
+        }
+    }
+}
+
+//
+//  Copy ETL files to Path-OS
+//
+task copyETL
+uploadArchives.dependsOn copyETL
+
+copyETL <<
+{
+    String etlpath = pathospath + '/ETL'
+    println "Deploying files to " + etlpath
+    ant.copy( toDir: etlpath )
+    {
+        fileset(dir: 'src/ETL')
+        {
+            include(name: '**/*')
+        }
+    }
+}
+
+//
+//  Finds groovy here as well as dependent Jars
+//
+
+dependencies
+{ 
+    compile group: 'org.slf4j' ,name: 'slf4j-api', version: '1.6.1' //loaderonly USED TO BE 161
+    compile group: 'org.slf4j' ,name: 'slf4j-log4j12', version: '1.6.1' //loaderonly
+    compile group: 'org.slf4j' ,name: 'jcl-over-slf4j', version: '1.6.1'
+
+    compile group: 'org.jdesktop' ,name: 'appframework', version: '1.0.3' //loaderonly
+    compile group: 'cglib' ,name: 'cglib-nodep', version: '2.1_3' //loaderonly
+
+
+    compile group: 'commons-cli' ,name: 'commons-cli', version: '1.2' //loaderonly
+
+    compile group: 'commons-dbcp' ,name: 'commons-dbcp', version: '1.2.1' //loaderonly
+    compile group: 'commons-io' ,name: 'commons-io', version: '2.4' //loaderonly
+    compile group: 'commons-logging' ,name: 'commons-logging', version: '1.2' //loaderonly
+    compile group: 'commons-io' ,name: 'commons-io', version: '2.4' //loaderonly
+    compile group: 'commons-pool' ,name: 'commons-pool', version: '1.2' //loaderonly
+    compile group: 'dom4j' ,name: 'dom4j', version: '1.6.1' //loaderonly
+    compile group: 'org.grails' ,name: 'grails-bootstrap', version: '1.1.2' //loaderonly. why 112?
+    compile group: 'org.grails' ,name: 'grails-core', version: '1.1.2' //loaderonly. why 112?
+    compile group: 'org.grails' ,name: 'grails-gorm', version: '1.1.2' //loaderonly. why 112?
+    compile group: 'org.grails' ,name: 'grails-spring', version: '1.1.2' //loaderonly. why 112?
+    compile group: 'org.grails' ,name: 'grails-web', version: '1.1.2' //loaderonly. why 112?
+    compile group: 'org.codehaus.groovy' ,name: 'groovy-all', version: '2.1.9'
+    compile group: 'org.hibernate' ,name: 'hibernate-annotations', version: '3.3.0.ga' //loaderonly
+    compile group: 'org.hibernate' ,name: 'hibernate-commons-annotations', version: '3.3.0.ga' //loaderonly
+    compile group: 'org.hibernate' ,name: 'hibernate', version: '3.3.1.GA' //loaderonly
+    compile group: 'org.hsqldb' ,name: 'hsqldb', version: '2.2.8' //loaderonly
+    compile group: 'javassist' ,name: 'javassist', version: '3.4.GA' //loaderonly
+    compile group: 'javax.transaction' ,name: 'jta', version: '1.1' //loaderonly
+
+    compile group: 'javax.servlet' ,name: 'servlet-api', version: '2.5' //loaderonly
+    compile group: 'org.hibernate' ,name: 'ejb3-persistence', version: '3.3.2.Beta1' //loaderonly
+    compile group: 'org.springframework' ,name: 'spring', version: '2.5.6' //loaderonly
+
+    compile group: 'org.springframework.security' ,name: 'spring-security-core', version: '3.2.1.RELEASE' //loaderonly
+    compile group: 'org.springframework.security' ,name: 'spring-security-web', version: '3.2.1.RELEASE' //loaderonly
+
+    compile group: 'org.hsqldb' ,name: 'sqltool', version: '2.2.8' //loaderonly
+    compile group: 'org.swinglabs' ,name: 'swing-worker', version: '1.1' //loaderonly
+
+    compile files( fileTree(dir: '../PathosCore/build/libs', includes: ["PathosCore-all-${version}.jar"]))
+}
+
+//  Optional JAR settings
+//
+jar
+{
+    manifest
+    {
+        attributes 'Implementation-Title': 'PathOS Loader', 'Implementation-Version': version
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.10'
+}
+

@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+#	Set PathOS execution environment
+#
+#	01	kdoig	15-Oct-2013     Customised launcher for LoadPathOS
+#
+
+#set -x
+
+#   Set proxy for mutalyzer, if needed
+
+#export PATHOS_MUTALYZER_PROXY='' #todo set this depending on env eventually - only CCIA needs this at this stage 13-7-16
+
+if [[ ! -z  $PATHOS_MUTALYZER_PROXY  ]]; then
+     export PROXYSTRING="-Dpathos_mutalyzer_proxy=$PATHOS_MUTALYZER_PROXY"
+fi
+
+#
+#   Pipeline Home env variables
+#
+CMDPATH=`which $0`
+BINDIR=`dirname $CMDPATH`
+export PATHOS_HOME=`dirname $BINDIR`
+export NGS_HOME=`dirname $PATHOS_HOME`
+
+#
+#   Set file for pathos properties
+#
+export PATHOS_CONFIG=${PATHOS_CONFIG:-$PATHOS_HOME/etc/pathos.properties}
+
+if [ ! -s $PATHOS_CONFIG ]; then
+	echo "ERROR: $PATHOS_CONFIG doesn't exist !"
+	exit 1
+fi
+
+#
+#	Accumulate jar files
+#
+. SetLoaderEnv
+#
+#	Debug flag for logging
+#
+#DEBUG='-Dlog4j.debug'
+
+#
+#   Proxy settings for Internet connection (needed by Mutalyzer) seee pathos-1487 replaced by see line 10
+#   Don't set for Kens macbook Todo: Fix this for all local connections
+#
+#if [ `hostname` != 'MA34496.local' ];then
+#    export PROXY="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=3128"
+#fi
+
+#
+#	Export CLASSPATH and Log4j properties file
+#
+export LOGPROP="-Dlog4j.configuration=file:$PATHOS_HOME/lib/loader/loader.properties"
+export JAVA_OPTS="-XX:MaxPermSize=700m -Xmx4g"
+export CLASSPATH="-cp $cp"
+
+#
+#	Run Java
+#
+RUN=`basename $0`
+java $DEBUG $PROXYSTRING $LOGPROP $JAVA_OPTS $CLASSPATH org.petermac.pathos.loader.$RUN $*

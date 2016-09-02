@@ -1,0 +1,89 @@
+2014-08-31 09:26:42,317 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:26:42,402 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:26:43,876 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:26:44,883 [main] INFO  org.petermac.util.Vcf - Processed row 10001 of null
+2014-08-31 09:26:45,557 [main] INFO  org.petermac.util.Vcf - Processed row 20001 of null
+2014-08-31 09:26:46,393 [main] INFO  org.petermac.util.Vcf - Processed row 30001 of null
+2014-08-31 09:26:47,056 [main] INFO  org.petermac.util.Vcf - Processed row 40001 of null
+2014-08-31 09:26:47,705 [main] INFO  org.petermac.util.Vcf - Processed row 50001 of null
+2014-08-31 09:26:48,327 [main] INFO  org.petermac.util.Vcf - Processed row 60001 of null
+2014-08-31 09:26:48,941 [main] INFO  org.petermac.util.Vcf - Processed row 70001 of null
+2014-08-31 09:26:49,573 [main] INFO  org.petermac.util.Vcf - Processed row 80001 of null
+2014-08-31 09:26:50,213 [main] INFO  org.petermac.util.Vcf - Processed row 90001 of null
+2014-08-31 09:26:50,875 [main] INFO  org.petermac.util.Vcf - Processed row 100001 of null
+2014-08-31 09:26:55,209 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:44:54,377 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:44:55,467 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:44:56,503 [main] INFO  org.petermac.util.Vcf - Processed row 10001 of null
+2014-08-31 09:44:57,337 [main] INFO  org.petermac.util.Vcf - Processed row 20001 of null
+2014-08-31 09:44:57,960 [main] INFO  org.petermac.util.Vcf - Processed row 30001 of null
+2014-08-31 09:44:58,610 [main] INFO  org.petermac.util.Vcf - Processed row 40001 of null
+2014-08-31 09:44:59,261 [main] INFO  org.petermac.util.Vcf - Processed row 50001 of null
+2014-08-31 09:44:59,884 [main] INFO  org.petermac.util.Vcf - Processed row 60001 of null
+2014-08-31 09:45:00,522 [main] INFO  org.petermac.util.Vcf - Processed row 70001 of null
+2014-08-31 09:45:01,150 [main] INFO  org.petermac.util.Vcf - Processed row 80001 of null
+2014-08-31 09:45:01,760 [main] INFO  org.petermac.util.Vcf - Processed row 90001 of null
+2014-08-31 09:45:02,392 [main] INFO  org.petermac.util.Vcf - Processed row 100001 of null
+2014-08-31 09:45:06,450 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:06,451 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:07,544 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:08,553 [main] INFO  org.petermac.util.Vcf - Processed row 10001 of null
+2014-08-31 09:48:09,401 [main] INFO  org.petermac.util.Vcf - Processed row 20001 of null
+2014-08-31 09:48:10,015 [main] INFO  org.petermac.util.Vcf - Processed row 30001 of null
+2014-08-31 09:48:10,659 [main] INFO  org.petermac.util.Vcf - Processed row 40001 of null
+2014-08-31 09:48:11,309 [main] INFO  org.petermac.util.Vcf - Processed row 50001 of null
+2014-08-31 09:48:11,924 [main] INFO  org.petermac.util.Vcf - Processed row 60001 of null
+2014-08-31 09:48:12,555 [main] INFO  org.petermac.util.Vcf - Processed row 70001 of null
+2014-08-31 09:48:13,231 [main] INFO  org.petermac.util.Vcf - Processed row 80001 of null
+2014-08-31 09:48:13,854 [main] INFO  org.petermac.util.Vcf - Processed row 90001 of null
+2014-08-31 09:48:14,459 [main] INFO  org.petermac.util.Vcf - Processed row 100001 of null
+2014-08-31 09:48:23,420 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:38,808 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:38,871 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:39,975 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:48:40,984 [main] INFO  org.petermac.util.Vcf - Processed row 10001 of null
+2014-08-31 09:48:41,846 [main] INFO  org.petermac.util.Vcf - Processed row 20001 of null
+2014-08-31 09:48:42,473 [main] INFO  org.petermac.util.Vcf - Processed row 30001 of null
+2014-08-31 09:48:43,126 [main] INFO  org.petermac.util.Vcf - Processed row 40001 of null
+2014-08-31 09:48:43,764 [main] INFO  org.petermac.util.Vcf - Processed row 50001 of null
+2014-08-31 09:48:44,410 [main] INFO  org.petermac.util.Vcf - Processed row 60001 of null
+2014-08-31 09:48:45,039 [main] INFO  org.petermac.util.Vcf - Processed row 70001 of null
+2014-08-31 09:48:45,688 [main] INFO  org.petermac.util.Vcf - Processed row 80001 of null
+2014-08-31 09:48:46,335 [main] INFO  org.petermac.util.Vcf - Processed row 90001 of null
+2014-08-31 09:48:46,982 [main] INFO  org.petermac.util.Vcf - Processed row 100001 of null
+2014-08-31 09:48:51,080 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 09:53:22,639 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 0 should be 52
+2014-08-31 09:55:48,005 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 0 should be 52
+2014-08-31 09:57:11,967 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 1 should be 52
+2014-08-31 09:58:29,534 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 1 should be 52
+2014-08-31 09:59:11,466 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 1 should be 52
+2014-08-31 10:04:53,654 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 53 should be 52
+2014-08-31 11:02:14,518 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 1 should be 52
+2014-08-31 11:04:00,910 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 1 should be 52
+2014-08-31 11:04:57,664 [main] ERROR org.petermac.util.Tsv - Incorrect number of columns to add 1 should be 52
+2014-08-31 11:07:35,425 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:07:35,489 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:07:36,518 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:07:37,508 [main] INFO  org.petermac.util.Vcf - Processed row 10001 of null
+2014-08-31 11:07:38,343 [main] INFO  org.petermac.util.Vcf - Processed row 20001 of null
+2014-08-31 11:07:38,956 [main] INFO  org.petermac.util.Vcf - Processed row 30001 of null
+2014-08-31 11:07:39,590 [main] INFO  org.petermac.util.Vcf - Processed row 40001 of null
+2014-08-31 11:07:40,249 [main] INFO  org.petermac.util.Vcf - Processed row 50001 of null
+2014-08-31 11:07:40,862 [main] INFO  org.petermac.util.Vcf - Processed row 60001 of null
+2014-08-31 11:07:41,489 [main] INFO  org.petermac.util.Vcf - Processed row 70001 of null
+2014-08-31 11:07:42,082 [main] INFO  org.petermac.util.Vcf - Processed row 80001 of null
+2014-08-31 11:07:42,710 [main] INFO  org.petermac.util.Vcf - Processed row 90001 of null
+2014-08-31 11:07:43,337 [main] INFO  org.petermac.util.Vcf - Processed row 100001 of null
+2014-08-31 11:07:47,585 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:14:48,033 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:14:48,097 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:17:28,036 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:17:28,099 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:37:01,190 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 11:37:01,255 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 14:08:38,772 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 14:08:38,839 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 17:13:25,476 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 17:13:25,568 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 17:25:47,149 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null
+2014-08-31 17:26:49,442 [main] INFO  org.petermac.util.Vcf - Processed row 1 of null

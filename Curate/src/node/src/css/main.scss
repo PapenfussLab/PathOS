@@ -1,0 +1,1583 @@
+/***
+ *      PathOS stylesheet
+ *
+ *      Hi! This is the SCSS file for PathOS, an in-house app for the Peter MacCallum Cancer Centre
+ *
+ *      You compile SCSS into CSS using a processor of some sort. I use gulp.
+ *
+ *      This file:
+ *        1) imports a bunch of modern web best-practice stuff,
+ *        2) declares the fonts and colours used by PathOS,
+ *        3) declares some mixins (functions) that help write more CSS,
+ *        4) houses the main.css that is applied to all PathOS pages
+ *        5) and also the css that is used on individual pages
+ *
+ *      My gulp script compiles this css into:
+ *        Curate/web-app/dist/css/main.css
+ *      (Grails serves web-app as the public folder)
+ *
+ *      A similar thing happens with main.js
+ *
+ *      Cheers,
+ *      David Ma (DKGM, @Frostickle)
+ *      19-August-2016
+ */
+
+$font-family-base: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, sans-serif;
+
+
+// Bower
+@import "normalize.scss";
+@import "bourbon.scss";
+
+@import "bootstrap/variables";
+@import "bootstrap/mixins";
+@import "bootstrap/scaffolding";
+@import "bootstrap/grid";
+
+
+$fa-font-path: "/PathOS/dist/fonts";
+@import "font-awesome.scss";
+
+
+// Variables!
+
+$transition: all 0.3s ease;
+$sidebar-width: 300px;
+$nav-height: 100px;
+
+$primary-color: #07447C;
+$sidebar-color: darken( $primary-color, 10% );
+$link-color: #4478ac;
+
+
+$PatSample:			#4DC3FD;
+$PatAssay:			#BC85E6;
+$Pubmed:			#DF7BAA;
+$Evidence:			#F68D37;
+$Patient:			#B27636;
+$SeqVariant:		#8AB734;
+$SeqSample:			#14A88E;
+$Seqrun:			#258BB5;
+$SeqCnv:			#6568B4;
+$SeqSv:				#A4506C;
+$RefGene:			#67402C;
+$Transcript:		#3C6526;
+$RefExon:			#084558;
+$CurVariant:		#BC2E11;
+$neutral:			#eee;
+
+
+// Mixins!
+
+// Table colors
+@mixin colordot($theme) {
+	&:before {
+			background: $theme;
+			width: 10px;
+			height: 10px;
+			content: "";
+			display: inline-block;
+			border-radius: 20px;
+			margin: 0px 2px;
+	}
+}
+
+
+@mixin colorsearch($theme) {
+
+	i.document-icon {
+		display: none;
+		background: lighten($theme, 25%);
+		padding: 5px;
+		margin-right: 5px;
+		border: 2px solid $theme;
+	}
+
+	label {
+		cursor: pointer;
+		display: inline-block;
+		color: $theme;
+		position: relative;
+		padding: 1px 3px;
+		border-top-left-radius: 4px;
+		border-bottom-left-radius: 4px;
+		margin-right: 15px;
+		margin-bottom: 2px;
+		text-decoration: none;
+
+		background-color: grey;
+		&:hover {
+			background-color: lighten($neutral, 15%);
+			&:after {
+				border-color: transparent transparent transparent lighten($neutral, 15%);
+			}
+		}
+		&:after {
+			border: 10px solid;
+			border-color: transparent transparent transparent grey;
+			position: absolute;
+			right: -20px;
+			top: -0.5px;
+			content: "";
+		}
+		&.disabled {
+			cursor: not-allowed;
+			background-color: lighten($neutral, 25%);
+			&:after {
+				border-color: transparent transparent transparent lighten($neutral, 25%);
+			}
+		}
+		&.isAuto {
+			border-radius: 4px;
+			margin-right: 5px;
+			&:after {
+				border: 0;
+				border-color: transparent;
+			}
+		}
+	}
+
+	:checked + label {
+		background-color: $neutral;
+		&:after {
+			border-color: transparent transparent transparent $neutral;
+		}
+		&:hover {
+			background-color: lighten($neutral, 15%);
+			&:after {
+				border-color: transparent transparent transparent lighten($neutral, 15%);
+			}
+		}
+		&.disabled {
+			cursor: not-allowed;
+			background-color: lighten($neutral, 25%);
+			&:after {
+				border-color: transparent transparent transparent lighten($neutral, 25%);
+			}
+
+		}
+	}
+
+
+	// The way KDD likes it:
+
+	&.resultbox {
+
+		background: linear-gradient(0deg, $theme, $theme);
+		background-size: 3px 100%;
+		background-repeat: no-repeat;
+		background-color: #fff;
+		&:hover {
+			background-color: #f4f4f4;
+		}
+	}
+
+	&.legend-box td:first-child {
+		background: linear-gradient(0deg, $theme, $theme);
+		background-size: 3px 100%;
+		background-repeat: no-repeat;
+	}
+	&.legend-box {
+		background-color: #fff;
+		&:hover {
+			background-color: #f4f4f4;
+		}
+	}
+}
+
+
+
+// Here is stuff important for all pages:
+
+// I really don't like declaring the font-family here because it makes inspecting things messy
+// But I'm not sure if it is 100% not needed...
+// Let's comment it out for now and if nothing breaks, delete it
+// -DKGM 19 August 2016
+//html {
+//font-family: $font-stack;
+//}
+a {
+	text-decoration: underline;
+}
+h1 {
+	color: $primary-color;
+	font-weight: normal;
+	font-size: 1.25em;
+	margin: 0.8em 0 0.3em 0;
+}
+
+.watermark {
+	margin: 0;
+	font-weight: 500;
+	font-family: Courier, san-serif;
+	color: rgba(0,45,86,0.7);
+	position: fixed;
+	font-size: 12px;
+	top: -3px;
+	right: 1px;
+	z-index: 999999;
+	text-anchor: right;
+}
+
+.igv-popoverValue {
+	line-height: 1em;
+}
+
+body {
+	background: #E9EBEE;
+	box-shadow: none;
+
+	// This overlay is so we can show module settings or something.
+	// It isn't used yet.
+	#overlay {
+		width: 100%;
+		height: 100%;
+		background: rgba(0,0,0,0.5);
+		z-index: 999999;
+		position: fixed;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		left: 0px;
+		a i {
+			position: relative;
+			top: 5px;
+			right: 5px;
+			float: right;
+		}
+		#moduleMenu {
+			width: 60%;
+			min-height: 100px;
+			margin: 200px auto;
+		}
+		#mmHeader {
+			text-align: center;
+		}
+	}
+}
+
+.fb-box {
+	border: 1px solid;
+	border-color: #e5e6e9 #dfe0e4 #d0d1d5;
+	border-radius: 3px;
+	margin-bottom: 10px;
+	background: #fff;
+}
+
+.loading_logo {
+	width: 200px;
+}
+
+.fade {
+	opacity: 0.65;
+}
+
+
+// Weeee we have an animated logo for when things load!
+.animatedLogo {
+	rect {
+		fill: #07447c;
+		rx:15;
+		ry:15;
+	}
+
+	.logoTitle {
+		font-size: 60px;
+		fill: white;
+		font-family: Arial Rounded MT Bold, Helvetica Rounded, Arial, sans-serif;
+		letter-spacing: -1px;
+	}
+	.logoSubtitle {
+		font-size: 32px;
+		letter-spacing: 7px;
+		fill: white;
+		font-family: Arial Rounded MT Bold, Helvetica Rounded, Arial, sans-serif;
+	}
+
+	.animatedLogoLine {
+		fill: none;
+		stroke: white;
+		stroke-width: 12px;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.shadowLogoLine {
+		fill: none;
+		stroke: #505350;
+		stroke-width: 12px;
+	}
+}
+
+
+
+// I'm calling ours .navbar-default because too many other css packages try to style .navbar
+// So it could be very easy to accidentally overwrite our in-house css with a vendor's css
+
+.navbar-default {
+	z-index: 1001;
+	position: fixed;
+	top: 0px;
+	width: 100%;
+
+	background-color: $primary-color;
+	color: #fff;
+	height: $nav-height;
+
+	.navbar-header {
+		display: flex;
+	}
+
+	@include transition( $transition );
+	#top-left {
+		order: 1;
+		@include transition( $transition );
+		padding: 20px 6px;
+		a:nth-last-child(n+2) {
+			padding-right: 10px;
+		}
+		.navlogo {
+			@include transition( $transition );
+			height: 60px;
+		}
+	}
+
+
+	#top-middle {
+		order: 2;
+		flex-grow: 1;
+		@include transition( $transition );
+		padding: 28px 5px;
+
+		#searchHeader {
+			color: #000;
+			font-size: 18px;
+			form {
+				@include transition( $transition );
+				input {
+					width: 100%;
+				}
+			}
+		}
+	}
+	#top-right {
+		order: 3;
+		padding: 10px 10px;
+		p {
+			@include transition( $transition );
+		}
+		#loginHeader {
+			font-size: 19px;
+			text-align: right;
+			line-height: 1em;
+			color: #fff;
+			color: white;
+			a:link, a:visited, a:hover {
+					color: $link-color;
+			}
+			#loginButton {
+
+			}
+		}
+	}
+	&.shrink-nav {
+		height: 40px;
+		#top-left {
+			padding: 5px 5px;
+			height: 40px;
+			.navlogo {
+				height: 30px;
+			}
+			#petermac_logo {
+				padding-bottom: 2px;
+			}
+		}
+		#top-middle {
+			padding: 5px;
+			height: 40px;
+		}
+		#top-right {
+			padding: 0px 10px;
+			height: 40px;
+			#loginHeader {
+				p {
+					margin: 10px 0;
+				}
+				br {
+					display: none;
+				}
+				a {
+					padding-left: 8px;
+				}
+			}
+		}
+	}
+}
+
+
+
+// This is for the wrapper
+// With the sidebar visible
+$sidebar-easing: 300px;
+
+#wrapper {
+	padding-left: $sidebar-width;
+	@include transition( $transition );
+	&.toggled { // Toggled means it is hidden
+		padding-left: 0;
+		#sidebar-wrapper {
+			width: 0;
+		}
+		#page-content-wrapper,
+		.module {
+			position: relative;
+			margin-right: 0;
+		}
+		#sidebar-footer {
+			left: -300px;
+		}
+		#sidebar-toggle {
+			margin-left: 0px;
+			i {
+				border-bottom-right-radius: 10px;
+				border-bottom-left-radius: 0px;
+				&.pm-sidebar-chevron:before {
+					content:"\f054";
+				}
+			}
+		}
+	}
+
+	#sidebar-footer {
+		@include transition( $transition );
+		background: $sidebar-color;
+		z-index: 1002;
+		color: #fff;
+		font-size: 0.8em;
+		padding: 10px;
+		width: $sidebar-width;
+
+		position: fixed;
+		left: 0px;
+		bottom: 0;
+		a {
+			color: #fff;
+		}
+		span:first-child {
+			float: left;
+		}
+		span:last-child {
+			float: right;
+		}
+	}
+
+	#sidebar-toggle {
+		margin-left: -23px;
+		@include transition( $transition );
+		z-index: 1001;
+		position: fixed;
+		top: 100px;
+		cursor: pointer;
+		border-left-color: white;
+
+		i {
+			@include transition( $transition );
+			border-bottom-right-radius: 0px;
+			border-bottom-left-radius: 10px;
+			padding: 0.2em;
+			color: white;
+			position: fixed;
+			padding-top: 12px;
+			height: 40px;
+			width: 20px;
+			background: $sidebar-color;
+			text-align: center;
+			&.pm-sidebar-chevron:before {
+				content: "\f053";
+			}
+		}
+	}
+
+	//margin-top: $nav-height;
+	#page-content-wrapper {
+		margin-top: 100px;
+		width: 100%;
+		overflow: scroll;
+		position: relative;
+	}
+
+	#sidebar-wrapper {
+		z-index: 1000;
+		position: fixed;
+		top: 100px;
+		left: $sidebar-width;
+		width: $sidebar-width;
+		height: 100%;
+		margin-left: -$sidebar-width;
+		overflow-y: auto;
+		&::-webkit-scrollbar { width: 0px !important }
+		background: $sidebar-color;
+		@include transition( $transition );
+	}
+
+	&.shrink-nav {
+		//margin-top: 40px;
+		#sidebar-wrapper {
+			top: 40px;
+		}
+		#sidebar-toggle {
+			top: 40px;
+		}
+	}
+}
+
+
+#wrapper .container {
+	@include container-fixed;
+
+	#legend {
+		width: 220px;
+		padding: 0px 0px;
+	}
+
+	@media (min-width: $container-sm + $sidebar-easing) {
+		width: $container-sm;
+		#legend {
+			width: 220px;
+		}
+	}
+	@media (min-width: $container-md + $sidebar-easing) {
+		width: $container-md;
+		#legend {
+			width: 293px;
+		}
+	}
+	@media (min-width: $container-lg + $sidebar-easing) {
+		width: $container-lg;
+		#legend {
+			width: 360px;
+		}
+	}
+}
+
+// This is the wrapper with the sidebar hidden
+#wrapper.toggled .container {
+	@include container-fixed;
+
+	#legend {
+		width: 220px;
+		padding: 0px 0px;
+	}
+	@media (min-width: $container-sm) {
+		width: $container-sm;
+		#legend {
+			width: 220px;
+		}
+	}
+	@media (min-width: $container-md) {
+		width: $container-md;
+		#legend {
+			width: 293px;
+		}
+	}
+	@media (min-width: $container-lg) {
+		width: $container-lg;
+		#legend {
+			width: 360px;
+		}
+	}
+}
+
+// The sidebar has a bunch of stuff too
+
+#sidebar {
+	margin-bottom: 120px;
+	.sidebar-module {
+		width: $sidebar-width - 14px;
+		color: #999;
+		margin-top: 0px;
+		padding: 15px;
+		text-align: justify;
+		h4 {
+			margin: 0;
+			color: #eee;
+		}
+	}
+
+	.module {
+		a {
+			text-decoration: none;
+		}
+		&#tags {
+			.content table:first-child thead tr th{
+				background: #fff2a0;
+			}
+			#tags_edit_button span {
+				display: none;
+			}
+			&.editing {
+				#tags_edit_button {
+					width: 70px;
+					span {
+						display: inline-block;
+					}
+				}
+				.tagdiv:not(.isAuto) {
+					:before {
+						font: normal normal normal 14px/1 FontAwesome;
+						padding-right: 2px;
+						content: '\f057';
+					}
+					.tooltip {
+						display: none;
+					}
+				}
+			}
+
+			.tags_field {
+				cursor: text;
+			}
+
+			textarea {
+				border: none;
+				outline: none;
+				height: 23px;
+				resize: none;
+				min-width: 30%;
+				max-width: $sidebar-width;
+			}
+			.fb-box {
+				padding: 2px;
+			}
+
+		}
+
+
+
+
+
+		&.hidden {
+			.content {
+				display: none;
+			}
+			.filler {
+				display: block;
+			}
+		}
+
+		.moduletitle {
+			max-width: 100%;
+			td {
+				width: 15px;
+				&.modulelabel {
+					width: auto;
+				}
+			}
+			h1 {
+				text-align: left;
+				padding-top: 3px;
+			}
+			i {
+				color: $primary-color;
+				padding-right: 4px;
+			}
+			.pathos-close {
+
+			}
+		}
+		background-color: #eee;
+		margin: 10px 3px;
+		padding: 0px 3px;
+		width: $sidebar-width - 14px;
+		border-radius: 3px;
+		min-height: 0px;
+		transition: $transition;
+		list-style: none;
+		h1 {
+			text-transform: uppercase;
+			font-size: 1.1em;
+			margin: 0 0 0.3em;
+		}
+		ul {
+			padding-right: 15px;
+			font-size: 0.9em;
+			margin: 0;
+		}
+		a+ul {
+			transition: $transition;
+			position: absolute;
+			overflow: hidden;
+		}
+
+
+		table {
+			width: 100%;
+			td {
+				padding: 3px 0px;
+				line-height: 1em;
+				word-wrap: break-word;
+			}
+			tr:nth-child(even) {
+				background-color: #ddd;
+			}
+			td, th {
+				text-align: center;
+				padding: 2px 0;
+			}
+			td:first-child,
+			th:first-child {
+				text-align: left;
+				max-width: 250px;
+			}
+
+			td:last-child,
+			th:last-child {
+				text-align: right;
+			}
+			margin-bottom: 0;
+		}
+
+		&#tables table.content td:first-child a,
+		&#history .content table td:first-child a {
+			@include colordot(rgba(0,0,0,0));
+			&.PatSample {
+				@include colordot($PatSample);
+			}
+			&.PatAssay {
+				@include colordot($PatAssay);
+			}
+			&.Pubmed {
+				@include colordot($Pubmed);
+			}
+			&.Evidence {
+				@include colordot($Evidence);
+			}
+			&.Patient {
+				@include colordot($Patient);
+			}
+			&.SeqVariant {
+				@include colordot($SeqVariant);
+			}
+			&.SeqSample {
+				@include colordot($SeqSample);
+			}
+			&.Seqrun {
+				@include colordot($Seqrun);
+			}
+			&.SeqCnv {
+				@include colordot($SeqCnv);
+			}
+			&.SeqSv {
+				@include colordot($SeqSv);
+			}
+			&.RefGene {
+				@include colordot($RefGene);
+			}
+			&.Transcript {
+				@include colordot($Transcript);
+			}
+			&.RefExon {
+				@include colordot($RefExon);
+			}
+			&.CurVariant {
+				@include colordot($CurVariant);
+			}
+			&.neutral {
+				@include colordot($neutral);
+			}
+		}
+
+		&#history .content table {
+			span {
+				display: none;
+			}
+			span:nth-child(11) {
+				display: block;
+			}
+		}
+
+		&:last-child {
+			margin-bottom: 140px;
+		}
+	}
+
+	.sidebar-table {
+		width: 100%;
+		th:first-child {
+			text-align: left;
+		}
+	}
+
+
+}
+
+#pathos-footer {
+	z-index: 1001;
+	position: fixed;
+	bottom: 0px;
+	width: 100%;
+	overflow: scroll;
+	background-color: #fff;
+	height: 0px;
+
+	@include transition( $transition );
+
+	&.footerActive {
+		height: 300px;
+	}
+
+	#igvDiv {
+		margin-top: 6px;
+	}
+	#resizer {
+		z-index: 1010;
+		position: fixed;
+		width: 100%;
+		height: 6px;
+		background-color: $primary-color;
+		cursor: ns-resize;
+	}
+	#footer-message {
+		width: 600px;
+		margin: 50px auto;
+		text-align: center;
+	}
+}
+
+.footer-filler {
+	height: 300px;
+	display: none;
+	&.footerActive {
+		display: block;
+	}
+}
+
+#footer-toggle {
+	&.footerActive {
+		bottom: 300px;
+		i {
+			border-top-right-radius: 0px;
+			border-top-left-radius: 0px;
+			border-bottom-right-radius: 10px;
+			border-bottom-left-radius: 10px;
+			&.pm-sidebar-chevron:before {
+				content: "\f078";
+			}
+		}
+	}
+
+	@include transition( $transition );
+	z-index: 1002;
+	position: fixed;
+	bottom: 20px;
+	right: 100px;
+	cursor: pointer;
+	border-left-color: white;
+
+	i {
+		@include transition( $transition );
+		border-top-right-radius: 10px;
+		border-top-left-radius: 10px;
+		border-bottom-right-radius: 0px;
+		border-bottom-left-radius: 0px;
+		padding: 0.2em;
+		color: white;
+		position: fixed;
+		padding-top: 4px;
+		//height: 20px;
+		width: 40px;
+		background: $primary-color;
+		text-align: center;
+		&.pm-sidebar-chevron:before {
+			content: "\f077";
+		}
+	}
+}
+
+
+// TAGS!
+// These are defined first, then might need to be adjusted on different pages.
+
+.tagdiv {
+	float: left;
+	cursor: pointer;
+	display: inline-block;
+	color: black;
+	padding: 1px 3px;
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
+	margin-bottom: 2px;
+	text-decoration: none;
+	margin-right: 15px;
+	position: static;
+	background-color: lightgrey;
+	&:after {
+		border: 11.5px solid;
+		border-color: transparent transparent transparent lightgrey;
+		position: absolute;
+		margin-top: -1.5px;
+		margin-left: 3px;
+		z-index: 100;
+		content: "";
+	}
+	&:hover {
+		background-color: darken($neutral, 15%);
+		&:after {
+			border-color: transparent transparent transparent darken($neutral, 15%);
+		}
+		.tooltip {
+			display: block;
+		}
+	}
+	&.isAuto {
+		border-radius: 4px;
+		margin-right: 5px;
+		&:after {
+			border: 0;
+			border-color: transparent;
+		}
+	}
+	&.deleteFlag:not(.isAuto) {
+		&.tagdiv:before {
+			font: normal normal normal 14px/1 FontAwesome;
+			padding-right: 2px;
+			content: '\f057';
+		}
+	}
+
+	.tooltip {
+		z-index: 200;
+		display: none;
+		min-width: 200px;
+		position: absolute;
+		padding: 5px;
+		button {
+			margin-right: 5px;
+			margin-bottom: 5px;
+		}
+		i {
+			float: right;
+			padding: 5px;
+			cursor: pointer;
+			display: none;
+		}
+		p {
+			margin: 0;
+		}
+		input {
+			display: none;
+		}
+		&.dismiss {
+			display: block;
+			.fa-check {
+				display: inherit;
+			}
+		}
+		&.edit {
+			display: block;
+			p {
+				display: none;
+			}
+			.fa-trash, .fa-close, input {
+				display: inherit;
+			}
+		}
+	}
+}
+
+
+#showTags {
+	#tags_edit_button span {
+		display: none;
+	}
+	&.editing {
+		#tags_edit_button {
+			width: 70px;
+			span {
+				display: inline-block;
+			}
+		}
+		.tagdiv:not(.isAuto) {
+			:before {
+				font: normal normal normal 14px/1 FontAwesome;
+				padding-right: 2px;
+				content: '\f057';
+			}
+			.tooltip {
+				display: none;
+			}
+		}
+	}
+
+	span {
+		font-size: 14px;
+	}
+	.tags_field {
+		cursor: text;
+	}
+
+	#showTagTextArea {
+		border: none;
+		outline: none;
+		height: 23px;
+		resize: none;
+		background: rgba(0,0,0,0);
+	}
+	.fb-box {
+		max-width: 400px;
+		padding: 2px;
+	}
+}
+
+
+
+// Here we have stuff for individual pages:
+
+// This is for the layout/register.gsp
+#loginForm .loginfield {
+	color: black;
+}
+
+
+// The search page, duh.
+// search/index.gsp
+#searchResultsPage > form {
+	padding: 5px 0px;
+
+	input {
+		margin: 0;
+
+		width: 100%;
+		border: 3px solid $primary-color;
+		padding: 10px;
+	}
+}
+
+#searchBody > form > input {
+	margin-top: 10%;
+	margin-left: 25%;
+	margin-bottom: 5%;
+	width: 50%;
+	border-width: 3px;
+	border-style: solid;
+	border-color: lighten($primary-color, 2%) $primary-color darken($primary-color, 2%);
+	padding: 10px;
+	border-radius: 3px;
+}
+
+
+#search-page {
+	h1, h2, h3, h4, h5, p, ul, ol {
+		margin: 0;
+	}
+	#search-results-heading {
+		h2 {
+			margin-bottom: 0px;
+		}
+		p {
+			text-align: center;
+
+			&.warning {
+				font-weight: bold;
+				text-align: justify;
+				padding: 20px;
+				font-size: 20px;
+				line-height: 1em;
+				color: #ae2334;
+				border: 1px solid;
+				margin: 10px auto;
+				width: 400px;
+			}
+		}
+	}
+	.section-heading {
+		font-size: 3em;
+		text-align: center;
+		//margin: auto;
+	}
+	.search-div {
+		transition: all 0.5s ease-in-out;
+	}
+
+	.legend-heading {
+		position: fixed;
+		right: 1%;
+	}
+
+	#loading_box {
+		padding: 10px;
+		text-align: center;
+	}
+
+	#legend {
+		#legend_options {
+			text-align: right;
+			position: absolute;
+			right: 30px;
+			top: 10px;
+			z-index: 250;
+			padding: 0;
+
+			li:first-child {
+				font-size: 1.5em;
+			}
+			li:nth-child(n+2) {
+				font-size: 1em;
+				background: white;
+				border: 1px black solid;
+				border-bottom: 0;
+				padding: 3px;
+				display: none;
+
+				:hover {
+					color: #2196f3;
+				}
+
+				label {
+					cursor: pointer;
+				}
+
+				input[type=checkbox] {
+					float: right;
+					margin: 4px;
+					cursor: pointer;
+				}
+
+				input[type=checkbox]:checked + label {
+					color: #2196f3;
+				}
+
+
+			}
+			li:nth-child(2) {
+				border-top-right-radius: 2px;
+				border-top-left-radius: 2px;
+			}
+			li:last-child {
+				border-bottom-right-radius: 2px;
+				border-bottom-left-radius: 2px;
+				border-bottom: 1px black solid;
+			}
+			&:hover {
+				.fa-cog {
+					-webkit-animation: fa-spin 2s infinite linear;
+					-moz-animation: fa-spin 2s infinite linear;
+					-o-animation: fa-spin 2s infinite linear;
+					animation: fa-spin 2s infinite linear;
+				}
+				li {
+					display: block;
+				}
+			}
+		}
+
+
+
+		h1 {
+			padding: 10px;
+			text-align: center;
+			font-size: 1.5em;
+		}
+		p {
+			margin-bottom: 5px;
+			:not(:last-child) {
+				margin-bottom: 10px;
+			}
+		}
+
+		ul {
+			list-style: none;
+		}
+		.legend-box {
+			td {
+				padding: 10px;
+			}
+			td:last-child {
+				text-align: right;
+			}
+		}
+		table {
+			margin: auto;
+		}
+
+		td#classifications {
+			line-height: 1em;
+			div {
+				display: block;
+				content: "asdf";
+				width: 30px;
+				height: 30px;
+				background-color: red;
+				input {
+					visibility: hidden;
+				}
+			}
+		}
+
+	}
+
+	.pubmed {
+		@include colorsearch($Pubmed);
+	}
+	.seqSample {
+		@include colorsearch($SeqSample);
+	}
+	.curVariant {
+		@include colorsearch($CurVariant);
+	}
+	.seqrun {
+		@include colorsearch($Seqrun);
+	}
+	.patSample {
+		@include colorsearch($PatSample);
+	}
+	.patient {
+		@include colorsearch($Patient);
+	}
+	.seqVariant {
+		@include colorsearch($SeqVariant);
+	}
+
+	#options button {
+		width: 150px;
+		&.selected {
+			font-weight: 900;
+		}
+	}
+
+	.resultbox {
+
+		.tooltip {
+			bottom: 23px;
+			margin-left: -4px;
+		}
+		.anchor {
+			display: block;
+			margin-top: -120px;
+			width: 1px;
+			height: 120px;
+			visibility: hidden;
+		}
+
+
+
+		&.hidden {
+			display: none;
+		}
+		background: #fff;
+
+		position: relative;
+		padding: 10px;
+		overflow: hidden;
+		&.expandable {
+			max-height: 180px;
+			.expando {
+				height: 40px;
+				width: 100%;
+				position: absolute;
+				top: 140px;
+				left: 0px;
+				display: block;
+				cursor: pointer;
+				background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+			}
+			&.expanded {
+				max-height: inherit;
+				.expando {
+					display: none;
+				}
+			}
+		}
+		i {
+			padding-right: 5px;
+		}
+		h1 {
+			font-size: 1.5em;
+		}
+		h4 {
+			margin-bottom: 3px;
+		}
+
+
+		span.bold.term {
+			font-weight: 900;
+		}
+
+		span.highlight.term {
+			background-color: yellow;
+			padding: 2px;
+			margin: -2px;
+		}
+
+		.bold {
+			font-weight: 900;
+		}
+
+		th {
+			text-align: left;
+		}
+
+		&.patient-samples {
+			.fb-box {
+				padding: 10px;
+			}
+			table {
+				width: 600px;
+			}
+			th {
+				text-align: left;
+			}
+		}
+
+		&.sequenced-samples {
+			.block {
+				padding: 10px;
+				th {
+					text-align: left;
+				}
+				table {
+					width: 600px;
+					line-height: 1.5;
+				}
+			}
+
+		}
+
+		.block {
+			.C1 {
+				color: #000;
+				padding: 2px;
+				background-color: #fffdc1;
+			}
+			.C2 {
+				color: #000;
+				padding: 2px;
+				background-color: #f4d374;
+			}
+			.C3 {
+				color: #000;
+				padding: 2px;
+				background-color: #e89e53;
+			}
+			.C4 {
+				color: #fff;
+				padding: 2px;
+				background-color: #d65430;
+			}
+			.C5 {
+				color: #fff;
+				padding: 2px;
+				background-color: #ae2334;
+			}
+		}
+
+	}
+
+	.flag {
+		color: red;
+		&.unknown {
+			color: #FFC107;
+		}
+		&.passed {
+			color: #4caf50;
+		}
+	}
+
+	.dev {
+		display: none;
+		&.show {
+			display: inline;
+		}
+	}
+
+}
+
+
+
+// This is for the home page, index.gsp
+#home-page {
+
+	.AuthNotSet {
+		background: #eeee90;
+	}
+	.AuthPass {
+		background: lightgreen;
+
+	}
+	.AuthFail {
+		background: lightcoral;
+	}
+
+// Ken would like this version to match other colours used in PathOS, but I think they're too harsh. -DKGM
+//.AuthNotSet {
+//	background: #afaf00;
+//	color: white;
+//}
+//.AuthPass {
+//	background: #00af00;
+//	color: white;
+//
+//}
+//.AuthFail {
+//	background: #af0000;
+//	color: white;
+//}
+
+	// This stuff is adapted from easygrid by DKGM, it describes tables:
+	table {
+		border-top: 1px solid #DFDFDF;
+		border-collapse: collapse;
+		width: 100%;
+		margin-bottom: 1em;
+		tr {
+			border: 0;
+		}
+		td, th {
+			padding: 1px 5px;
+		}
+		th {
+			background-color: #efefef;
+			background: linear-gradient(180deg, #ffffff, #eaeaea);
+			color: #666666;
+			font-weight: bold;
+			line-height: 1.2em;
+			padding: 0.2em 0.6em;
+		}
+		thead th {
+			white-space: nowrap;
+		}
+		tr:nth-child(even) {
+			background: #e9e9e9;
+		}
+		th:hover, tr:hover {
+			background: #98dbff;
+		}
+	}
+}
+
+
+
+#show-seqrun {
+	a.disabled {
+		cursor: not-allowed;
+	}
+	div.GCdiv {
+		width: 1000px;
+		height: 300px;
+	}
+	h2, h3 {
+		margin-top: 15px;
+	}
+	#qualityControlCharts {
+		display: none;
+		&.show {
+			display: inherit;
+		}
+	}
+}
+
+
+
+// This is for the new SeqSample page, it has an svlist on it.
+#svListInfo {
+	font-size:0.8em;
+
+	#seqrunRelations {
+		list-style: none;
+
+		#seqRelationsToggle {
+			display: none;
+		}
+		li:nth-child(n+6) {
+			display: none;
+			&#seqRelationsToggle {
+				display: inherit;
+			}
+		}
+
+		&.showAll li {
+			display: inherit;
+			&#seqRelationsToggle {
+				display: none;
+			}
+		}
+	}
+
+}
+
+
+
+// This is to fix a jquery-ui thing.
+
+#ui-id-1 {
+	z-index: 9999;
+}
+
+
+
+
+// Hacked together stuff to overwrite JQgrid loading box
+// Please remove later
+// DKGM 01-09-2016
+
+.ui-jqgrid .loading.ui-state-default.ui-state-active {
+	left: 300px;
+	width: 200px;
+	padding: 5px;
+	&::after {
+		content: url(/PathOS/dist/img/pathos_logo_animated.svg)
+	}
+}
+
+
+
+// Hacked together stuff to overwrite JQgrid and easygrid navboxes
+// Please remove when we upgrade to DataTables
+// PATHOS-1617
+// DKGM 29-08-2016
+
+#viewmodallVariants_table, #viewmodcuration_table, #searchmodfbox_curation_table {
+	font-size: 11px !important;
+	height: 80% !important;
+	min-width: 700px !important;
+	td {
+		padding: 2px;
+	}
+	select, input, td {
+		font-size: 11px;
+	}
+
+	.ui-jqdialog-content.ui-widget-content {
+		height: 90%;
+		div {
+			height: 100%;
+		}
+		.FormGrid {
+			height: 100% !important;
+		}
+	}
+}
+
+#viewmodpubmed_table, #viewmodtranscript_table, #viewmodseqsample_table, #viewmodvariant_table, #viewmodseqrun_table, #viewmodallVariants_table, #viewmodcuration_table {
+	min-width: 600px;
+	tr:nth-child(odd) {
+		background: rgba(0,0,0,0.1) !important;
+	}
+	tr {
+		td {
+			border: 1px dotted black !important;
+			&:first-child {
+				min-width: 160px !important;
+				background: rgba(0, 0, 0, 0.1);
+			}
+			&:last-child {
+				min-width: 160px !important;
+			}
+		}
+	}
+}
+#viewmodpubmed_table tr td:first-child {
+	width: 160px !important;
+}
+
+

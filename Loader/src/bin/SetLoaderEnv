@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+#	Set PathOS execution environment
+#
+
+#pc=`ls -1 $PATHOS_HOME/lib/PathosCore-all-*.jar | sort -r | head -n 1`
+#if [ ! -r "$pc" ]
+#then
+#	echo "Couldn't find PathosCore jar file: $pc" 1>&2
+#	exit 1
+#fi
+
+ld=`ls -1 $PATHOS_HOME/lib/loader/Loader-all-*.jar | sort -r | head -n 1`
+if [ ! -r "$ld" ]
+then
+	echo "Couldn't find Loader file: $ld" 1>&2
+	exit 1
+fi
+
+#export cp="$pc:$ld"
+export cp="$ld"

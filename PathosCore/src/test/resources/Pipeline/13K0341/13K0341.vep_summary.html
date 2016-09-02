@@ -1,0 +1,220 @@
+<html>
+<head>
+  <title>VEP summary</title>
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    google.load('visualization', '1', {packages: ['corechart','table']});
+  </script>
+  <script type="text/javascript">
+    
+    function init() {
+      // charts
+      var var_class_pie = drawPie('var_class_pie', 'Variant classes', google.visualization.arrayToDataTable([['Variant class','Count'],['insertion',5],['deletion',12],['SNV',36]]), null);
+var var_class_table = drawTable('var_class_table', 'Variant classes', google.visualization.arrayToDataTable([['Variant class','Count'],['insertion',5],['deletion',12],['SNV',36]]));
+
+            google.visualization.events.addListener(var_class_pie, 'select', function() {
+              var_class_table.setSelection(var_class_pie.getSelection());
+            });
+            google.visualization.events.addListener(var_class_table, 'select', function() {
+              var_class_pie.setSelection(var_class_table.getSelection());
+            });
+          var var_cons_pie = drawPie('var_cons_pie', 'Consequences (most severe)', google.visualization.arrayToDataTable([['Consequence type','Count'],['frameshift_variant',3],['missense_variant',6],['splice_region_variant',7],['stop_retained_variant',1],['synonymous_variant',9],['5_prime_UTR_variant',1],['3_prime_UTR_variant',4],['non_coding_exon_variant',6],['intron_variant',16]]), {slices: [{color: "#ff69b4"}, {color: "#ffd700"}, {color: "#ff7f50"}, {color: "#76ee00"}, {color: "#76ee00"}, {}, {}, {color: "#32cd32"}, {color: "#02599c"}]});
+var var_cons_table = drawTable('var_cons_table', 'Consequences (most severe)', google.visualization.arrayToDataTable([['Consequence type','Count'],['frameshift_variant',3],['missense_variant',6],['splice_region_variant',7],['stop_retained_variant',1],['synonymous_variant',9],['5_prime_UTR_variant',1],['3_prime_UTR_variant',4],['non_coding_exon_variant',6],['intron_variant',16]]));
+
+            google.visualization.events.addListener(var_cons_pie, 'select', function() {
+              var_cons_table.setSelection(var_cons_pie.getSelection());
+            });
+            google.visualization.events.addListener(var_cons_table, 'select', function() {
+              var_cons_pie.setSelection(var_cons_table.getSelection());
+            });
+          var consequences_pie = drawPie('consequences_pie', 'Consequences (all)', google.visualization.arrayToDataTable([['Consequence type','Count'],['frameshift_variant',15],['missense_variant',23],['splice_region_variant',25],['stop_retained_variant',2],['synonymous_variant',28],['5_prime_UTR_variant',6],['3_prime_UTR_variant',9],['non_coding_exon_variant',24],['intron_variant',154],['NMD_transcript_variant',26],['nc_transcript_variant',54],['upstream_gene_variant',24],['downstream_gene_variant',45],['feature_elongation',27],['feature_truncation',66]]), {slices: [{color: "#ff69b4"}, {color: "#ffd700"}, {color: "#ff7f50"}, {color: "#76ee00"}, {color: "#76ee00"}, {}, {}, {color: "#32cd32"}, {color: "#02599c"}, {}, {color: "#32cd32"}, {color: "#a2b5cd"}, {color: "#a2b5cd"}, {}, {}]});
+var consequences_table = drawTable('consequences_table', 'Consequences (all)', google.visualization.arrayToDataTable([['Consequence type','Count'],['frameshift_variant',15],['missense_variant',23],['splice_region_variant',25],['stop_retained_variant',2],['synonymous_variant',28],['5_prime_UTR_variant',6],['3_prime_UTR_variant',9],['non_coding_exon_variant',24],['intron_variant',154],['NMD_transcript_variant',26],['nc_transcript_variant',54],['upstream_gene_variant',24],['downstream_gene_variant',45],['feature_elongation',27],['feature_truncation',66]]));
+
+            google.visualization.events.addListener(consequences_pie, 'select', function() {
+              consequences_table.setSelection(consequences_pie.getSelection());
+            });
+            google.visualization.events.addListener(consequences_table, 'select', function() {
+              consequences_pie.setSelection(consequences_table.getSelection());
+            });
+          var coding_pie = drawPie('coding_pie', 'Coding consequences', google.visualization.arrayToDataTable([['Consequence type','Count'],['frameshift_variant',15],['missense_variant',23],['synonymous_variant',28]]), {slices: [{color: "#ff69b4"}, {color: "#ffd700"}, {color: "#76ee00"}]});
+var coding_table = drawTable('coding_table', 'Coding consequences', google.visualization.arrayToDataTable([['Consequence type','Count'],['frameshift_variant',15],['missense_variant',23],['synonymous_variant',28]]));
+
+            google.visualization.events.addListener(coding_pie, 'select', function() {
+              coding_table.setSelection(coding_pie.getSelection());
+            });
+            google.visualization.events.addListener(coding_table, 'select', function() {
+              coding_pie.setSelection(coding_table.getSelection());
+            });
+          var sift_pie = drawPie('sift_pie', 'SIFT summary', google.visualization.arrayToDataTable([['Prediction','Count'],['deleterious',8],['tolerated',14]]), {slices: [{color: "red"}, {color: "green"}]});
+var sift_table = drawTable('sift_table', 'SIFT summary', google.visualization.arrayToDataTable([['Prediction','Count'],['deleterious',8],['tolerated',14]]));
+
+            google.visualization.events.addListener(sift_pie, 'select', function() {
+              sift_table.setSelection(sift_pie.getSelection());
+            });
+            google.visualization.events.addListener(sift_table, 'select', function() {
+              sift_pie.setSelection(sift_table.getSelection());
+            });
+          var polyphen_pie = drawPie('polyphen_pie', 'PolyPhen summary', google.visualization.arrayToDataTable([['Prediction','Count'],['unknown',1],['probably damaging',9],['benign',13]]), {slices: [{color: "blue"}, {color: "red"}, {color: "green"}]});
+var polyphen_table = drawTable('polyphen_table', 'PolyPhen summary', google.visualization.arrayToDataTable([['Prediction','Count'],['unknown',1],['probably damaging',9],['benign',13]]));
+
+            google.visualization.events.addListener(polyphen_pie, 'select', function() {
+              polyphen_table.setSelection(polyphen_pie.getSelection());
+            });
+            google.visualization.events.addListener(polyphen_table, 'select', function() {
+              polyphen_pie.setSelection(polyphen_table.getSelection());
+            });
+          var chr_bar = drawBar('chr_bar', 'Variants by chromosome', google.visualization.arrayToDataTable([['Chromosome','Count'],['2',5],['3',1],['4',9],['5',4],['7',3],['9',7],['10',5],['11',7],['12',3],['13',1],['17',3],['19',3],['22',2]]), {legend: {position: "none"}});
+var chr_table = drawTable('chr_table', 'Variants by chromosome', google.visualization.arrayToDataTable([['Chromosome','Count'],['2',5],['3',1],['4',9],['5',4],['7',3],['9',7],['10',5],['11',7],['12',3],['13',1],['17',3],['19',3],['22',2]]));
+
+            google.visualization.events.addListener(chr_bar, 'select', function() {
+              chr_table.setSelection(chr_bar.getSelection());
+            });
+            google.visualization.events.addListener(chr_table, 'select', function() {
+              chr_bar.setSelection(chr_table.getSelection());
+            });
+          var chr_2_area = drawArea('chr_2_area', 'Distribution of variants on chromosome 2', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',1],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0],['136',0],['137',0],['138',0],['139',0],['140',0],['141',0],['142',0],['143',0],['144',0],['145',0],['146',0],['147',0],['148',0],['149',0],['150',0],['151',0],['152',0],['153',0],['154',0],['155',0],['156',0],['157',0],['158',0],['159',0],['160',0],['161',0],['162',0],['163',0],['164',0],['165',0],['166',0],['167',0],['168',0],['169',0],['170',0],['171',0],['172',0],['173',0],['174',0],['175',0],['176',0],['177',0],['178',0],['179',0],['180',0],['181',0],['182',0],['183',0],['184',0],['185',0],['186',0],['187',0],['188',0],['189',0],['190',0],['191',0],['192',0],['193',0],['194',0],['195',0],['196',0],['197',0],['198',0],['199',0],['200',0],['201',0],['202',0],['203',0],['204',0],['205',0],['206',0],['207',0],['208',0],['209',0],['210',0],['211',0],['212',4],['213',0],['214',0],['215',0],['216',0],['217',0],['218',0],['219',0],['220',0],['221',0],['222',0],['223',0],['224',0],['225',0],['226',0],['227',0],['228',0],['229',0],['230',0],['231',0],['232',0],['233',0],['234',0],['235',0],['236',0],['237',0],['238',0],['239',0],['240',0],['241',0],['242',0],['243',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_3_area = drawArea('chr_3_area', 'Distribution of variants on chromosome 3', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0],['136',0],['137',0],['138',0],['139',0],['140',0],['141',0],['142',0],['143',0],['144',0],['145',0],['146',0],['147',0],['148',0],['149',0],['150',0],['151',0],['152',0],['153',0],['154',0],['155',0],['156',0],['157',0],['158',0],['159',0],['160',0],['161',0],['162',0],['163',0],['164',0],['165',0],['166',0],['167',0],['168',0],['169',0],['170',0],['171',0],['172',0],['173',0],['174',0],['175',0],['176',0],['177',0],['178',1],['179',0],['180',0],['181',0],['182',0],['183',0],['184',0],['185',0],['186',0],['187',0],['188',0],['189',0],['190',0],['191',0],['192',0],['193',0],['194',0],['195',0],['196',0],['197',0],['198',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_4_area = drawArea('chr_4_area', 'Distribution of variants on chromosome 4', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',3],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',6],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0],['136',0],['137',0],['138',0],['139',0],['140',0],['141',0],['142',0],['143',0],['144',0],['145',0],['146',0],['147',0],['148',0],['149',0],['150',0],['151',0],['152',0],['153',0],['154',0],['155',0],['156',0],['157',0],['158',0],['159',0],['160',0],['161',0],['162',0],['163',0],['164',0],['165',0],['166',0],['167',0],['168',0],['169',0],['170',0],['171',0],['172',0],['173',0],['174',0],['175',0],['176',0],['177',0],['178',0],['179',0],['180',0],['181',0],['182',0],['183',0],['184',0],['185',0],['186',0],['187',0],['188',0],['189',0],['190',0],['191',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_5_area = drawArea('chr_5_area', 'Distribution of variants on chromosome 5', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',1],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0],['136',0],['137',0],['138',0],['139',0],['140',0],['141',0],['142',0],['143',0],['144',0],['145',0],['146',0],['147',0],['148',0],['149',0],['150',0],['151',0],['152',0],['153',0],['154',0],['155',0],['156',0],['157',0],['158',0],['159',0],['160',0],['161',0],['162',0],['163',0],['164',0],['165',0],['166',0],['167',0],['168',0],['169',0],['170',3],['171',0],['172',0],['173',0],['174',0],['175',0],['176',0],['177',0],['178',0],['179',0],['180',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_7_area = drawArea('chr_7_area', 'Distribution of variants on chromosome 7', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',2],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',1],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0],['136',0],['137',0],['138',0],['139',0],['140',0],['141',0],['142',0],['143',0],['144',0],['145',0],['146',0],['147',0],['148',0],['149',0],['150',0],['151',0],['152',0],['153',0],['154',0],['155',0],['156',0],['157',0],['158',0],['159',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_9_area = drawArea('chr_9_area', 'Distribution of variants on chromosome 9', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',7],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0],['136',0],['137',0],['138',0],['139',0],['140',0],['141',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_10_area = drawArea('chr_10_area', 'Distribution of variants on chromosome 10', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',1],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',4],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_11_area = drawArea('chr_11_area', 'Distribution of variants on chromosome 11', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',1],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',6],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',0],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0],['134',0],['135',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_12_area = drawArea('chr_12_area', 'Distribution of variants on chromosome 12', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0],['116',0],['117',0],['118',0],['119',0],['120',0],['121',3],['122',0],['123',0],['124',0],['125',0],['126',0],['127',0],['128',0],['129',0],['130',0],['131',0],['132',0],['133',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_13_area = drawArea('chr_13_area', 'Distribution of variants on chromosome 13', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',1],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0],['82',0],['83',0],['84',0],['85',0],['86',0],['87',0],['88',0],['89',0],['90',0],['91',0],['92',0],['93',0],['94',0],['95',0],['96',0],['97',0],['98',0],['99',0],['100',0],['101',0],['102',0],['103',0],['104',0],['105',0],['106',0],['107',0],['108',0],['109',0],['110',0],['111',0],['112',0],['113',0],['114',0],['115',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_17_area = drawArea('chr_17_area', 'Distribution of variants on chromosome 17', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',0],['2',0],['3',0],['4',0],['5',0],['6',0],['7',3],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0],['60',0],['61',0],['62',0],['63',0],['64',0],['65',0],['66',0],['67',0],['68',0],['69',0],['70',0],['71',0],['72',0],['73',0],['74',0],['75',0],['76',0],['77',0],['78',0],['79',0],['80',0],['81',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_19_area = drawArea('chr_19_area', 'Distribution of variants on chromosome 19', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0],['1',1],['2',0],['3',2],['4',0],['5',0],['6',0],['7',0],['8',0],['9',0],['10',0],['11',0],['12',0],['13',0],['14',0],['15',0],['16',0],['17',0],['18',0],['19',0],['20',0],['21',0],['22',0],['23',0],['24',0],['25',0],['26',0],['27',0],['28',0],['29',0],['30',0],['31',0],['32',0],['33',0],['34',0],['35',0],['36',0],['37',0],['38',0],['39',0],['40',0],['41',0],['42',0],['43',0],['44',0],['45',0],['46',0],['47',0],['48',0],['49',0],['50',0],['51',0],['52',0],['53',0],['54',0],['55',0],['56',0],['57',0],['58',0],['59',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var chr_22_area = drawArea('chr_22_area', 'Distribution of variants on chromosome 22', google.visualization.arrayToDataTable([['Position (mb)','Count'],['0',0]]), {hAxis: {title: "Position (mb)", textStyle: {fontSize: 8}}, legend: {position: "none"}});
+var protein_bar = drawBar('protein_bar', 'Position in protein', google.visualization.arrayToDataTable([['Position in protein (percentile)','Count'],['00-10%',0],['10-20%',2],['20-30%',5],['30-40%',0],['40-50%',17],['50-60%',19],['60-70%',5],['70-80%',7],['80-90%',9],['90-100%',4]]), {hAxis: {title: "Position in protein (percentile)", textStyle: {fontSize: 10}}, legend: {position: "none"}});
+
+    }
+    
+    function drawPie(id, title, data, options) {    
+      var pie = new google.visualization.PieChart(document.getElementById(id));
+      pie.draw(data, options);
+      return pie;
+    }
+    function drawBar(id, title, data, options) {
+      var bar = new google.visualization.ColumnChart(document.getElementById(id));
+      bar.draw(data, options);
+      return bar;
+    }
+    function drawTable(id, title, data) {
+      var table = new google.visualization.Table(document.getElementById(id));
+      table.draw(data, null);
+      return table;
+    }
+    function drawLine(id, title, data, options) {
+      var line = new google.visualization.LineChart(document.getElementById(id));
+      line.draw(data, options);
+      return line;
+    }
+    function drawArea(id, title, data, options) {
+      var area = new google.visualization.AreaChart(document.getElementById(id));
+      area.draw(data, options);
+      return area;
+    }
+    google.setOnLoadCallback(init);
+  </script>
+  
+  
+  <style type="text/css">
+    body {
+      font-family: arial, sans-serif;
+      margin: 0px;
+      padding: 0px;
+    }
+    
+    a {color: #36b;}
+    a.visited {color: #006;}
+    
+    .stats_table {
+      margin: 5px;
+    }
+    
+    tr:nth-child(odd) {
+      background-color: rgb(238, 238, 238);
+    }
+    
+    td {
+      padding: 5px;
+    }
+    
+    td:nth-child(odd) {
+      font-weight: bold;
+    }
+    
+    h3 {
+      color: #666;
+    }
+    
+    .masthead {
+      background-color: rgb(51, 51, 102);
+      color: rgb(204, 221, 255);
+      height: 80px;
+      width: 100%;
+      padding: 0px;
+    }
+    
+    .main {
+      padding: 10px;
+    }
+    
+    .gradient {
+      background: #333366; /* Old browsers */
+      background: -moz-linear-gradient(left,  #333366 0%, #ffffff 100%); /* FF3.6+ */
+      background: -webkit-gradient(linear, left top, right top, color-stop(0%,#333366), color-stop(100%,#ffffff)); /* Chrome,Safari4+ */
+      background: -webkit-linear-gradient(left,  #333366 0%,#ffffff 100%); /* Chrome10+,Safari5.1+ */
+      background: -o-linear-gradient(left,  #333366 0%,#ffffff 100%); /* Opera 11.10+ */
+      background: -ms-linear-gradient(left,  #333366 0%,#ffffff 100%); /* IE10+ */
+      background: linear-gradient(to right,  #333366 0%,#ffffff 100%); /* W3C */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333366', endColorstr='#ffffff',GradientType=1 ); /* IE6-9 */
+      
+      padding: 0px;
+      height: 80px;
+      width: 500px;
+      float: right;
+      display: inline;
+    }
+    
+    .main_content {
+      margin-left: 300px;
+    }
+    
+    .sidemenu {
+      width: 260px;
+      position: fixed;
+      border-style: solid;
+      border-width: 2px;
+      border-color: rgb(51, 51, 102);
+    }
+    
+    .sidemenu_head {
+      width: 250px;
+      background-color: rgb(51, 51, 102);
+      color: rgb(204, 221, 255);
+      padding: 5px;
+    }
+    
+    .sidemenu_body {
+      width: 250px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+<div id="masthead" class="masthead">
+  <div style="float: left; display: inline; padding: 10px; height: 80px;">
+    <a href="http://www.ensembl.org/"><img src="http://static.ensembl.org/i/e-ensembl.png"></a>
+  </div>
+  
+  <div style="float: right; display: inline; height: 80px; background: white; padding: 10px;">
+    <a href="http://www.ensembl.org/info/docs/variation/vep/vep_script.html"><img src="http://www.ensembl.org/img/vep_logo.png"></a>
+  </div>
+  <div class="gradient">
+  </div>
+</div>
+<div class="main">
+<div class="sidemenu"><div class="sidemenu_head">Links</div> <div class="sidemenu_body"><ul><li><a href="#masthead">Top of page</a></li> <li><a href="#run_stats">VEP run statistics</a></li> <li><a href="#gen_stats">General statistics</a></li> <li><a href="#var_class">Variant classes</a></li> <li><a href="#var_cons">Consequences (most severe)</a></li> <li><a href="#consequences">Consequences (all)</a></li> <li><a href="#coding">Coding consequences</a></li> <li><a href="#sift">SIFT summary</a></li> <li><a href="#polyphen">PolyPhen summary</a></li> <li><a href="#chr">Variants by chromosome</a></li> <li><a href="#protein">Position in protein</a></li></ul></div></div><div class='main_content'><h3 id="run_stats">VEP run statistics</h3><table class="stats_table"><tr><td>VEP version (API)</td> <td>73 (73)</td></tr> <tr><td>Cache/Database</td> <td>/usr/local/cluster/all_arch/ensembl_api/cache/homo_sapiens/73</td></tr> <tr><td>Species</td> <td>human</td></tr> <tr><td>Command line options</td> <td><pre>--fork 8 --cache --html --everything -i 13K0341.vcf -o 13K0341.vep --species human --check_alleles --check_existing --check_ref --host bioinf-ensembl.petermac.org.au --dir /usr/local/cluster/all_arch/ensembl_api/cache -u vep -password vep_pass -port 3306 --plugin Additional_Annotation --force_overwrite</pre></td></tr> <tr><td>Start time</td> <td>2013-11-01 15:34:45</td></tr> <tr><td>End time</td> <td>2013-11-01 15:35:10</td></tr> <tr><td>Run time</td> <td>25 seconds</td></tr> <tr><td>Input file (format)</td> <td>13K0341.vcf (VCF)</td></tr> <tr><td>Output file</td> <td>13K0341.vep <a href="13K0341.vep.html">[HTML]</a> <a href="13K0341.vep">[text]</a></td></tr></table><h3 id="gen_stats">General statistics</h3><table class="stats_table"><tr><td>Lines of input read</td> <td>77</td></tr> <tr><td>Variants processed</td> <td>53</td></tr> <tr><td>Variants remaining after filtering</td> <td>53</td></tr> <tr><td>Lines of output written</td> <td>330</td></tr> <tr><td>Novel / known variants</td> <td>24 (45.3%) / 29 (54.7%)</td></tr> <tr><td>Overlapped genes</td> <td>33</td></tr> <tr><td>Overlapped transcripts</td> <td>154</td></tr> <tr><td>Overlapped regulatory features</td> <td>-</td></tr></table><hr /><h3 id="var_class">Variant classes</h3><div style="width: 800px; height: 200px" id="var_class_pie">&nbsp;</div><div style="width: 800px; height: 200px" id="var_class_table">&nbsp;</div><hr /><h3 id="var_cons">Consequences (most severe)</h3><div style="width: 800px; height: 400px" id="var_cons_pie">&nbsp;</div><div style="width: 800px; height: 200px" id="var_cons_table">&nbsp;</div><hr /><h3 id="consequences">Consequences (all)</h3><div style="width: 800px; height: 400px" id="consequences_pie">&nbsp;</div><div style="width: 800px; height: 200px" id="consequences_table">&nbsp;</div><hr /><h3 id="coding">Coding consequences</h3><div style="width: 800px; height: 400px" id="coding_pie">&nbsp;</div><div style="width: 800px; height: 200px" id="coding_table">&nbsp;</div><hr /><h3 id="sift">SIFT summary</h3><div style="width: 800px; height: 200px" id="sift_pie">&nbsp;</div><div style="width: 800px; height: 200px" id="sift_table">&nbsp;</div><hr /><h3 id="polyphen">PolyPhen summary</h3><div style="width: 800px; height: 200px" id="polyphen_pie">&nbsp;</div><div style="width: 800px; height: 200px" id="polyphen_table">&nbsp;</div><hr /><h3 id="chr">Variants by chromosome</h3><div style="width: 800px; height: 200px" id="chr_bar">&nbsp;</div><div style="width: 800px; height: 200px" id="chr_table">&nbsp;</div><hr /><h3 id="chr_2">Distribution of variants on chromosome 2</h3><div style="width: 800px; height: 200px" id="chr_2_area">&nbsp;</div><hr /><h3 id="chr_3">Distribution of variants on chromosome 3</h3><div style="width: 800px; height: 200px" id="chr_3_area">&nbsp;</div><hr /><h3 id="chr_4">Distribution of variants on chromosome 4</h3><div style="width: 800px; height: 200px" id="chr_4_area">&nbsp;</div><hr /><h3 id="chr_5">Distribution of variants on chromosome 5</h3><div style="width: 800px; height: 200px" id="chr_5_area">&nbsp;</div><hr /><h3 id="chr_7">Distribution of variants on chromosome 7</h3><div style="width: 800px; height: 200px" id="chr_7_area">&nbsp;</div><hr /><h3 id="chr_9">Distribution of variants on chromosome 9</h3><div style="width: 800px; height: 200px" id="chr_9_area">&nbsp;</div><hr /><h3 id="chr_10">Distribution of variants on chromosome 10</h3><div style="width: 800px; height: 200px" id="chr_10_area">&nbsp;</div><hr /><h3 id="chr_11">Distribution of variants on chromosome 11</h3><div style="width: 800px; height: 200px" id="chr_11_area">&nbsp;</div><hr /><h3 id="chr_12">Distribution of variants on chromosome 12</h3><div style="width: 800px; height: 200px" id="chr_12_area">&nbsp;</div><hr /><h3 id="chr_13">Distribution of variants on chromosome 13</h3><div style="width: 800px; height: 200px" id="chr_13_area">&nbsp;</div><hr /><h3 id="chr_17">Distribution of variants on chromosome 17</h3><div style="width: 800px; height: 200px" id="chr_17_area">&nbsp;</div><hr /><h3 id="chr_19">Distribution of variants on chromosome 19</h3><div style="width: 800px; height: 200px" id="chr_19_area">&nbsp;</div><hr /><h3 id="chr_22">Distribution of variants on chromosome 22</h3><div style="width: 800px; height: 200px" id="chr_22_area">&nbsp;</div><hr /><h3 id="protein">Position in protein</h3><div style="width: 800px; height: 200px" id="protein_bar">&nbsp;</div></div>
+</div></body>
+</html>

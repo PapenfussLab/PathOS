@@ -1,0 +1,4 @@
+. SetPathosEnv
+export PATHOS_CONFIG="$PATHOS_HOME/etc/pipecleaner.properties"
+RUN=`basename $0`
+java $JAVA_OPTS -cp $CLASSPATH org.petermac.pathos.pipecleaner.$RUN $*

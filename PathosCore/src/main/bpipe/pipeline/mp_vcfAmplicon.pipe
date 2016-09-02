@@ -1,0 +1,41 @@
+/**
+ * Molecular Pathology Amplicon Pipeline
+ *
+ * @input 	Samples.tsv a TSV file of samples to process, typically a seqrun
+ *          The file should have the following columns:
+ *              1  seqrun   eg  140911_M00139_0116_000000000-ABFLD
+ *              2  sample       14M6168
+ *              3  panel        CancerGNA10212011_170_190_Viewermanifest
+ *              4  pipeline     mp_vcfAmplicon
+ *              5  pipein       /pathToVcfFile
+ *              6  outdir       /pathToOutputDirectory
+ *
+ * @output  After successful processing, the following will be in place
+ *              1   <outdir> will be populated with files for each sample
+ *              2   PathOS annotation cache will be populated for each unique variant
+ *              3   PathOS database will be populated ready for sample and variant curation
+ */
+
+PipelineType    = 'mp_vcfAmplicon'     //  Pipeline type
+SHOW_STAGE_FAIL = 1                     //  Set to 1 for stage failure emails
+MailList        = [ 'ken.doig@petermac.org', 'andrei.seleznev@petermac.org', 'christopher.welsh@petermac.org', 'andrew.fellowes@petermac.org' ]
+HollyHost       = 'bioinf-pathos-test.petermac.org.au'
+
+Bpipe.run
+{
+    mp_validateSamples +                            //  Load Sample parameters
+
+    runSamples *    [                               //  Run the pipeline in parallel for each sample
+                        mp_branch      +            //  Retrieve parameters for this sample
+                        mp_copyVcf     +            //  Copy in VCF to repository
+                        mp_normalise   +            //  Normalise VCF
+                        mp_prepareVcf  +            //  Index VCF and TSV it
+                        mp_igv         +            //  Generate IGV session file
+                        mp_mapVcfFiles +            //  Convert files to legacy filenames
+                        mp_forwardVcf               //  Collect VCF file for post pipeline stages
+                    ] +
+    mp_annotator      +                             //  Add annotations to PathOS cache
+    mp_loadPathOS     +                             //  Load PathOS database
+    mp_done
+}
+

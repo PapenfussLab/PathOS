@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2015. PathOS Variant Curation System. All rights reserved.
+ *
+ * Organisation: Peter MacCallum Cancer Centre
+ * Author: Ken Doig
+ */
+
+/**
+ * Molecular Pathology Amplicon Pipeline
+ *
+ * @input 	Samples.tsv a TSV file of samples to process, typically a seqrun
+ *          The file should have the following columns:
+ *              1  seqrun   eg  140911_M00139_0116_000000000-ABFLD
+ *              2  sample       14M6168
+ *              3  panel        CancerGNA10212011_170_190_Viewermanifest
+ *              4  pipeline     mp_dualAmplicon
+ *              5  pipein       /pathToFastqFiles
+ *              6  outdir       /pathToOutputDirectory
+ *
+ * @output  After successful processing, the following will be in place
+ *              1   <outdir> will be populated with files for each sample
+ *              2   PathOS annotation cache will be populated for each unique variant
+ *              3   PathOS database will be populated ready for sample and variant curation
+ */
+
+PipelineType    = 'mp_dualAmplicon'     //  Pipeline type
+SHOW_STAGE_FAIL = 1                     //  Set to 1 for stage failure emails
+MailList        = [ 'ken.doig@petermac.org', 'andrei.seleznev@petermac.org','christopher.welsh@petermac.org', 'andrew.fellowes@petermac.org' ]
+HollyHost       = 'bioinf-pathos-test.petermac.org.au'
+
+Bpipe.run
+{
+    mp_validateSamples +                            //  Load Sample parameters
+
+    runSamples *    [                               //  Run the pipeline in parallel for each sample
+                        mp_branch     +             //  Retrieve parameters for this sample
+                        mp_checkFasta +             //  Check if we have any reads
+                        [                           //  Run QC and multiple aligners for sample in parallel
+                            mp_fastqc ,             //  FASTQC
+                            mp_primal + mp_varCall + mp_normalise ,     //  Primal aligner
+                            mp_runCanary + mp_normalise + mp_prepareVcf //  Canary variant caller
+                        ]             +
+                        mp_mergeVcfPM +             //  Combine multiple VCFs from variant callers
+                        mp_prepareVcf +             //  Index and TSV the VCF file
+                        mp_igv        +             //  Generate IGV session file
+                        mp_mapFiles   +             //  Convert result files to legacy filenames
+                        mp_forwardVcf               //  Collect VCF file for post pipeline stages
+                    ] +                             //  End of per sample processing
+    mp_alignStatsRun  +                             //  Create primal alignment stats for run
+    mp_annotator      +                             //  Add annotations to cache for all VCF files
+    mp_loadPathOS     +                             //  Load PathOS database
+    mp_done                                         //  Log a termination message
+}
+

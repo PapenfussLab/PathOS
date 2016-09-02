@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+#		VcfNormalise		Normalise a VCF file to conform to a common standard
+#
+#		01		kdoig		30-Jul-15
+#
+#		Usage: VcfNormalise [options] in.vcf out.vcf
+#
+#vim:ts=4
+
+if [ $# -lt 2 ];then
+    echo Need at least two arguments
+    echo usage: VcfNormalise [options] in.vcf out.vcf
+    NormaliseVcf -h
+    exit 1
+fi
+
+#
+#   Split multi-allele and left shift along the genome
+#
+invcf=${*: -2:1}    # second last arg
+outvcf=${!#}        # last argument
+
+if [ ! -s $invcf ];then
+    echo FATAL: File doesnt exist $invcf
+    exit 1
+fi
+
+cp -v $invcf ${invcf}.bkup
+VcfSplitMultiAllele.sh ${invcf}.bkup $invcf
+
+#
+#   Now apply heavy duty Mutalyzer 3' shifting and HGVS nomenclature
+#
+NormaliseVcf $*

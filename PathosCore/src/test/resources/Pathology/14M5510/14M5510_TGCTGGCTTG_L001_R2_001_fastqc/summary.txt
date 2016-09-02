@@ -1,0 +1,11 @@
+PASS	Basic Statistics	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+PASS	Per base sequence quality	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+PASS	Per sequence quality scores	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+WARN	Per base sequence content	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+FAIL	Per base GC content	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+WARN	Per sequence GC content	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+PASS	Per base N content	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+PASS	Sequence Length Distribution	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+FAIL	Sequence Duplication Levels	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+FAIL	Overrepresented sequences	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+FAIL	Kmer Content	14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
