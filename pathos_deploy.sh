@@ -42,12 +42,11 @@ export PATHOS_HOME=/usr/local/PathOS
 #
 #   GIT Repository base URL
 #
-PATHOS_GIT='ssh://git@115.146.86.118:7999/pat/pathos.git'
-
+PATHOS_GIT='https://github.com/PapenfussLab/PathOS.git'
 #
 #   GIT Branch
 #
-GIT_BRANCH='origin/development'
+GIT_BRANCH='origin/master'
 
 #
 #   Default PathOS environment
