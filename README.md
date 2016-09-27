@@ -25,12 +25,12 @@ The PathOS search engine is implemented in Apache Lucene. This is a powerful sea
 PathOS has been deployed in a number of clinical environments. The simplest way to use PathOS is by accessing a cloud instance which can be customsied (see below).
 If you'd like to build the system from scratch, this repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be adapted for Windows environments.
 There are a number of dependencies including the following
-# Java JDK 1.7 from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
-# Grails (we use 2.3.7 at time of writing) from https://github.com/grails/grails-core/releases/download/v2.3.7/grails-2.3.7.zip
-# Gradle (we use 1.10 at time of writing)
-# Git & a git ssh key with access to PathOS git repository
-# MySql or MariaDB
-# Tomcat
+- Java JDK 1.7 from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
+- Grails (we use 2.3.7 at time of writing) from https://github.com/grails/grails-core/releases/download/v2.3.7/grails-2.3.7.zip
+- Gradle (we use 1.10 at time of writing)
+- Git & a git ssh key with access to PathOS git repository
+- MySql or MariaDB
+- Tomcat
 
 ## Contact
 Ken Doig, Bioinformatics, Cancer Research Department, Data Scientist, Molecular Pathology Department
