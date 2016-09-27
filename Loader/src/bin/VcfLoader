@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+#	Set PathOS execution environment
+#
+#	01	kdoig	15-Oct-2013     Customised launcher for VcfLoader
+#
+
+#set -x
+
+#
+#	Accumulate jar files
+#
+. SetLoaderEnv
+
+#
+#	Export CLASSPATH and Log4j properties file
+#
+export JAVA_OPTS="-XX:MaxPermSize=4g -Xmx4g -server"
+export CLASSPATH="-cp $cp"
+export PERL5LIB=/config/binaries/perl-modules/other/lib/perl5:$PERL5LIB
+
+#
+#   Load modules
+#
+. /etc/profile.d/modules.sh
+module load ensembl
+
+#
+#	Run Java
+#
+RUN=`basename $0`
+java $LOGPROP $JAVA_OPTS $CLASSPATH org.petermac.pathos.loader.$RUN $*

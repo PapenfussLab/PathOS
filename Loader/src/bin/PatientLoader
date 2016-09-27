@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+#	01	kdoig	21-Sep-2016     Customised launcher for PatientLoader
+#
+
+#set -x
+
+#
+#	Accumulate jar files
+#
+. SetLoaderEnv
+
+#
+#	Export CLASSPATH and Log4j properties file
+#
+export JAVA_OPTS="-XX:MaxPermSize=4g -Xmx4g -server"
+export CLASSPATH="-cp $cp"
+
+#
+#	Run Java
+#
+RUN=`basename $0`
+java $LOGPROP $JAVA_OPTS $CLASSPATH org.petermac.pathos.loader.$RUN $*

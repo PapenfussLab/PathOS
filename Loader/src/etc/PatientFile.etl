@@ -1,0 +1,64 @@
+/*  PatientFile.etl ETL framework configuration
+**
+**  01  kdd         16-nov-15   Created for single file patient load
+*/
+
+//
+//  PatientFile.etl
+//
+//  Groovy config file with parameters for controlling the ETL framework database loader
+//
+
+import org.petermac.pathos.loader.EtlTransform
+import org.petermac.util.Locator
+
+println( "Patient.etl Configuration Ver 1.2" )
+
+sqlTableDir = '/pathology/NGS/pa_prod/ETL/Tables'   //  SQL table definitions
+staticDir   = '/pathology/NGS/pa_prod/ETL/Manual'   //  Static data tables
+rawDir      = 'Raw'         //  Raw data from extract phase
+stagingDir  = 'Staging'     //  Staging area prior to database load
+
+//
+//  Extract data files to load
+//  Default operation is to copy and strip off any '#' comments out of file
+//
+extract
+        {
+            Locator loc = Locator.instance
+            indir       = staticDir
+            include     = 'mp_*.tsv'
+            outdir      = rawDir
+        }
+
+//
+//  Transform raw data into format for loading into Database
+//  Default operation is to copy and strip off any '#' comments out of  file
+//
+transform
+        {
+            def et = new EtlTransform(environment)
+            indir   = rawDir
+            include = '**/*.tsv'
+            outdir  = stagingDir
+        }
+
+//
+//  Tables to load into database
+//
+load
+        {
+            indir     = stagingDir
+            createdir = sqlTableDir
+            tables = [
+                    'mp_detente',
+                    'mp_detente_tests',
+                    'mp_batch',
+                    'mp_tumourtype',
+                    'mp_vcf',                  // clear table
+                    'mp_seqrun',               // clear table
+                    'mp_audit',                // clear table
+                    'mp_alignstats',           // clear table
+                    'mp_cnv'                   // clear table
+                    ]
+        }
