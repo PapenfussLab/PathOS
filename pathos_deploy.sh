@@ -145,7 +145,7 @@ fi
 #
 #   Check if GRAILS_ENV matches glob/if exists
 #
-PATHOSCONFIG="$BUILD_HOME/PathosCore/src/etc/pa_example.properites"
+PATHOSCONFIG="$BUILD_HOME/PathosCore/src/etc/pa_example.properties"
 if [ -d /pathology/NGS ];then
     PATHOSCONFIG=/pathology/NGS/PathOS_Deploy/etc/$GRAILS_ENV.properties
 fi
