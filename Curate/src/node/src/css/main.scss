@@ -254,6 +254,43 @@ body {
 		#mmHeader {
 			text-align: center;
 		}
+		#IGV-options {
+			padding: 15px;
+			background-color: rgba(0,0,0,0.1);
+			a {
+				border: 1px solid black;
+				margin: 5px;
+				padding: 5px;
+				background-color: rgba(0,0,0,0.1);
+				border-radius: 5px;
+				&:hover {
+					background-color: rgba(0,0,0,0.2);
+				}
+				&.selected {
+					background-color: #0b93d5;
+					color: white;
+					&:hover {
+						background-color: #0A5880;
+					}
+				}
+			}
+		}
+		#clearHistory {
+			border: 1px solid black;
+			margin: 5px;
+			padding: 5px;
+			background-color: rgba(0,0,0,0); //#0b93d5;
+			//color: white;
+			border-radius: 5px;
+			&:hover {
+				background-color: rgba(0,0,0,0.1); //#0A5880;
+			}
+		}
+		#pathos-menu-links {
+			padding: 15px;
+			background-color: rgba(0,0,0,0.1);
+			margin-bottom: 0;
+		}
 	}
 }
 
@@ -838,9 +875,31 @@ $sidebar-easing: 300px;
 		cursor: ns-resize;
 	}
 	#footer-message {
-		width: 600px;
+		width: 800px;
 		margin: 50px auto;
 		text-align: center;
+
+		#main-button {
+			margin: 20px;
+			a {
+				font-size: 20px;
+			}
+		}
+		#igv-message {
+			padding-bottom: 15px;
+		}
+		a {
+			font-size: 14px;
+			border: 1px solid black;
+			padding: 5px;
+			margin: 15px;
+			border-radius: 5px;
+			background-color: #4478ac;
+			color: white;
+			&:hover {
+				background-color: #305880;
+			}
+		}
 	}
 }
 
@@ -1317,7 +1376,7 @@ $sidebar-easing: 300px;
 			text-align: left;
 		}
 
-		&.patient-samples {
+		&.patSample {
 			.fb-box {
 				padding: 10px;
 			}

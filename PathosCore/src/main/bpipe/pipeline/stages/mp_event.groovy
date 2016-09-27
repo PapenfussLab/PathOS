@@ -200,9 +200,9 @@ int NotifyHolly( String event, String stage, String seqrun , String sample )
     //
     if ( ! sample ) return 0
 
-    if ( stage == "mp_align"      ) return NotifyUrl( event, sample, "Status_Align" )
+    if ( stage == "mp_primal"     ) return NotifyUrl( event, sample, "Status_Align" )
     if ( stage == "mp_runCanary"  ) return NotifyUrl( event, sample, "Status_Canary" )
-    if ( stage == "mp_loadPathOS" ) return NotifyUrl( event, sample, "Status_Pathos" )
+    if ( stage == "mp_loadPathOS" ) return NotifyUrl( event, sample, "Status_PathOS" )
 
     return 0
 }

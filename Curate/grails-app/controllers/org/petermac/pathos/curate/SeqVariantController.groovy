@@ -1248,9 +1248,11 @@ class SeqVariantController
 
         def ss = SeqSample.get(params.id)
 
-        if (!ss.authorisedQcFlag || !(ss.passfailFlag)) {
+        if (!ss.authorisedQcFlag) { //allow to review if QC failed: only block if not set
             errors.add("Cannot complete review: Sample must pass QC first")
         }
+
+
         def gridConfig = easygridService.getGridConfig('seqVariant', 'curation')
 
 

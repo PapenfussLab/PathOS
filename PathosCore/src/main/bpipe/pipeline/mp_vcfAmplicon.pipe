@@ -16,10 +16,10 @@
  *              3   PathOS database will be populated ready for sample and variant curation
  */
 
-PipelineType    = 'mp_vcfAmplicon'     //  Pipeline type
+PipelineType    = 'mp_vcfAmplicon'      //  Pipeline type
 SHOW_STAGE_FAIL = 1                     //  Set to 1 for stage failure emails
 MailList        = [ 'ken.doig@petermac.org', 'andrei.seleznev@petermac.org', 'christopher.welsh@petermac.org', 'andrew.fellowes@petermac.org' ]
-HollyHost       = 'bioinf-pathos-test.petermac.org.au'
+HollyHost       = 'bioinf-pathos.petermac.org.au'
 
 Bpipe.run
 {

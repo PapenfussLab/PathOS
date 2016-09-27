@@ -45,7 +45,7 @@ fi
 #
 #	Start of script
 #
-samfile=$2
+samfile=$1
 
 if [ ! -s $samfile ];then
     echo "FATAL: Missing file $samfile"
@@ -53,7 +53,5 @@ if [ ! -s $samfile ];then
 fi
 
 cp -vf $samfile Seqrun.tsv   # Hard-wired seq sample list filename ToDo: pass file into LoadPathOS
-
-export PATHOS_CONFIG=${PATHOS_HOME}/etc/pathos.properties
 
 LoadPathOS --phase merge --rdb $dbname --orm $dbname --config $PATHOS_HOME/etc/AutoLoad.etl

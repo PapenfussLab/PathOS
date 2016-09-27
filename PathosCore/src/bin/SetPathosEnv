@@ -52,9 +52,7 @@ export LOGPROP=$PATHOS_HOME/lib/log4j.properties
 
 #   Common JAVA options
 
-JAVA_OPTS="-XX:-UseSplitVerifier $PROXYSTRING"
-
-export JAVA_OPTS="$JAVA_OPTS -Dlog4j.configuration=file:$LOGPROP"
+export JAVA_OPTS="-XX:-UseSplitVerifier $PROXYSTRING -Dlog4j.configuration=file:$LOGPROP"
 
 #	Export CLASSPATH
 

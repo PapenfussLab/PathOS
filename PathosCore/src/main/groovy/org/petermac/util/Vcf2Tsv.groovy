@@ -91,7 +91,7 @@ class Vcf2Tsv
         //
         log.info("Vcf2Tsv " + args )
 
-        def nlines = vcf2Tsv( vcff, tsvf, opt.sample ?: '', opt.seqrun ?: '', opt.panel ?: '', colsf )
+        def nlines = vcf2Tsv( vcff, tsvf, opt.sample ?: '', opt.seqrun ?: '', opt.panel ?: '', colsf, true )
 
         log.info("Done, processed ${nlines} lines")
     }
@@ -102,7 +102,7 @@ class Vcf2Tsv
      * @param   opt     Parsed CLI options
      * @return          lines processed
      */
-    static Integer vcf2Tsv( File vcff, File tsvf, String sample = '', String seqrun = '', String panel = '', File colsf )
+    static Integer vcf2Tsv( File vcff, File tsvf, String sample = '', String seqrun = '', String panel = '', File colsf, Boolean header )
     {
         Vcf vcf = new Vcf( vcff )
         vcf.load()
@@ -122,10 +122,10 @@ class Vcf2Tsv
 
             //  Output TSV using column list
             //
-            tsv.write( tsvf, cols )
+            tsv.write( tsvf, cols, header )
         }
         else
-            tsv.write( tsvf )       //  Output TSV
+            tsv.write( tsvf, header )       //  Output TSV
 
         return tsv.nrows()
     }

@@ -58,6 +58,8 @@ class SeqrunLims
 
         params << [ application:    sr.Setup?.ApplicationName?.text() ]
 
+        //  MiSeq
+        //
         if ( params.application?.startsWith('MiSeq'))
         {
             //  Seq Run information
@@ -71,6 +73,8 @@ class SeqrunLims
             params << [ readcycles:     getReadCycles(sr.Reads[0]?.children()) ]
         }
 
+        //  HiSeq
+        //
         if ( params.application?.startsWith('HiSeq'))
         {
             //  Seq Run information
@@ -80,6 +84,33 @@ class SeqrunLims
             params << [ scanner:        sr.Setup?.ScannerID?.text() ]
             params << [ readlen:        getReadLen(sr.Setup?.Reads[0]?.children()) ]
             params << [ readcycles:     getReadCycles(sr.Setup?.Reads[0]?.children()) ]
+        }
+
+        //  NextSeq
+        //       <Setup>
+        //          <SupportMultipleSurfacesInUI>true</SupportMultipleSurfacesInUI>
+        //          <ApplicationVersion>1.4.1.2</ApplicationVersion>
+        //          <ApplicationName>NextSeq Control Software</ApplicationName>
+        //          <NumTilesPerSwath>12</NumTilesPerSwath>
+        //          <NumSwaths>1</NumSwaths>
+        //          <NumLanes>4</NumLanes>
+        //          <Read1>76</Read1>
+        //          <Read2>76</Read2>
+        //          <Index1Read>8</Index1Read>
+        //          <Index2Read>0</Index2Read>
+        //          <SectionPerLane>3</SectionPerLane>
+        //          <LanePerSection>2</LanePerSection>
+        //        </Setup>
+
+        if ( params.application?.startsWith('NextSeq'))
+        {
+            //  Seq Run information
+            //
+            params << [ seqrun:         sr.RunID?.text() ]
+            params << [ experiment:     sr.ExperimentName?.text() ]
+            params << [ library:        sr.LibraryID?.text() ]
+            params << [ scanner:        sr.InstrumentID?.text() ]
+            params << [ readlen:        sr.Setup?.Read1?.text() ]
         }
 
         return params
@@ -129,7 +160,7 @@ class SeqrunLims
     /**
      * Parsing routine for both HiSeq and Miseq Run parameters
      *
-     * @param limsPath  Path to XML files - usually in /pipeline/RunFolder/(MiSeq|HiSeq2000)/<seqrun>/LIMS_<seqrun>.xml
+     * @param limsPath  Path to XML files - usually in /pipeline/(Runs|Archive)/(MiSeq|HiSeq|NextSeq)/<seqrun>/LIMS_<seqrun>.xml
      * @return          Map of parameters in the form
      *                      seqrun      Illumina run ID
      *                      platform    MiSeq or HiSeq

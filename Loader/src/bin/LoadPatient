@@ -14,7 +14,6 @@ DB=pa_stage
 PATFILE="none"
 PHASE="merge"
 
-
 while getopts f:p:d:h\? opt					# Add additional options here
 do	case "$opt" in
 	h)		HELP=1;;
@@ -46,16 +45,12 @@ fi
 #
 #	Start of script
 #
-
-#
-#   Pipeline Home env variables
-#
 CMDPATH=`which $0`
 BINDIR=`dirname $CMDPATH`
-export PATHOS_HOME=`dirname $BINDIR`
+export PATH=${BINDIR}:$PATH
 
-export PATHOS_CONFIG=${PATHOS_HOME}/etc/pathos.properties
-export PATH=${PATHOS_HOME}/bin:$PATH
+. SetLoaderEnv
+
 export config=${PATHOS_HOME}/etc/PatientFile.etl
 
 if [ "$PATFILE" == "none" ]; then

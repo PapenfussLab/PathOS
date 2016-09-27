@@ -257,6 +257,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/**/favicon.ico':              ['permitAll'],
 
             '/search/**':                    ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/search/reindex':              ['ROLE_ADMIN', 'ROLE_DEV'],
 
             //  Security and Administration
             //

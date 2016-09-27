@@ -355,7 +355,7 @@ class Tsv
      * @param   fileName    File name to create
      * @return              true if successful
      */
-    boolean write( String fileName )
+    boolean write( String fileName, Boolean header = true )
     {
         if ( ! this.tsvMap )
         {
@@ -378,7 +378,7 @@ class Tsv
             return false
         }
 
-        return write( fn )
+        return write( fn, header )
     }
 
     /**
@@ -387,7 +387,7 @@ class Tsv
      * @param   fn          File to write to
      * @return              true if successful
      */
-    boolean write( File fn )
+    boolean write( File fn, Boolean header = true )
     {
         if ( ! this.tsvMap )
         {
@@ -395,14 +395,17 @@ class Tsv
             return false
         }
 
-        //  Write out meta data preamble if any
-        //
-        for ( pre in tsvMap.preamble )
-            fn << pre + "\n"
+        if ( header )
+        {
+            //  Write out meta data preamble if any
+            //
+            for ( pre in tsvMap.preamble )
+                fn << pre + "\n"
 
-        //  Header
-        //
-        fn << "#" + getCols().join("\t") + "\n"
+            //  Header
+            //
+            fn << "#" + getCols().join("\t") + "\n"
+        }
 
         //  Rows
         //
@@ -421,7 +424,7 @@ class Tsv
      * @param   cols        List of columns to output
      * @return              true if successful
      */
-    boolean write( File fn, List cols )
+    boolean write( File fn, List cols, Boolean header = true )
     {
         //  Rebuild Rows
         //
@@ -445,7 +448,7 @@ class Tsv
         //
         setCols(cols)
 
-        return write( fn )
+        return write( fn, header )
     }
 
     /**

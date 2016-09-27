@@ -3,19 +3,39 @@
 #	Set PathOS execution environment
 #
 
-#pc=`ls -1 $PATHOS_HOME/lib/PathosCore-all-*.jar | sort -r | head -n 1`
-#if [ ! -r "$pc" ]
-#then
-#	echo "Couldn't find PathosCore jar file: $pc" 1>&2
-#	exit 1
-#fi
+#
+#   Pipeline Home env variables
+#
+CMDPATH=`which $0`
+BINDIR=`dirname $CMDPATH`
+export PATHOS_HOME=`dirname $BINDIR`
 
-ld=`ls -1 $PATHOS_HOME/lib/loader/Loader-all-*.jar | sort -r | head -n 1`
+ld=`ls -1tr $PATHOS_HOME/lib/Loader-all-*.jar | tail -n 1`
 if [ ! -r "$ld" ]
 then
 	echo "Couldn't find Loader file: $ld" 1>&2
 	exit 1
 fi
 
-#export cp="$pc:$ld"
+#
+#   Set file for pathos properties
+#
+
+export PATHOS_CONFIG="$PATHOS_HOME/etc/pathos.properties"
+
+if [ ! -s $PATHOS_CONFIG ]; then
+	echo "ERROR: $PATHOS_CONFIG doesn't exist !"
+	exit 1
+fi
+
+#
+#	Debug flag for logging
+#
+#DEBUG='-Dlog4j.debug'
+
+#
+#	Export CLASSPATH and Log4j properties file
+#
+export LOGPROP="-Dlog4j.configuration=file:$PATHOS_HOME/lib/loader.properties"
+
 export cp="$ld"

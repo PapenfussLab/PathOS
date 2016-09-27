@@ -72,33 +72,35 @@ def getAverageTime = {
 }
 
 def svTags = {
-def query =
-"""
-select
-    x from SeqVariant x
-join
-    x.tags as t
-where
-    t.label like :query
-"""
+    def q = params.q.trim()
+    def query =
+    """
+    select
+        x from SeqVariant x
+    join
+        x.tags as t
+    where
+        t.label like :query
+    """
 
-render SeqVariant.executeQuery(query, [query: '%'+params.q+'%']) as JSON
+    render SeqVariant.executeQuery(query, [query: '%'+q+'%']) as JSON
 }
 
 def svExact = {
-def query =
-        """
-select
-    x from SeqVariant x
-where
-    x.hgvsc = :query
-    or
-    x.hgvsg = :query
-    or
-    x.sampleName = :query
-"""
+    def q = params.q.trim()
+    def query =
+            """
+    select
+        x from SeqVariant x
+    where
+        x.hgvsc = :query
+        or
+        x.hgvsg = :query
+        or
+        x.sampleName = :query
+    """
 
-render SeqVariant.executeQuery(query, [query: params.q]) as JSON
+    render SeqVariant.executeQuery(query, [query: q]) as JSON
 }
 
     def getResults( String q, Integer n, Integer o) {
@@ -116,7 +118,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                     q:              q,
                     n:              n,
                     o:              o,
-                    name:           "Sequenced Samples",
+                    name:           "Sequenced Sample",
                     table:          SeqSample,
                     link:           "/PathOS/seqVariant/svlist/",
                     table_link:     "/PathOS/seqSample/list",
@@ -127,7 +129,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                     q:              q,
                     n:              n,
                     o:              o,
-                    name:           "Patient Samples",
+                    name:           "Patient Sample",
                     table:          PatSample,
                     link:           "/PathOS/patSample/show/",
                     table_link:     "/PathOS/patSample/list",
@@ -138,7 +140,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                     q:              q,
                     n:              n,
                     o:              o,
-                    name:           "Sequence Runs",
+                    name:           "Sequenced Run",
                     table:          Seqrun,
                     link:           "/PathOS/seqrun/show?id=",
                     table_link:     "/PathOS/seqrun/list",
@@ -149,7 +151,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                     q:              q,
                     n:              n,
                     o:              o,
-                    name:           "Curated Variants",
+                    name:           "Curated Variant",
                     table:          CurVariant,
                     link:           "/PathOS/curVariant/show?id=",
                     table_link:     "/PathOS/curVariant/list",
@@ -160,7 +162,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                     q:              q,
                     n:              n,
                     o:              o,
-                    name:           "Pubmed",
+                    name:           "Pubmed Article",
                     table:          Pubmed,
                     link:           "/PathOS/Pubmed?id=",
                     table_link:     "/PathOS/Pubmed",
@@ -171,7 +173,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                     q:              q,
                     n:              n,
                     o:              o,
-                    name:           "Tags",
+                    name:           "PathOS Tag",
                     table:          Tag,
                     link:           "/PathOS/tag/show/",
                     table_link:     "/PathOS/tag/list",
@@ -257,7 +259,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
 
 
                     switch(config.name) {
-                        case 'Sequenced Samples':
+                        case 'Sequenced Sample':
                                 def seqVariants = []
                                 obj.seqVariants.each { sv ->
                                         Map data = [
@@ -274,7 +276,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                                 extra.panel = it.panel.toString()
                                 extra.seqVariants = seqVariants
                             break
-                        case 'Patient Samples':
+                        case 'Patient Sample':
                                 def patAssays = []
                                 obj.patAssays.each {
                                     patAssays.push([
@@ -295,7 +297,7 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                                 extra.patAssays = patAssays
                                 extra.seqSamples = seqSamples
                             break
-                        case 'Sequence Runs':
+                        case 'Sequenced Run':
                                 def seqSamples = []
                                 obj.seqSamples.each {
                                     seqSamples.push([
@@ -305,6 +307,10 @@ render SeqVariant.executeQuery(query, [query: params.q]) as JSON
                                     ])
                                 }
                                 extra.seqSamples = seqSamples
+                            break
+                        case 'Curated Variant':
+                                def seqVariants = SeqVariant.findAllByCurated(obj)
+                                extra.seqVariants = seqVariants
                             break
                         default:
                             break
@@ -419,21 +425,16 @@ def tables(){
 
 
 
+    // This is restricted to admins and devs
+    def reindex() {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        SeqSample.reindex()
+        PatSample.reindex()
+        Seqrun.reindex()
+        CurVariant.reindex()
+        Pubmed.reindex()
+        Tag.reindex()
+        render "Finished reindexing"
+    }
 
 }

@@ -186,7 +186,7 @@
 <div class="module" id="history"></div>
 <div class="module" id="tags"></div>
 
-<sec:ifAllGranted roles="ROLE_ADMIN">
+<sec:ifAnyGranted roles="ROLE_ADMIN,ROLE_DEV">
 <div class="module" id="admin"></div>
 
 <script>
@@ -197,11 +197,12 @@
         data: [
             '<g:link controller="user" action="">Users</g:link>',
             '<g:link controller="admin" action="admin">Admin</g:link>',
-            '<g:link controller="vcfUpload" action="upload">Upload VCF</g:link>'
+            '<g:link controller="vcfUpload" action="upload">Upload VCF</g:link>',
+            '<g:link controller="search" action="reindex">Reindex Search</g:link>'
         ]
     })
 </script>
-</sec:ifAllGranted>
+</sec:ifAnyGranted>
 
 </sec:ifLoggedIn>
 

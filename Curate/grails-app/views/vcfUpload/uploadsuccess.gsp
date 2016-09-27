@@ -65,8 +65,8 @@
 <div id="admin-stats" class="content scaffold-list" role="main"
      style="white-space: nowrap; overflow-x:auto">
 
-    <h1>Uploaded and ran VcfToPathOS</h1>
-    <p>Metadata file: ${metadataFile}</p>
+    <h1>Upload Vcf Results</h1>
+   
     <div id="page-body" role="main">
        <code>${command}</code><br/><p><i>Exit status:</i> ${exitval} </p><br/>
 <p>

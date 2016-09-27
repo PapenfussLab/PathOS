@@ -245,8 +245,8 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         </g:if>
 
         <li class="fieldcontain">
-            <span id="vep-label" class="property-label"><g:message code="seqSample.vep.label" /></span>
-            <span class="property-value"><g:vepUrl seqSample="${seqSample}" detail="${false}"/></span>
+            <span id="vep-label" class="property-label">CNV</span>
+            <span class="property-value"><a href='${cnvViewerUrl}/?file=${seqSample?.seqrun}.txt&sample=${seqSample}' target="_blank">CNV Browser</a></span> 
         </li>
 
         %{--Authorised QC --}%
@@ -1644,38 +1644,54 @@ function addToIGV(sample, dataUrl, id){
                 var stop = pos + 50;
                 var location = chr+start+"-"+stop;
 
-                if ( downsample === false ) {
-                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
-                    PathOS.igv.search(location);
-                } else if ( downsample === true || readDepth < 2500 ) {
-                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
-                    PathOS.igv.search(location);
-                } else {
+                var igvAutoLoad = "ask";
+                if(PathOS.modules.settings[PathOS.user] && PathOS.modules.settings[PathOS.user].svlistIGV) {
+                    igvAutoLoad = PathOS.modules.settings[PathOS.user].svlistIGV;
+                }
+
+
+                if (panel.indexOf("MRD") === 0) {
                     var message = d3.select("#pathos-footer").insert("div", "#igvDiv").attr("id", "footer-message");
-                    message.append("h1").text("Warning, there are "+readDepth+" reads at this locus.");
-                    message.append("h1").text("It is recommended to downsample to 2500 reads when using in-browser IGV.");
-                    message.append("h1").text("If you need to see high counts, please use desktop IGV.");
+                    message.append("h1").text("Warning, this is an MRD sample, you should open this using Desktop IGV because in-browser IGV will probably crash your browser.");
 
                     message.append("a").text("View using Desktop IGV").attr("href", "/PathOS/seqVariant/igvAction?id="+current_id);
 
                     message.append("span").text(" - ");
 
-                    message.append("a").text("Downsample to 2500 reads").attr("href", "#").on("click", function(){
+                    message.append("a").text("Downsample and open with in-browser IGV").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = true;
                         PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
+                        PathOS.igv.loaded = false;
                         PathOS.igv.search(location);
                     });
+                } else if ( downsample === false || igvAutoLoad == "auto" ) {
+                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
+                    PathOS.igv.search(location);
+                } else if ( downsample === true || igvAutoLoad == "downsample" ) {
+                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
+                    PathOS.igv.search(location);
+                } else {
+                    var message = d3.select("#pathos-footer").insert("div", "#igvDiv").attr("id", "footer-message");
 
-                    message.append("span").text(" - ");
-
-                    message.append("a").text("Don't downsample").attr("href", "#").on("click", function(){
+                    message.append("h1").attr("id", "main-button").append("a").text("Launch In-browser IGV").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = false;
                         PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
                         PathOS.igv.loaded = false;
                         PathOS.igv.search(location);
                     });
+
+                    message.append('h1').attr("id", "igv-message").text("If your browser runs slowly, you might want to try downsampling or using Desktop IGV")
+
+                    message.append("a").text("Launch In-browser IGV with downsampling").attr("href", "#").on("click", function(){
+                        $("#footer-message").remove();
+                        downsample = true;
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
+                        PathOS.igv.search(location);
+                    });
+
+                    message.append("a").text("View using Desktop IGV").attr("href", "/PathOS/seqVariant/igvAction?id="+current_id);
                 }
             }
         }, 200);

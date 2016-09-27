@@ -17,7 +17,7 @@ version = '1.2.0'
 //  Get install root from PATHOS_HOME environment variable
 //
 def pathospath = System.getenv().get("PATHOS_HOME")
-def libpath    = pathospath + '/lib/loader'
+def libpath    = pathospath + '/lib'
 
 repositories {
     jcenter()
@@ -28,9 +28,7 @@ buildscript {
         maven {
             url "https://jcenter.bintray.com"
             jcenter()  // this is for shadowjar only
-
         }
-
     }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.2'
@@ -46,7 +44,6 @@ shadowJar {
 //
 //  Deployment task
 //
-
 
 //  Todo: delete old versions of jars
 uploadArchives {
@@ -77,6 +74,25 @@ copyJars <<
                         {
                             include(name: "Loader-all-${version}.jar")
                         }
+    }
+}
+
+//
+//  Copy etc files to Path-OS
+//
+task copyEtc
+uploadArchives.dependsOn copyEtc
+
+copyEtc <<
+{
+    String etcpath = pathospath + '/etc'
+    println "Deploying files to " + etcpath
+    ant.copy( toDir: etcpath )
+    {
+        fileset(dir: 'src/etc')
+        {
+            include(name: '**')
+        }
     }
 }
 
@@ -130,7 +146,25 @@ copyETL <<
     {
         fileset(dir: 'src/ETL')
         {
-            include(name: '**/*')
+            include(name: '**/*.groovy')
+            include(name: '**/Export*')
+            include(name: '**/Import*')
+            include(name: '**/*.sh')
+            include(name: '**/Migrate_ref.sql')
+            include(name: 'Tables/*.sql')
+            include(name: 'PostLoad/*.sql')
+        }
+    }
+
+    //  Make executable
+    //
+    ant.chmod( perm: '775' )
+    {
+        fileset(dir: etlpath)
+        {
+            include(name: '**/Export*')
+            include(name: '**/Import*')
+            include(name: '**/*.sh')
         }
     }
 }

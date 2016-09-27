@@ -204,7 +204,12 @@
         </table>
         </g:if>
         <g:else>
-        <p>No NTC Reads for this Sequenced Run</p>
+            <g:if test="${StatsService.ntcAmplicons(seqrunInstance,0)}">
+                <p>There are less than 20 NTC Reads for this Sequenced Run.</p>
+            </g:if>
+            <g:else>
+                <p>This are no NTC Reads for this Sequenced Run.</p>
+            </g:else>
         </g:else>
     </div>
 </div>
@@ -478,17 +483,17 @@ function changeHeatmapValues(heatmapTsvLoc) {
     $("#footer-message h1").text('Click "View Sample" to load a sample into IGV.js');
     var igvStarted = false;
     function launchIGV(d){
-        if(igvStarted) {
-            console.log("Adding a new BAM");
+        if(!$("#footer-toggle").hasClass("footerActive")) {
+            $("#footer-toggle").click();
+        }
+        $("#footer-message").remove();
+
+        if (d.panel.indexOf("MRD") === 0) {
+            var message = d3.select("#pathos-footer").insert("div", "#igvDiv").attr("id", "footer-message");
+            message.append("h1").text("Warning, this is an MRD sample, you should open this using Desktop IGV because in-browser IGV will probably crash your browser.");
+        } else if(igvStarted) {
             PathOS.igv.addBAM(d.sample, d.dataUrl, 2500)
         } else {
-            console.log("starting IGV for the first time");
-            if(!$("#footer-toggle").hasClass("footerActive")) {
-                $("#footer-toggle").click();
-            }
-
-            $("#footer-message").remove();
-
             var igvDiv = document.getElementById("igvDiv");
 
             PathOS.igv.init(igvDiv, d.dataUrl, d.sample, d.panel, 2500);

@@ -28,6 +28,7 @@ import org.codehaus.groovy.grails.web.util.WebUtils
 
 import org.springframework.context.ApplicationListener
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 
 @Log4j
@@ -41,16 +42,29 @@ public class curateLoginListener implements ApplicationListener<InteractiveAuthe
         if (currentUser) {
 
             def thisusername = currentUser.getUsername()
-            session.setAttribute('userName', thisusername)
-            springSecurityService.reauthenticate(currentUser.username)
-            log.info( "${thisusername} logged in successfully" )
+
+            if(! currentUser.accountLocked ) {
+                session.setAttribute('userName', thisusername)
+                springSecurityService.reauthenticate(currentUser.username)
+                log.info("${thisusername} logged in successfully")
+            } else {
+                log.info("${thisusername} account is locked, and login is barred")
+                SecurityContextHolder.clearContext()
+    }
 
         }
         else {
             def guestusername = 'pathosguest'
-            session.setAttribute('userName', guestusername)
-            springSecurityService.reauthenticate(guestusername)
-            log.info( "${guestusername} logged in successfully" )
+
+
+            if (!AuthUser.findByUsername(guestusername)) {
+                SecurityContextHolder.clearContext()
+                log.info("No guest user exists, logging out")
+            } else {
+                session.setAttribute('userName', guestusername)
+                springSecurityService.reauthenticate(guestusername)
+                log.info("${guestusername} logged in successfully")
+            }
         }
 
 

@@ -371,7 +371,8 @@ PathOS.modules = {
 			} else {
 				PathOS.modules.settings[PathOS.user] = {
 					sidebar: {},
-					hide: {}
+					hide: {},
+					svlistIGV: "ask"
 				};
 				PathOS.data.save("modules", PathOS.modules.settings);
 			}
@@ -398,7 +399,7 @@ PathOS.modules = {
 		show: function(){
 			console.log("showing settings!");
 
-			var menu = d3.select('body').append('div').attr({
+			var menubox = d3.select('body').append('div').attr({
 					id: 'overlay'
 				}).on('click', PathOS.modules.menu.hide)
 			.append('div').on('click', function() { d3.event.stopPropagation(); })
@@ -407,19 +408,77 @@ PathOS.modules = {
 					class: 'fb-box'
 				});
 
-			menu.append('a').attr('href', '#').on('click', PathOS.modules.menu.hide)
+			menubox.append('a').attr('href', '#').on('click', PathOS.modules.menu.hide)
 				.append("i").classed("fa fa-close fa-lg", true);
 
-			header = menu.append('div').attr({
+			menu = menubox.append("div");
+
+			header = menu.attr({
 				id: 'mmHeader'
-			}).append('h1').text("Put a menu here, when we have options that need to be set.")
-				.append('p').text("Or maybe some help info or something? I dunno.");
+			}).append('h1').text("PathOS Options");
 
-			header.append('p').append("a").attr({
+
+			function deselectIGV(){
+				d3.selectAll("#IGV-options a").classed("selected", false);
+			}
+
+			if(PathOS.user) {
+				var igv = menu.append("p").attr({
+					id: "IGV-options"
+				}).text("IGV.js Options: ");
+
+				igv.append("p").text("In-browser IGV (also known as IGV.js) can load in the background while you browse PathOS. It can also downsample reads, which will make larger runs easier for your computer to handle.");
+
+				igv.append("a").attr({href:"#", id:"svlist-igv-auto"}).text("Auto Load (no downsampling)").on("click", function(){
+					deselectIGV();
+					d3.select(this).classed("selected", true);
+					PathOS.modules.settings[PathOS.user].svlistIGV = "auto";
+					PathOS.data.save("modules", PathOS.modules.settings);
+				});
+				igv.append("a").attr({href:"#", id:"svlist-igv-downsample"}).text("Auto Load (downsample to 2500)").on("click", function(){
+					deselectIGV();
+					d3.select(this).classed("selected", true);
+					PathOS.modules.settings[PathOS.user].svlistIGV = "downsample";
+					PathOS.data.save("modules", PathOS.modules.settings);
+				});
+				igv.append("a").attr({href:"#", id:"svlist-igv-ask"}).text("Ask Before Loading IGV.js").on("click", function(){
+					deselectIGV();
+					d3.select(this).classed("selected", true);
+					PathOS.modules.settings[PathOS.user].svlistIGV = "ask";
+					PathOS.data.save("modules", PathOS.modules.settings);
+				});
+
+
+				if(PathOS.modules.settings[PathOS.user]) {
+					var svlistIGV = PathOS.modules.settings[PathOS.user].svlistIGV;
+					if (typeof svlistIGV  == 'undefined' || svlistIGV == 'ask') {
+						d3.select("#svlist-igv-ask").classed("selected", true);
+					} else if (svlistIGV == 'downsample' ) {
+						d3.select("#svlist-igv-downsample").classed("selected", true);
+					} else if (svlistIGV == 'auto' ) {
+						d3.select("#svlist-igv-auto").classed("selected", true);
+					}
+				}
+
+
+				menu.append("p").text("PathOS History: ").append("a").text("Clear History").attr({
+					"href": "#",
+					"id": "clearHistory"
+				}).on("click", function(){
+					PathOS.data.clear("history");
+					alert("History Cleared!");
+				});
+			}
+
+			var links = menu.append('p').attr('id','pathos-menu-links').text("Links to: ");
+
+			links.append("a").attr({
 				href: "https://115.146.86.118/jira/secure/Dashboard.jspa"
-			}).text("Here, have a link to Jira.");
-
-			header.append('p').append('a').attr('href', 'https://115.146.86.118/confluence/display/PVS/Path-OS+Variant+System').text("And here's one for Confluence.");
+			}).text("Jira");
+			links.append("span").text(" - ");
+			links.append('a').attr('href', 'https://115.146.86.118/confluence/display/PVS/PathOS+Variant+System').text("Confluence");
+			links.append("span").text(" - ");
+			links.append('a').attr('href', 'http://pathos.co/help').text("Help");
 
 
 			//Turn off hotkeys, and make "esc" hide the menu
@@ -999,6 +1058,7 @@ PathOS.igv = {
 		PathOS.igv.options = {
 			showKaryo: "hide",
 			showNavigation: true,
+			showCenterGuide: true,
 			reference: {
 				fastaURL: "//dn7ywbm9isq8j.cloudfront.net/genomes/seq/hg19/hg19.fasta", //perhaps we should change this to a peter mac hosted hg19?
 				indexFile: "/PathOS/igv/hg19.fasta.fai",

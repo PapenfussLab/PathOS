@@ -67,6 +67,17 @@ grails.project.dependency.resolution =
                         test    "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
 
 
+                        // dependencies required for easygrid
+                        compile('net.sf.opencsv:opencsv:2.3')
+                        compile('com.google.visualization:visualization-datasource:1.1.1') {
+                            exclude(group: 'commons-logging', name: 'commons-logging')
+                            exclude(group: 'commons-lang', name: 'commons-lang')
+                        }
+                        compile 'commons-beanutils:commons-beanutils:1.9.2' {
+                            exclude(group: 'commons-logging', name: 'commons-logging')
+                            exclude(group: 'commons-lang', name: 'commons-lang')
+                        }
+                        compile 'com.esotericsoftware.kryo:kryo:2.24.0'
 
 
                         runtime 'mysql:mysql-connector-java:5.1.25'
@@ -103,6 +114,8 @@ grails.project.dependency.resolution =
                         runtime ":hibernate:3.6.10.9" // or ":hibernate4:4.3.4"
                         runtime ":database-migration:1.3.8"
                         runtime ":jquery:1.11.0.2"
+                        compile ":jquery:1.11.0.2"
+
                         runtime ":resources:1.2.7"
 
                         //  Additional application plugins
@@ -115,9 +128,10 @@ grails.project.dependency.resolution =
                         compile ":tooltip:0.8"
                         compile ":csv:0.3.1"
 
-                        //  Easygrid plugins
-                        //
-                        compile ":easygrid:1.6.6"
+                        //  Easygrid: 1.6.6.1 is our custom local copy
+                        compile ":easygrid:1.6.6.1"
+                        compile ":google-visualization:0.7"
+
                         compile ":markdown:1.1.1"
                         compile ":export:1.6"
 
@@ -138,12 +152,12 @@ grails.project.dependency.resolution =
                         compile ":greenmail:1.3.4"
 
                         //test ":geb:$gebVersion"
-                        // test ":spock:$gebVersion"
+                        //test ":spock:$gebVersion"
 
                         //test ":geb:0.10.0", {
                         //    excludes 'xml-apis'
                         //    exclude "spock-grails-support"
-                        //c}
+                        //}
 
                         //compile ":taggable:1.1.0"
                     }

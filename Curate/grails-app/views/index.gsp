@@ -28,7 +28,7 @@
                 <div class='container'>
                     <div class='row'>
                         <div class="fb-box">
-                            <h1 style="text-align:center; margin-bottom:10px;">Latest 10 sequence runs:</h1>
+                            <h1 style="text-align:center; margin-bottom:10px;">Latest 10 Sequenced Runs:</h1>
                             <table id="seqrun-list">
                                 <thead>
                                     <tr>

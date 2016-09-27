@@ -315,7 +315,8 @@ class DBMigrate
 
                 }
                 if (newusername == 'Ma David') { newusername = "MaDavid" } //DM has no space
-                if ( u.getUsername() == 'pathosadmin') { newusername = "Seleznev Andrei" } //DM has no space
+                if ( u.getUsername() == 'pathosadmin') { newusername = "Seleznev Andrei" } //i am admin!
+                if ( u.getUsername() == '') { newusername = "Seleznev Andrei" } //i am admin!
 
                 if (!AuthUser.findByUsername(newusername)) {
                    u.setUsername(newusername)
@@ -327,6 +328,13 @@ class DBMigrate
 
             }
 
+            //  make guest user
+            //
+            def guestuser = 'pathosguest'
+            if (!AuthUser.findByUsername(guestuser)) {
+                def guest = new AuthUser(username: guestuser, password: guestuser, displayName: "Pathos Guest", email: 'no.such.user@petermac.org').save(flush: true)
+                println "Created guest user " + guestuser
+            }
 
         }
     }

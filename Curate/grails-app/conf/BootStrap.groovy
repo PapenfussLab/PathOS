@@ -224,11 +224,19 @@ class BootStrap
                 break;
         }
 
-            // Manually start the mirroring process to ensure that it comes after the automated migrations.
-            //println "Performing bulk index"
+        // Don't bother reindexing Searchable if the environment is pa_local
+        // On pa_local, just press the "reindex" button in Admin Options to reindex
+        // DKGM 6-Sept-2016
+        if(GrailsUtil.environment != "pa_local") {
+            println "Reindexing the search"
             searchableService.reindex()
-            //println "Starting mirror service"
-            searchableService.startMirroring()
+        } else {
+            println "GrailsUtil.environment is pa_local, don't bother reindexing the search"
+        }
+
+        // Manually start the mirroring process to ensure that it comes after the automated migrations.
+        println "Starting Searchable mirroring service"
+        searchableService.startMirroring()
     }
 
     def destroy =

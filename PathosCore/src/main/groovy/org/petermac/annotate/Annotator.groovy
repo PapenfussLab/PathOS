@@ -117,7 +117,7 @@ class Annotator
      * @param   dss     DataSource List
      * @return          Number of variants output
      */
-    private int annotateVcf( List<File> vcfs, String rdb, List dss, File errFile )
+    int annotateVcf( List<File> vcfs, String rdb, List dss, File errFile )
     {
         int nv = 0
 

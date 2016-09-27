@@ -76,10 +76,10 @@ class RelationService {
         //
         for ( ps in patSamples )
         {
-            log.warn( "patSamples=${patSamples} ps=${ps}")
+            //log.warn( "patSamples=${patSamples} ps=${ps}")
             if ( ps?.seqSamples?.size() >= 2 )
             {
-                log.debug( "Patient Sample ${ps} SeqSamples=${ps.seqSamples.size()}")
+                //log.debug( "Patient Sample ${ps} SeqSamples=${ps.seqSamples.size()}")
 
                 //  Do we already have a SeqRelation for this SeqSample ? If not, create one
                 //

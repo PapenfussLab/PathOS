@@ -34,7 +34,7 @@
             <div class="col-xs-8" id="results">
 
             </div>
-            <div class="col-xs-4">
+            <div class="col-xs-4" style="min-height: 1440px;">
                 <div class="fb-box" id="legend" style="display: none;">
                     <h1>Legend</h1>
                     <ul id="legend_options">
@@ -155,7 +155,7 @@ function handleSvData(data){
         var resultData = [];
         var tags = {};
 
-        Object.keys(seqvars).sort().reverse().slice(0, svDepth).reverse().forEach(function(seqvar){
+        Object.keys(seqvars).sort().slice(0, svDepth).reverse().forEach(function(seqvar){
             var sv = seqvars[seqvar];
 
             resultData.push({
@@ -166,7 +166,7 @@ function handleSvData(data){
                 data: sv,
                 link: '/PathOS/seqVariant/show/',
                 type: 'seqVariant',
-                typetitle: 'Sequenced Variants'
+                typetitle: 'Sequenced Variant'
             });
             sv.tags.forEach(function(tag){
                 tags[tag.id] = true;
@@ -242,11 +242,10 @@ function handleSearchableData(data){
         return b.score - a.score;
     });
 
-    buildLegend(legendData);
-    //sort results.. then give them to the builder...
-
-
     buildResults(resultData);
+    buildLegend(legendData);
+
+
 }
 
 var deepData = false;
@@ -264,7 +263,8 @@ function buildLegend(data){
             .each(function(d){
 
                 var row = d3.select(this);
-                row.select('.result-text .legend_showing').text(d.count);
+                var showing = d3.selectAll(".resultbox."+d.key)[0].length;
+                row.select('.result-text .legend_showing').text(showing);
                 row.select('.result-text .legend_total').text(d.total);
 
                 var legendTagDiv = row.select(".legendTagDiv")
@@ -376,20 +376,20 @@ function buildLegend(data){
         updateCounts();
     }
 
-    function updateCounts(){
-        var numberShowing = 0,
-                numberOfResults = 0;
-        d3.selectAll("#legend-boxes table tr").each(function(d){
-            numberShowing += parseInt(d3.select(this).select(".legend_showing").text());
-            numberOfResults += d.total;
-            d3.select("#numberShowing").text(numberShowing);
-            d3.select("#numberOfResults").text(numberOfResults);
-        });
-    }
 
 };
 
 
+function updateCounts(){
+    var numberShowing = d3.selectAll(".resultbox:not(.hidden)")[0].length,
+        numberOfResults = 0;
+
+    d3.selectAll("#legend-boxes table tr").each(function(d){
+        numberOfResults += d.total;
+        d3.select("#numberShowing").text(numberShowing);
+        d3.select("#numberOfResults").text(numberOfResults);
+    });
+}
 
 
 function buildResults(data){
@@ -447,6 +447,7 @@ function buildResults(data){
 
         });
     applyOptions();
+    updateCounts();
 };
 
 drawResultBox = {
@@ -455,7 +456,7 @@ drawResultBox = {
             .append("h3")
             .append("a")
             .attr("href", "/PathOS/seqVariant/svlist/"+ d.data.seqSample.id)
-            .text("(See in Sequenced Sample)");
+            .text(d.data.sampleName);
 
         var row = div.append("row").classed("row", true);
         var block = row.append("div").classed("col-xs-6 block", true);
@@ -472,7 +473,11 @@ drawResultBox = {
         block.append('p').text("Amplicons: "+ d.data.amps);
         block.append('p').text("Amplicon Count: "+ d.data.numamps);
 
-
+        if(d.data.pubmed){
+            block.append('a').attr({
+                href: "/PathOS/Pubmed?pmid="+d.data.pubmed
+            }).text("Pubmed: "+ d.data.pubmed);
+        }
 
     },
     pubmed: function(div, d){
@@ -505,7 +510,7 @@ drawResultBox = {
         div.select(".col-xs-8")
                 .append("h3")
                 .append("a")
-                .attr("href", "/PathOS/seqVariant/svlist/"+ d.gormid)
+                .attr("href", "/PathOS/seqrun/show/"+d.data.seqrun.seqrun)
                 .text(d.data.seqrun.seqrun);
         var data = d.data;
         var row = div.append("row").classed("row", true);
@@ -528,7 +533,7 @@ drawResultBox = {
             },
             {
                 title: 'Panel',
-                words: d.extra.panel
+                words: d.data.panel.manifest
             },
             {
                 title: 'Analysis',
@@ -616,11 +621,11 @@ drawResultBox = {
 
         div.classed(pmClass, true)
 
-
-        block.append("p").text("Variants in Path-OS: " + d.data.seqVariants.length);
+        block.append("p").text("Number of Sequenced Samples with this Curated Variant in PathOS: " + d.extra.seqVariants.length);
+//      add clinical context info here?
 
         var row = div.append("row").classed("row", true)
-                .append("div").classed("col-xs-12", true)
+            .append("div").classed("col-xs-12", true);
         var evidence = [];
 
         Object.keys(PathOS.evidence).forEach(function(e){
@@ -704,7 +709,7 @@ drawResultBox = {
 
             var header = table.append('thead').append('tr');
             header.append('th').text('Sample Name');
-            header.append('th').text('Sequence Run');
+            header.append('th').text('Sequenced Run');
             header.append('th').text('Date');
 
             try {
@@ -771,7 +776,7 @@ drawResultBox = {
                 words: d.data.platform
             },
             {
-                title: 'scanner',
+                title: 'Scanner',
                 words: d.data.scanner
             }
         ]);
@@ -791,7 +796,7 @@ drawResultBox = {
                 padding: '10px'
             }).classed('block fb-box', true)
 
-            box.append("h3").text(d.data.seqSamples.length + " Sequenced Samples:")
+            box.append("h3").text(d.extra.seqSamples.length + " Sequenced Samples:")
 
             var table = box.append('table')
                     .style({
@@ -829,6 +834,22 @@ drawResultBox = {
         } else {
             div.append('p').text("No variants found");
         }
+    },
+    tag: function(div, d) {
+        var row = div.append("row").classed("row", true);
+        var block = row.append("div").classed("col-xs-8 block", true);
+
+
+        PathOS.buildBlock(block,[
+            {
+                title: 'Description',
+                words: d.data.description
+            },
+            {
+                title: 'Tag Created By',
+                words: d.data.createdBy.displayName
+            }
+        ]);
     }
 };
 
