@@ -37,8 +37,11 @@ There are a number of dependencies including the following
 - Grails (we use 2.3.7 at time of writing) from https://github.com/grails/grails-core/releases/download/v2.3.7/grails-2.3.7.zip
 - Gradle (we use 1.10 at time of writing)
 - Git & a git ssh key with access to PathOS git repository
-- MySql or MariaDB
-- Tomcat
+- MySql or MariaDB (currently 5.5.50 MariaDB)
+- Tomcat (currently version 7.0)
+- One of the Pipeline tools, "Canary" relies on the Striped Smith Waterman library, a JNI accessible C/C++ library which can be found here https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library
+- The report renderer uses a commercial package available as a JAR from http://www.aspose.com/downloads/words/java
+- Some of the pipeline utilities and HGVS libraries use the Genome Analysis Toolkit (Currently GATK 3.3) and the Sting utility JAR (currently 2.1.8) available from here https://software.broadinstitute.org/gatk/download/
 
 ## Contact
 Ken Doig, Bioinformatics, Cancer Research Department, Data Scientist, Molecular Pathology Department
