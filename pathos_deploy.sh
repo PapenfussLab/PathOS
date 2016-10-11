@@ -200,9 +200,8 @@ popd
 echo "INFO: Building Curate WAR"
 
 pushd "$BUILD_HOME/Curate"
-    DEFAULTCONFIG="$PATHOS_HOME/etc/pa_example.properties"
     cp -vf application.properties.default application.properties
-    grails war target/PathOS.war -Dgrails.env=${GRAILS_ENV} -Dpathos.config="$DEFAULTCONFIG" --stacktrace
+    grails war target/PathOS.war -Dgrails.env=${GRAILS_ENV} -Dpathos.config=war.properties --stacktrace
     mkdir -p "$PATHOS_HOME/war"
     cp -v target/PathOS.war "$PATHOS_HOME/war"
 popd
