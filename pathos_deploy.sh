@@ -74,7 +74,7 @@ shift `expr $OPTIND - 1`
 #
 if [ $NARG -eq 0 -o $# -ne 0 -o $HELP -eq 1 -o -z "$GRAILS_ENV" -o -z "$GIT_BRANCH" ]; then	# Set number of required arguments here
     echo "
-    Usage: `basename $0` -e <pathos_environment> -b <git branch name>
+    Usage: `basename $0` [options]
 
     Options:
             -h              help description
