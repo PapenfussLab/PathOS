@@ -42,6 +42,17 @@ There are a number of dependencies including the following
 - The report renderer uses a commercial package available as a JAR from http://www.aspose.com/downloads/words/java. Without a license, a "No License" message will appear on generated reports.
 - Some of the pipeline utilities and HGVS libraries use the Genome Analysis Toolkit (Currently GATK 3.3) and the Sting utility JAR (currently 2.1.8) available from here https://software.broadinstitute.org/gatk/download/
 
+## Confguration
+The following files can be edited post deployment to configure file locations, servers, databases and security servers.
+
+**Configuration Files:**
+
+|File/Path   | Purpose                                              |
+|:-------:|-------------------------------------------------------|
+| <Home>/etc/pathos.properties     | Master properties file controlling servers, database access and schemas and most file locations|
+| <Home>/etc/FilterRules.groovy | Rules for each PanelGroup. A panel group is a set of panels which share a common set of automatic filter thresholds |
+| <Home>/etc/loader.properties     | Log file properties for PathOS data loader                                 |
+
 ## Contact
 Ken Doig, Bioinformatics, Cancer Research Department, Data Scientist, Molecular Pathology Department
 
