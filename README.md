@@ -49,17 +49,18 @@ The following files can be edited post deployment to configure file locations, s
 
 |File/Path   | Purpose                                              |
 |:-------:|-------------------------------------------------------|
-| <Home>/etc/pathos.properties     | Master properties file controlling servers, database access and schemas and most file locations|
-| <Home>/etc/FilterRules.groovy | Rules for each PanelGroup. A panel group is a set of panels which share a common set of automatic filter thresholds |
-| <Home>/etc/loader.properties     | Log file properties for PathOS data loader                                 |
+| PathOSHome/etc/pathos.properties     | Master properties file controlling servers, database access and schemas and most file locations|
+| PathOSHome/etc/FilterRules.groovy | Rules for each PanelGroup. A panel group is a set of panels which share a common set of automatic filter thresholds |
+| PathOSHome/lib/loader.properties     | Log file properties for PathOS data loader                                 |
+|PathOSHome/Report/Default Var Template.docx|Default variant report template. A MSWord mail megre template document|
+|PathOSHome/Report/Default Neg Template.docx|Default negative report template. A MSWord mail megre template document|
+|PathOSHome/Report/Default Fail Template.docx|Default failed sample report template. A MSWord mail megre template document|
+|PathOSHome/war/PathOS.war|WAR file created by Grails in pathos_deploy.sh script. Copy to Java web server eg Tomcat|
 
 ## Contact
 Ken Doig, Bioinformatics, Cancer Research Department, Data Scientist, Molecular Pathology Department
-
 Peter MacCallum Cancer Centre, Victorian Comprehensive Cancer Centre Building
-
 305 Grattan Street, Melbourne Victoria 3000 Australia
-
 Ph: +61 411 225 178 Mail: ken.doig@petermac.org
 
 ## Demonstration Platform
