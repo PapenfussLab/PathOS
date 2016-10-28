@@ -1,6 +1,6 @@
 # PathOS
 PathOS is a decision support tool to manage, analyse and report on high througput DNA sequencing variants.
-PathOS is under active development at the [https://www.petermac.org/](Peter MacCallum Cancer Centre in Melbourne).
+PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
 
 Authors: Ken Doig, Andre Sleznev, David Ma Date: October 2016 
 
@@ -67,5 +67,5 @@ Peter MacCallum Cancer Centre, Victorian Comprehensive Cancer Centre Building
 Ph: +61 411 225 178 Mail: ken.doig@petermac.org
 
 ## Demonstration Platform
-A cloud instance on PathOS is maintained on the University of Melbourne Nectar cloud at http://115.146.87.30:8746/PathOS
-Please get in touch with the authors for a login account.
+A cloud instance of PathOS is maintained on the University of Melbourne Nectar cloud at http://115.146.87.30:8746/PathOS
+Please get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
