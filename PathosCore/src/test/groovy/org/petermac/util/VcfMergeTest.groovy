@@ -24,16 +24,17 @@ class VcfMergeTest extends GroovyTestCase
 {
     static VcfMerge vm = new VcfMerge()
 
+    //TODO we need more assert functions here
     void testVcfMerge()
     {
         def tumour = new Vcf( PathGeneratorFile( 'Vcf/Examples', 'tumour', 'vcf'))
         def tlines = tumour.load()
-        assert tlines == 52
+        assert tlines == 52 : "Vcf.loafd() is failing or expeceted number of lines is different"
         Map tm = tumour.getTsvMap()
 
         def normal = new Vcf( PathGeneratorFile( 'Vcf/Examples', 'minus', 'vcf'))
         def nlines = normal.load()
-        assert nlines == 20
+        assert nlines == 20 : "Vcf.loafd() is failing or expeceted number of lines is different"
 
         Vcf mrg = vm.mergeVcf( tumour, 'Tumour', normal, 'Normal' )
 

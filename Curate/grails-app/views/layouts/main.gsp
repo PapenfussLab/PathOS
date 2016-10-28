@@ -1,4 +1,5 @@
 <%@ page import="org.petermac.pathos.curate.*" %>
+<%@ page import="org.petermac.util.Locator" %>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -97,7 +98,7 @@
 
             <g:if test="${pageProperty(name: 'page.sidebar')=='show'}">
             <div class="sidebar-module">
-                <h4>Welcome to Path-OS<br>Variant Management System</h4>
+                <h4>Welcome to PathOS<br>Variant Management System</h4>
                 <br>
                 <p style="margin:0">
                     This is an application to curate variations found by high throughput sequencing of cancer patient blood or tumour samples. While every effort has been made to ensure the accuracy of this application and its data, it is the users responsibility to verify results via external sources when reporting.
@@ -175,7 +176,7 @@
                     .html(data[d].title)
                     .classed(d, true);
 
-                row.append('td').html(data[d].count);
+                row.append('td').html("~"+data[d].count);
             });
     }
 
@@ -197,7 +198,9 @@
         data: [
             '<g:link controller="user" action="">Users</g:link>',
             '<g:link controller="admin" action="admin">Admin</g:link>',
+            '<g:link controller="filterTemplate" action="list">Filter Templates</g:link>',
             '<g:link controller="vcfUpload" action="upload">Upload VCF</g:link>',
+
             '<g:link controller="search" action="reindex">Reindex Search</g:link>'
         ]
     })
@@ -207,7 +210,7 @@
 </sec:ifLoggedIn>
 
 
-            <div id="sidebar-footer" class="footer" role="contentinfo"><span><i class="fa fa-envelope" aria-hidden="true"></i> <a href="mailto:ken.doig@petermac.org?subject=PathOS Feedback on v<g:meta name="app.version"/> ${grails.util.Environment.getCurrentEnvironment().name}&body=Hi Ken and team,%0A%0AThis is regarding on v<g:meta name="app.version"/> ${grails.util.Environment.getCurrentEnvironment().name}.%0A%0A<Enter your message here>">Mail Feedback</a> PathOS v<g:meta name="app.version"/><g:if test="${grails.util.Environment.getCurrentEnvironment().name} != 'pa_prod'"> ${grails.util.Environment.getCurrentEnvironment().name}</g:if></span>
+            <div id="sidebar-footer" class="footer" role="contentinfo"><span><i class="fa fa-envelope" aria-hidden="true"></i> <a href="mailto:ken.doig@petermac.org?subject=PathOS Feedback on v<g:meta name="app.version"/> ${Locator.pathosEnv}&body=Hi Ken and team,%0A%0AThis is regarding on v<g:meta name="app.version"/> ${Locator.pathosEnv}.%0A%0A<Enter your message here>">Mail Feedback</a> PathOS v<g:meta name="app.version"/><g:if test="${Locator.pathosEnv} != 'pa_prod'"> ${Locator.pathosEnv}</g:if></span>
             </div>
 
             <div class="footer-filler"></div>
@@ -249,12 +252,12 @@
     </div>
     <script>
 
-        var drag = d3.behavior.drag();
+        var drag = d3.drag();
         d3.select("#resizer").call(drag);
 
         var height = 300,
             curHeight = height;
-        drag.on("dragstart", function(){
+        drag.on("start", function(){
             height = $("#pathos-footer").height(),
             curHeight = height;
         });
@@ -268,7 +271,7 @@
                 d3.select("#footer-toggle").style("bottom", newHeight + "px");
             }
         });
-        drag.on("dragend", function(){
+        drag.on("end", function(){
             height = $("#pathos-footer").height();
             d3.selectAll(".footer-filler").style("height", height+"px");
         });
@@ -377,12 +380,13 @@ if(PathOS.params().q) {
 
     var environments_to_show_watermark = {
         "pa_uat" : true,
+        "pa_dev" : true,
         "pa_stage": true,
         "pa_local": true
     };
 
-    if (environments_to_show_watermark.hasOwnProperty("${grails.util.Environment.getCurrentEnvironment().name}")) {
-        d3.select("body").append("span").classed("watermark", true).text("${grails.util.Environment.getCurrentEnvironment().name} <g:render template='/git'/>".toUpperCase())
+    if (environments_to_show_watermark.hasOwnProperty("${Locator.pathosEnv}")) {
+        d3.select("body").append("span").classed("watermark", true).text("${Locator.pathosEnv} <g:render template='/git'/>".toUpperCase())
     }
 
 

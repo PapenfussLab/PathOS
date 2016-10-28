@@ -210,10 +210,10 @@ int NotifyHolly( String event, String stage, String seqrun , String sample )
 /**
  * Notify using a URL and curl
  *
- * @param event
- * @param sample
- * @param status
- * @return
+ * @param event     String of Bpipe event type eg STAGE_STARTED, STAGE_COMPLETED
+ * @param sample    String of sample name
+ * @param status    String of Holly event name eg Status_Pathos
+ * @return          Exit value from curl command execution
  */
 int NotifyUrl( String event, String sample, String status )
 {

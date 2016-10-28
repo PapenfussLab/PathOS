@@ -8,57 +8,63 @@ import java.text.DateFormat
  */
 class DateUtilTest extends GroovyTestCase
 {
+
+    /**
+        TESTING class constructor
+    */
+    void testDateUtil()
+    {
+        def du = new DateUtil()
+        assert du instanceof DateUtil : "[T E S T]: Class DateUtil() failed to start"
+    }
+
+    /**
+        TESTING static String safeParse( SimpleDateFormat sdf, String rawDate )
+    */
     void testDateStringOne()
     {
-
-        def OS =  System.properties['os.name']
         String testDate = "Sat Feb 18 00:00:00 AEST 13"
         String da = DateUtil.safeParse( new SimpleDateFormat("EEE MMM dd kk:mm:ss z yyyy"), testDate)
 
-        if( OS == "Mac OS X")
-        {
-            println "Mac OS X detected"
-            if (testDate.find(/[A-Z][a-z]+ [A-Z][a-z]+ [0-9]+ [0-9][0-9]:+/))
-            {
-                assert(true)
-            }
-        }
-        else if("Linux")
-        {
-            println "Linux OS detected"
-            if (testDate.find(/[A-Z][a-z]+ [A-Z][a-z]+ [0-9]+ [0-9][0-9]:+/))
-            {
-                assert(true)
-            }
-        }
+        assert da.contains( "AEST 13" ) : "[T E S T] assert 1/2: cannot find pattern AEST 13"
+        assert da.contains("Feb 18") : "[T E S T] assert 2/2: cannot find pattern Feb 18"
+
 
     }
 
-    //TODO: When testing in the server the day is changed by unkown reason i.e. Sat to Wed
+    /**
+     * TESTING static Date dateParse( SimpleDateFormat sdf, String rawDate )
+     */
     void testDateParse()
     {
-        def OS =  System.properties['os.name']
+
         String testDate = "Sat Feb 18 00:00:00 AEST 1"
         String da = DateUtil.dateParse( new SimpleDateFormat("EEE MMM dd yyyy"), testDate)
 
-        if(OS == "Mac OS X")
-        {
-            println "Mac OS X detected"
-            if (testDate.find(/[A-Z][a-z]+ [A-Z][a-z]+ [0-9]+ [0-9][0-9]:+/)) {
-                assert (true)
-            }
+        assert da.contains( "AEST 1" ) : "[T E S T] assert 1/2: cannot find pattern AEST 1"
+        assert da.contains("Feb 18") : "[T E S T] assert 2/2: cannot find pattern Feb 18"
 
-        }
-        else if( OS == "Linux")
-        {
+    }
 
-            println "Linux OS detected"
-            if (testDate.find(/[A-Z][a-z]+ [A-Z][a-z]+ [0-9]+ [0-9][0-9]:+/))
-            {
-                assert(true)
-            }
+    /**
+     * TESTING Failed dateParse( SimpleDateFormat sdf, String rawDate)
+     */
+    void testFailed_DateParse()
+    {
 
-        }
+        def out = DateUtil.dateParse( new SimpleDateFormat("EEE MMM dd yyyy"), "FAIL")
+        println("Error mesage should be printed containing Couldn't parse data [FAIL] java.text.ParseException: Unparseable date: \"FAIL\"")
+        assert out == null :"[T E S T]: Providing wrong input return a valie different from null"
+
+    }
+    /**
+     * TESTING wrong input
+     */
+    void testFailed_InvalidCall()
+    {
+
+        def Error = shouldFail MissingMethodException, { DateUtil.dateParse( new SimpleDateFormat("EEE MMM dd yyyy") ) }
+        assert Error.contains("No signature of method") :"[T E S T]: Output is generated without providing second input"
 
     }
 

@@ -6,25 +6,196 @@ import org.petermac.util.VcfDbCheck
 /**
  * Created by lara luis on 16/09/2016.
  */
+////
+// Testing VcfLaoder.
+// It contains 1 setup 7 functions and 2 auxuliar functions
+////////////////////////////////////////////////////////////////
 class VcfLoaderTest extends GroovyTestCase {
 
     VcfLoader vl
     String DB
 
-
+    // VcfLoader is dependant on DB
+    // It hasto check if provided by env variable
     void setUp()
     {
         vl = new VcfLoader()
         def env = System.getenv()
         DB = env["PATHOS_DATABASE"]
-        println "Connecting to: ${DB}"
+
     }
 
+    ////
+    // This will have to show the help function
+    ////////
     void testMain()
     {
         vl.main()
+        // if prints help, environment variables are correct
         assert true
     }
+
+    ////
+    // So Far this function returns 0
+    ///////
+    void testLoadGorm()
+    {
+        // Returns 0
+       assert( vl.loadGorm( DB ) == 0 )
+
+    }
+
+    ////
+    // This function will print a lot of warnings for some files
+    /////////////////////////////////////////////////////////////
+    void testNormaliseVcfs( )
+    {
+
+        def VcfNames = [
+                        'tumour',
+                        'mini_tumour',
+                        'input1',
+                        'IC080T_merged_dups_realign_recal_somatic_mutect',
+                        'IC050T_merged_dups_realign_recal_somatic_mutect',
+                        'Romeo1_Biopsy',
+                        'Romeo1_Post'
+                        ]
+        String resource = "Vcf"
+        String extension = "vcf"
+        String rdb = DB
+        def nocache = false
+
+        List<File> Vcfs = GetFileResources(VcfNames, resource, extension)
+
+        // Returns a list of files in temp
+        assert(  vl.normaliseVcfs( Vcfs, rdb, nocache ).size() > 1 )
+
+    }
+
+    ////
+    // This function checks the conversion from Vcf to TSV
+    // similar to the test function TsvTest
+    ////////////////////////////////////////////////////////
+    void testTsvVcfs( )
+    {
+        def VcfNames = [
+                'tumour',
+                'mini_tumour',
+                'input1',
+                'IC080T_merged_dups_realign_recal_somatic_mutect',
+                'IC050T_merged_dups_realign_recal_somatic_mutect',
+                'Romeo1_Biopsy',
+                'Romeo1_Post'
+        ]
+
+        String resource = "Vcf"
+        String extension = "vcf"
+        String rdb = DB
+        String seqrun = "12K0304_CCCAACCT-TAAGACA"
+        String panel = ""
+        String vcfcolsFileName = "vcfcols"
+        File vcfcols = PathGeneratorFile( resource,  vcfcolsFileName, "txt" )
+
+        def nocache = false
+
+        List<File> vcfs = GetFileResources(VcfNames, resource, extension)
+
+        File tsv = new File( "vcfs.tsv" )
+        tsv.delete()
+
+        List<Map> sammap = vl.tsvVcfs( vcfs, tsv, seqrun, panel, vcfcols )
+
+
+        List<File> normVcfs = vl.normaliseVcfs( vcfs, rdb, nocache )
+
+        List<Map> Normsammap = vl.tsvVcfs( normVcfs, tsv, seqrun, panel, vcfcols )
+
+
+        println("Original")
+
+        assert ( sammap.size() > 1 )
+
+        println("Normalised")
+        assert ( Normsammap.size() > 1 )
+
+
+    }
+
+    //
+    // If this function ran properly
+    // it will retunr true
+    ///////////
+    void testLoadSeqrun()
+    {
+        def VcfNames = [
+                'tumour',
+                'mini_tumour',
+                'input1',
+                'IC080T_merged_dups_realign_recal_somatic_mutect',
+                'IC050T_merged_dups_realign_recal_somatic_mutect',
+                'Romeo1_Biopsy',
+                'Romeo1_Post'
+        ]
+        String resource = "Vcf"
+        String extension = "vcf"
+        String rdb = DB
+        String seqrun = "12K0304_CCCAACCT-TAAGACA"
+        String panel = ""
+        String vcfcolsFileName = "vcfcols"
+        File vcfcols = PathGeneratorFile( resource,  vcfcolsFileName, "txt" )
+
+        List<File> vcfs = GetFileResources(VcfNames, resource, extension)
+
+        File tsv = new File( "vcfs.tsv" )
+        tsv.delete()
+
+
+        List<Map> Normsammap = vl.tsvVcfs( vcfs, tsv, seqrun, panel, vcfcols )
+
+        println("Loading seqrun")
+
+        // TODO: Check if,
+        // This always returns true if executed correctly?
+        assert( vl.loadSeqrun(Normsammap, rdb) )
+    }
+
+    //
+    // This function is essential in loading the dta to teh database
+    void testVcfLoad()
+    {
+        def VcfNames = [
+                'tumour',
+                'mini_tumour',
+                'input1',
+                'IC080T_merged_dups_realign_recal_somatic_mutect',
+                'IC050T_merged_dups_realign_recal_somatic_mutect',
+                'Romeo1_Biopsy',
+                'Romeo1_Post'
+        ]
+        String resource = "Vcf"
+        String extension = "vcf"
+        String rdb = DB
+        String seqrun = "12K0304_CCCAACCT-TAAGACA"
+        String panel = ""
+        String vcfcolsFileName = "vcfcols"
+        String table = "mp_seqrun"
+        File vcfcols = PathGeneratorFile( resource,  vcfcolsFileName, "txt" )
+
+        def nocache = false
+
+        List<File> vcfs = GetFileResources(VcfNames, resource, extension)
+
+        File tsv = new File( "vcfs.tsv" )
+        tsv.delete()
+
+        //List<File> normVcfs = vl.normaliseVcfs( vcfs, rdb, nocache )
+
+        List<Map> Normsammap = vl.tsvVcfs( vcfs, tsv, seqrun, panel, vcfcols )
+
+        assert( vl.vcfLoad( tsv,  table, DB ))
+
+    }
+
 
     ////
     // Testing VcfLoader.loadVcf()
@@ -39,7 +210,7 @@ class VcfLoaderTest extends GroovyTestCase {
         String sample = "12K0304"
         //String seqrun = "xxx"
         String panel = ""
-        String rdb = "pa_local"
+        String rdb = DB
         def dss = []
         String errFileName = "errFile"
         String vcfcolsFileName = "vcfcols"
@@ -49,14 +220,14 @@ class VcfLoaderTest extends GroovyTestCase {
         String dbname = DB
 
         def VcfNames = [
-                        'tumour']//,
-//                        'mini_tumour',
-//                        'input1',
-//                        'IC080T_merged_dups_realign_recal_somatic_mutect',
-//                        'IC050T_merged_dups_realign_recal_somatic_mutect',
-//                        'Romeo1_Biopsy',
-//                        'Romeo1_Post'
-//                        ]
+                        'tumour',
+                        'mini_tumour',
+                        'input1',
+                        'IC080T_merged_dups_realign_recal_somatic_mutect',
+                        'IC050T_merged_dups_realign_recal_somatic_mutect',
+                        'Romeo1_Biopsy',
+                        'Romeo1_Post'
+                        ]
 
 
         ////
@@ -88,10 +259,10 @@ class VcfLoaderTest extends GroovyTestCase {
 
         println("NROW : " + nrow)
 
-        assert true
+        assert nrow > 1
     }
 
-    ////
+    //
     // Function to get the paths of the Vcf resources given by name
     /////////////////////////////////////////////////////////////////
     List<File> GetFileResources(List <String> vcfNames, String resource, String extension)
@@ -104,7 +275,7 @@ class VcfLoaderTest extends GroovyTestCase {
         return vcfPaths
     }
 
-    ////
+    /////
     // Get File from input
     ////////////////////////
     File PathGeneratorFile(String resource, String file,String extension )

@@ -51,7 +51,7 @@ PathOS.module = function(config) {
 
 	// Get the div or create one.
 	var div = d3.select('#'+config.name);
-	if(div[0][0] === null) {
+	if(div.empty()) {
 		div = this.div = d3.select("#sidebar")
 			.append("div")
 			.classed("module", true)
@@ -60,20 +60,28 @@ PathOS.module = function(config) {
 
 	// Get the title or create one.
 	var title = div.select(".moduletitle");
-	if(title[0][0] === null) {
+	if(title.empty()) {
 		title = div.append('table').classed("moduletitle", true).append('tr');
 
-		title.append('td').classed("modulelabel", true).datum(config).on("click", that.toggle).append("a").attr({
-			href: "#" + config.name
-		}).append("h1").text(config.title);
+		title.append('td')
+			.classed("modulelabel", true)
+			.datum(config)
+			.on("click", that.toggle)
+		.append("a")
+			.attr('href', "#" + config.name)
+		.append("h1")
+			.text(config.title);
 	} else {
 		title.select('td').classed("modulelabel", true).datum(config).on("click", that.toggle);
 	}
 
-	title.insert('td','td').datum(config).on("click", that.toggle).append("a").attr({
-		href: "#"+config.name
-	}).append("i")
-	.classed("fa fa-minus-square minimise", true);
+	title.insert('td','td')
+		.datum(config)
+		.on("click", that.toggle)
+	.append("a")
+		.attr('href', "#"+config.name)
+	.append("i")
+		.classed("fa fa-minus-square minimise", true);
 
 	//buttons = title.append('td').classed('buttons', true);
 
@@ -114,9 +122,8 @@ PathOS.module = function(config) {
 		switch (config.type) {
 			case 'tags':
 
-				var edit = title.append('td').attr({
-					id: 'tags_edit_button'
-				}).on('click',function(){
+				var edit = title.append('td').attr('id', 'tags_edit_button')
+					.on('click',function(){
 						$("#tags").toggleClass("editing");
 
 						$('#tags_edit_button i').toggleClass('fa-pencil-square-o');
@@ -124,17 +131,14 @@ PathOS.module = function(config) {
 
 
 					})
-					.append("a").attr({
-					href: "#"+config.name
-				});
+					.append("a").attr('href', "#"+config.name);
 
 				//edit.append('p').text("(Editing)");
 				edit.append('span').html("(Editing)&nbsp;");
 				edit.append("i").classed("button fa fa-pencil-square-o", true);
 
-				title.append('td').append("a").attr({
-					href: "#"+config.name
-				}).append("i")
+				title.append('td').append("a").attr('href', "#"+config.name)
+					.append("i")
 					.classed("fa fa-times", true)
 					.style("padding-bottom", '1px')
 					.on('click', function(d){
@@ -159,10 +163,10 @@ PathOS.module = function(config) {
 					PathOS.tags.drawTag(box, tag, true);
 				});
 
-				$(box.append('textarea').attr({
-					id: 'tag_text_area',
-					placeholder: 'Enter Tags Here'
-				})).autocomplete({
+				$(box.append('textarea')
+					.attr('id', 'tag_text_area')
+					.attr('placeholder', 'Enter Tags Here')
+				).autocomplete({
 				    source: config.data.availableTags
 				});
 
@@ -240,9 +244,8 @@ PathOS.module = function(config) {
 				config.data.forEach(buildHistoryRow);
 
 
-				body.append('span').append('a').attr({
-					href:'#'
-				}).text("See more").on('click', function(){
+				body.append('span').append('a').attr('href', '#')
+					.text("See more").on('click', function(){
 					PathOS.history.more().forEach(buildHistoryRow);
 
 					$(this).remove();
@@ -253,9 +256,7 @@ PathOS.module = function(config) {
 				break;
 			default:
 				var ul = content.append("ul")
-					.style({
-						clip: "rect(0px, 1000px, 0px, 0px)"
-					});
+					.style('clip', "rect(0px, 1000px, 0px, 0px)");
 
 				if(config.data instanceof Array) {
 					config.data.forEach(function(d){
@@ -380,42 +381,39 @@ PathOS.modules = {
 
 
 
-		d3.select("#sidebar-footer").append('span')
-			.append('a').attr({
-			href: '#'
-		}).on('click', function(d){
-
-			if(PathOS.modules.menuVisible) {
-				PathOS.modules.menu.hide();
-			} else {
-				PathOS.modules.menu.show();
-			}
-		}).append('i').attr({
-			class: 'fa-lg fa fa-cog',
-			'aria-hidden': true
-		});
+		d3.select("#sidebar-footer")
+		.append('span')
+		.append('a')
+			.attr('href', '#')
+			.on('click', function(){
+				if(PathOS.modules.menuVisible) {
+					PathOS.modules.menu.hide();
+				} else {
+					PathOS.modules.menu.show();
+				}
+			}).append('i')
+			.attr('class', 'fa-lg fa fa-cog')
+			.attr('aria-hidden', 'true');
 	},
 	menu: {
 		show: function(){
 			console.log("showing settings!");
 
-			var menubox = d3.select('body').append('div').attr({
-					id: 'overlay'
-				}).on('click', PathOS.modules.menu.hide)
+			var menubox = d3.select('body')
+				.append('div')
+				.attr('id', 'overlay')
+				.on('click', PathOS.modules.menu.hide)
 			.append('div').on('click', function() { d3.event.stopPropagation(); })
-				.attr({
-					id: 'moduleMenu',
-					class: 'fb-box'
-				});
+				.attr('id', 'moduleMenu')
+				.classed('fb-box', true);
 
 			menubox.append('a').attr('href', '#').on('click', PathOS.modules.menu.hide)
 				.append("i").classed("fa fa-close fa-lg", true);
 
 			menu = menubox.append("div");
 
-			header = menu.attr({
-				id: 'mmHeader'
-			}).append('h1').text("PathOS Options");
+			header = menu.attr('id', 'mmHeader')
+				.append('h1').text("PathOS Options");
 
 
 			function deselectIGV(){
@@ -423,30 +421,42 @@ PathOS.modules = {
 			}
 
 			if(PathOS.user) {
-				var igv = menu.append("p").attr({
-					id: "IGV-options"
-				}).text("IGV.js Options: ");
+				var igv = menu.append("p")
+					.attr('id', "IGV-options")
+					.text("IGV.js Options: ");
 
 				igv.append("p").text("In-browser IGV (also known as IGV.js) can load in the background while you browse PathOS. It can also downsample reads, which will make larger runs easier for your computer to handle.");
 
-				igv.append("a").attr({href:"#", id:"svlist-igv-auto"}).text("Auto Load (no downsampling)").on("click", function(){
-					deselectIGV();
-					d3.select(this).classed("selected", true);
-					PathOS.modules.settings[PathOS.user].svlistIGV = "auto";
-					PathOS.data.save("modules", PathOS.modules.settings);
-				});
-				igv.append("a").attr({href:"#", id:"svlist-igv-downsample"}).text("Auto Load (downsample to 2500)").on("click", function(){
-					deselectIGV();
-					d3.select(this).classed("selected", true);
-					PathOS.modules.settings[PathOS.user].svlistIGV = "downsample";
-					PathOS.data.save("modules", PathOS.modules.settings);
-				});
-				igv.append("a").attr({href:"#", id:"svlist-igv-ask"}).text("Ask Before Loading IGV.js").on("click", function(){
-					deselectIGV();
-					d3.select(this).classed("selected", true);
-					PathOS.modules.settings[PathOS.user].svlistIGV = "ask";
-					PathOS.data.save("modules", PathOS.modules.settings);
-				});
+				igv.append("a")
+					.attr('href',"#")
+					.attr('id', "svlist-igv-auto")
+					.text("Auto Load (no downsampling)")
+					.on("click", function(){
+						deselectIGV();
+						d3.select(this).classed("selected", true);
+						PathOS.modules.settings[PathOS.user].svlistIGV = "auto";
+						PathOS.data.save("modules", PathOS.modules.settings);
+					});
+				igv.append("a")
+					.attr('href', "#")
+					.attr('id',"svlist-igv-downsample")
+					.text("Auto Load (downsample to 2500)")
+					.on("click", function(){
+						deselectIGV();
+						d3.select(this).classed("selected", true);
+						PathOS.modules.settings[PathOS.user].svlistIGV = "downsample";
+						PathOS.data.save("modules", PathOS.modules.settings);
+					});
+				igv.append("a")
+					.attr('href',"#")
+					.attr('id', "svlist-igv-ask")
+					.text("Ask Before Loading IGV.js")
+					.on("click", function(){
+						deselectIGV();
+						d3.select(this).classed("selected", true);
+						PathOS.modules.settings[PathOS.user].svlistIGV = "ask";
+						PathOS.data.save("modules", PathOS.modules.settings);
+					});
 
 
 				if(PathOS.modules.settings[PathOS.user]) {
@@ -461,20 +471,23 @@ PathOS.modules = {
 				}
 
 
-				menu.append("p").text("PathOS History: ").append("a").text("Clear History").attr({
-					"href": "#",
-					"id": "clearHistory"
-				}).on("click", function(){
-					PathOS.data.clear("history");
-					alert("History Cleared!");
-				});
+				menu.append("p")
+					.text("PathOS History: ")
+				.append("a")
+					.text("Clear History")
+					.attr("href", "#")
+					.attr('id', 'clearHistory')
+					.on("click", function(){
+						PathOS.data.clear("history");
+						alert("History Cleared!");
+					});
 			}
 
 			var links = menu.append('p').attr('id','pathos-menu-links').text("Links to: ");
 
-			links.append("a").attr({
-				href: "https://115.146.86.118/jira/secure/Dashboard.jspa"
-			}).text("Jira");
+			links.append("a")
+				.attr('href', "https://115.146.86.118/jira/secure/Dashboard.jspa")
+				.text("Jira");
 			links.append("span").text(" - ");
 			links.append('a').attr('href', 'https://115.146.86.118/confluence/display/PVS/PathOS+Variant+System').text("Confluence");
 			links.append("span").text(" - ");
@@ -668,11 +681,9 @@ PathOS.timeSince = function (date) {
 PathOS.addOption = function(div, label, key, value){
 	var checkbox = div.append('label');
 	checkbox.append('input')
-		.attr({
-			class: 'option',
-			id: 'option-'+key,
-			type: 'checkbox'
-		});
+		.attr('class', 'option')
+		.attr('id', 'option-'+key)
+		.attr('type', 'checkbox');
 	checkbox.html(checkbox.html()+" "+label+"<br>");
 	checkbox.on('change', function(){
 		$('.'+key).toggleClass(key+'-toggle');
@@ -843,9 +854,9 @@ PathOS.tags = {
 		} else {
 			var div = data.isAuto ? box.insert('div', ':first-child'): box.insert('div', 'textarea');
 
-			div.attr({
-				class: "tagdiv tag-"+data.id
-			}).datum(data).classed("isAuto", data.isAuto)
+			div.attr('class', "tagdiv tag-"+data.id)
+				.datum(data)
+				.classed("isAuto", data.isAuto)
 				.on('click', function(d){
 					var that = this;
 
@@ -875,8 +886,7 @@ PathOS.tags = {
 					}
 				});
 
-			div.append('span').attr({
-			}).text(data.label);
+			div.append('span').text(data.label);
 
 
 			var text = data.description || "Enter Description Here.";
@@ -934,9 +944,7 @@ PathOS.tags = {
 
 			//var text = data.description === "" ? "Enter Description Here." : data.description;
 			tooltip.append('p').classed("tt_description", true).text(text);
-			tooltip.append('input').attr({
-				value: text
-			}).on("keydown", function(){
+			tooltip.append('input').attr('value', text).on("keydown", function(){
 					var e = d3.event;
 					if(e && e.keyCode && e.keyCode == 13) {
 						var params = {
@@ -983,7 +991,7 @@ PathOS.tags = {
 					if (typeof d == "string") {
 						alert(d);
 					} else {
-						if (div.select(".tag-"+ d.id)[0][0] === null) {
+						if (div.select(".tag-"+ d.id).empty()) {
 							PathOS.tags.drawTag(div, d, true);
 							$('#tag_text_area').val('');
 						}

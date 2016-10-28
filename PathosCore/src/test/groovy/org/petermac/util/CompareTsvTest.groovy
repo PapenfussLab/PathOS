@@ -6,11 +6,19 @@ package org.petermac.util
 class CompareTsvTest extends GroovyTestCase
 {
 
+    /**
+        Checking class
+     */
     void testMain()
     {
         def ts = new CompareTsv()
+        assert ts instanceof  CompareTsv : "[T E S T]: cannot create class instance"
     }
 
+    /**
+        Comparing single file
+        static int compareTsv( File f1, File f2, List keys, List ignore, List always )
+     */
     void testComaprisonCall()
     {
 
@@ -20,68 +28,78 @@ class CompareTsvTest extends GroovyTestCase
         String fileExtra = "unpacked_mcri"
         int lines = 0
 
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
+        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines) : "[T E S T]: Tsv Files ${file} and ${fileExtra} have different lines than ${lines}"
 
     }
 
-    // clean this one
-    void testComaprisonAuto()
-    {
 
-        String resource = "Vcf/Examples"
-        String file = "unpacked"
-        String extension = "tsv"
-        String fileExtra = "unpacked"
-        int lines = 18
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
-
-        file = "vep"
-        fileExtra = "vep"
-        lines = 82
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
-
-        file = "unpacked_prostate"
-        fileExtra = "unpacked_prostate"
-        lines = 9931
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
-
-        file = "unpacked_mcri"
-        fileExtra = "unpacked_mcri"
-        lines = 170
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
-
-        // TODO; takes too much time
-        //file = "unpacked_exome"
-        //fileExtra = "unpacked_exome"
-        //lines = 1
-        //assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
-
-    }
-
-    void testCompareFiles()
+    /**
+        Comparing multiple files
+        static int compareTsv( File f1, File f2, List keys, List ignore, List always )
+     */
+    void testMultipleComparison_EqualFile()
     {
         String resource = "Vcf/Examples"
-        String file = "unpacked"
         String extension = "tsv"
-        String fileExtra = "unpacked_prostate"
-        int lines = 0
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
 
-        fileExtra = "unpacked_mcri"
-        lines = 0
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
+        def Assertions = []
+        def ErrorMsgs = []
 
-        fileExtra = "vep"
-        lines = 0
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
+        // Input Data
+        def Files = ['unpacked', 'vep', 'unpacked_prostate', 'unpacked_mcri'] // unpacked_exome takes too much time
+        def Lines = [18, 82, 9931, 170 ]
 
-        file = "unpacked_prostate"
-        fileExtra = "unpacked_mcri"
-        lines = 0
-        assert CompareTsvFiles( resource,  file,  extension,  fileExtra,  lines)
+        // Check all files
+        for(def i = 0; i < Lines.size(); i++)
+        {
+            Assertions.add( CompareTsvFiles( resource,  Files[i],  extension, Files[i] , Lines[i])  )
+            ErrorMsgs.add( "[T E S T]: Tsv Files ${Files[i]} and ${Files[i]} have different lines than ${Lines[i]}")
+        }
+
+        // Perform assertions
+        for(def i = 0; i < Lines.size(); i++)
+        {
+            assert Assertions[i] : ErrorMsgs[i]
+        }
 
     }
 
+    /**
+        Comparing multiple files
+        static int compareTsv( File f1, File f2, List keys, List ignore, List always )
+    */
+    void testMultipleComparison_DifferentFile()
+    {
+        String resource = "Vcf/Examples"
+        String extension = "tsv"
+
+        def Files = ['unpacked', 'unpacked', 'unpacked', 'unpacked_prostate']
+        def Comps = ['unpacked_prostate', 'unpacked_mcri', 'vep', 'unpacked_mcri']
+        def Lines = [0, 0, 0, 0 ]
+
+        def Assertions = []
+        def ErrorMsgs = []
+
+        // Check all files
+        for(def i = 0; i < Lines.size(); i++)
+        {
+            Assertions.add( CompareTsvFiles( resource,  Files[i],  extension, Comps[i] , Lines[i])  )
+            ErrorMsgs.add( "[T E S T]: Tsv Files ${Files[i]} and ${Comps[i]} have different lines than ${Lines[i]}")
+        }
+
+        // Perform assertions
+        for(def i = 0; i < Lines.size(); i++)
+        {
+            assert Assertions[i] : ErrorMsgs[i]
+        }
+
+    }
+
+    /**
+        Main Function to test
+        static int compareTsv( File f1, File f2, List keys, List ignore, List always )
+        from two different files
+     */
     boolean CompareTsvFiles(String resource, String file, String extension, String fileExtra, int lines)
     {
 

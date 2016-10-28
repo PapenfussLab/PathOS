@@ -64,6 +64,47 @@ class PubmedController {
         redirect url: "/Pubmed"
     }
 
+    def cite() {
+        Pubmed entry = Pubmed.findByPmid(params.int('pmid'));
+
+        if(entry) {
+            def result = ''
+            def fail = false
+
+//          This is a more complicated way of adding authors, and would be better...
+//          but it doesn't work on all cases because the data is not formatted well :(
+//            def authors = entry.authors.split(',')
+//            if(authors.length < 0) {
+//                fail = true
+//            } else if (authors.length >= 1) {
+//                def blah = []
+//                authors.each({
+//                    blah.push it.substring(2)+', '+it.substring(0, 1)+'.'
+//                })
+//                result = blah.join(" and ")
+//            }
+
+            result += entry.authors.split(',').join(" and ")
+            result += " ("+entry.date.format("yyyy")+"). "
+            result += " "+entry?.title
+            result += " "+entry?.journal
+            result += " "+entry?.volume
+            if(entry.issue) {
+                result += " ("+entry.issue+")"
+            }
+            result += ", pp. "+entry?.pages+"."
+
+
+            if(!fail) {
+                render result
+            } else {
+                render 'Fail of some sort'
+            }
+        } else {
+            render "Not in system."
+        }
+    }
+
     /**
      * TODO: Document this rest api
      * @return

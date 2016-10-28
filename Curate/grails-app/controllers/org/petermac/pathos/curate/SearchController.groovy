@@ -208,7 +208,7 @@ def svExact = {
      * String link      The URI to the table, after which the id of the element is appended
      * @return          Searchable Map of hits
      */
-    Map trySearch( Map config )
+    private Map trySearch( Map config )
     {
         try
         {
@@ -293,6 +293,7 @@ def svExact = {
                                     ])
                                 }
                                 def patient = obj.patient
+                                extra.dob = formatDate(date:patient.dob, format:'dd-MMM-yyyy')
                                 extra.patient = patient
                                 extra.patAssays = patAssays
                                 extra.seqSamples = seqSamples
@@ -417,6 +418,11 @@ def tables(){
                 count: ClinContext.count(),
                 title: "Clinical Context",
                 link: "/PathOS/ClinContext/list"
+        ],
+        SeqRelation: [
+                count: SeqRelation.count(),
+                title: "Sequenced Relations",
+                link: "/PathOS/SeqRelation/list"
         ]
     ]
 

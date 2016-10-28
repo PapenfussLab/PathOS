@@ -30,14 +30,14 @@ class TsvTest  extends GroovyTestCase
 
         def nlines  = tsv.load( true )
 
-        assert nlines == 52
-        assert tsv.nrows() == nlines
+        assert nlines == 52 : "tsv.load( true ) didn't work or lines are incorrect"
+        assert tsv.nrows() == nlines : "tsv.nrows() is probably incorrect"
 
         Map tm = tsv.getTsvMap()
 
-        assert tm.preamble.size() == 111
-        assert tm.cols.size() == 10
-        assert tm.rows.size() == nlines
+        assert tm.preamble.size() == 111 : " tsv.getTsvMap().preamble.size() returned an unexpected value"
+        assert tm.cols.size() == 10 : " tsv.getTsvMap()cols.size() returned an unexpected value "
+        assert tm.rows.size() == nlines : " tsv.getTsvMap().rows.size() returned an unexpected value"
 
         println ( "Columns in VCF")
 
@@ -59,13 +59,13 @@ class TsvTest  extends GroovyTestCase
 
         def nlines  = tsv.load( true )
 
-        assert nlines == 52
+        assert nlines == 52 : " tsv.load( true ) did not work or lines differ from expexted"
 
         Map tm = tsv.getTsvMap()
 
-        assert tm.preamble.size() == 111
-        assert tm.cols.size() == 10
-        assert tm.rows.size() == nlines
+        assert tm.preamble.size() == 111 : "tsv.getTsvMap().preamble.size()  returned an unexpected value "
+        assert tm.cols.size() == 10 : "tsv.getTsvMap().cols.size() returned an unexpected value"
+        assert tm.rows.size() == nlines : "tsv.getTsvMap().rows.size() returned an unexpected value"
     }
 
     void testFileLoadVep()
@@ -78,14 +78,14 @@ class TsvTest  extends GroovyTestCase
 
         def nlines  = tsv.load( true )
 
-        assert nlines == 82
+        assert nlines == 82 : "tsv.load( true ) or file contains different number of lines than expected"
 
         List<Map> rm = tsv.getRowMaps()
         int ncol = tsv.cols.size()
 
-        assert rm.size() == nlines
+        assert rm.size() == nlines : "nlines are different from expected"
         for ( row in rm )
-            assert row.size() == ncol
+            assert row.size() == ncol : "ncol are different"
     }
 
     void testFileLoadAno()
@@ -98,7 +98,7 @@ class TsvTest  extends GroovyTestCase
 
         def nlines  = tsv.load( true )
 
-        assert nlines == 18
+        assert nlines == 18 : "nlines differe from 18"
 
         List<Map> rm = tsv.getRowMaps()
 
@@ -118,7 +118,7 @@ class TsvTest  extends GroovyTestCase
 
         def nlines  = tsv.load( true )
 
-        assert nlines == 52
+        assert nlines == 52 : "tsv.load( true ) didn't work or lines differ from expected"
 
         file = "tsvout"
         extension = "tsv"
@@ -127,14 +127,14 @@ class TsvTest  extends GroovyTestCase
         def srcPath =  basePath.getParent()
         def res = tsv.write( "${srcPath}/${file}.${extension}" )
 
-        assert res
+        assert res : "  tsv.write( ${srcPath}/${file}.${extension} ) didn't work"
 
         basePath = new File(TsvTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())
         println basePath
         Tsv tf = new Tsv(basePath)
         def lines = tf.load( true )
 
-        assert lines == 52 // it was 164
+        assert lines == 52: "tsv.load( true ) didn't work or lines differ from expected" // it was 164
 
 
     }
@@ -149,7 +149,7 @@ class TsvTest  extends GroovyTestCase
 
         def exp = new Tsv(PathGeneratorFile( resource,  file, extension))
 
-        assert exp.load( true ) == 38
+        assert exp.load( true ) == 38 : "tsv.load( true ) didn't work or lines differ from expected"
 
         //  Actual VCF
         //
@@ -157,25 +157,27 @@ class TsvTest  extends GroovyTestCase
         File basePath = PathGeneratorFile( resource,  file, extension)
         def act = new Tsv(basePath)
 
-        assert act.load( true ) == 18
+        assert act.load( true ) == 18 : "tsv.load( true ) didn't work or lines differ from expected"
 
         //  Difference
         //
         List keys = [ 'CHROM', 'POS', 'REF', 'ALT' ]
         def min = exp.minus( act, keys )
-        assert min
+
+        assert min : "exp.minus( act, keys ) is not returning the expected value"
         println( "TsvTest ${min.getTsvMap()}")
 
         file = "minus"
         def srcPath =  basePath.getParent()
-        assert min.write( "${srcPath}/${file}.${extension}" )
+
+        assert min.write( "${srcPath}/${file}.${extension}" ) : "Couldn't wtite on file"
 
         def tf = new Tsv(PathGeneratorFile( resource,  file, extension))
 
-        assert tf.load(true) == 20 // it was 44
+        assert tf.load(true) == 20 : "tsv.load( true ) didn't work or lines differ from expected" // it was 44
 
         min = act.minus( exp, keys )
-        assert min.nrows() == 0
+        assert min.nrows() == 0 : "act.minus( exp, keys ) is returning na unexpected value value"
     }
 
     void testIntersect()
@@ -188,7 +190,7 @@ class TsvTest  extends GroovyTestCase
 
         def exp = new Tsv(PathGeneratorFile( resource,  file, extension))
 
-        assert exp.load( true ) == 38
+        assert exp.load( true ) == 38 : "tsv.load( true ) didn't work or lines differ from expected"
 
         //  Actual VCF
         //
@@ -196,7 +198,7 @@ class TsvTest  extends GroovyTestCase
         File basePath = PathGeneratorFile( resource,  file, extension)
         def act = new Tsv(basePath)
 
-        assert act.load( true ) == 18
+        assert act.load( true ) == 18 : "tsv.load( true ) didn't work or lines differ from expected"
 
         //  Difference
         //
@@ -207,11 +209,11 @@ class TsvTest  extends GroovyTestCase
         file = "intersect"
         def srcPath =  basePath.getParent()
 
-        assert ins.write( "${srcPath}/${file}.${extension}")
+        assert ins.write( "${srcPath}/${file}.${extension}") :" Couldn't write on file"
 
         def tf = new Tsv(PathGeneratorFile( resource,  file, extension))
 
-        assert tf.load(true) == 18
+        assert tf.load(true) == 18: "tsv.load( true ) didn't work or lines differ from expected"
 
     }
 
@@ -229,13 +231,13 @@ class TsvTest  extends GroovyTestCase
         List col = []
         for ( i in [0..nrows-1]) { col[i] = i }
 
-        assert tsv.addColumn( 'NEW', col)
+        assert tsv.addColumn( 'NEW', col) : "tsv.addColumn( 'NEW', col) failed"
 
         file = "added"
         extension ="tsv"
 
         def srcPath =  basePath.getParent()
-        assert tsv.write("${srcPath}/${file}.${extension}")
+        assert tsv.write("${srcPath}/${file}.${extension}") : "Couldn't write on file"
 
         tsv = new Tsv(PathGeneratorFile( resource,  file, extension))
         tsv.load(true)
@@ -243,12 +245,13 @@ class TsvTest  extends GroovyTestCase
         //  Check column header
         //
         def cols = tsv.getCols()
-        assert cols[-1] == 'NEW'
+        assert cols[-1] == 'NEW' :"cols = tsv.getCols() is not returning the expected value"
 
         //  Check each row
         //
         List rows = tsv.getTsvMap().rows
         rows.eachWithIndex{ List row, int i -> assert row[-1] == i as String }
+        //TODO add an assert here
     }
 
     //URL url = getClass().getClassLoader().getResource("someresource.xxx");
@@ -260,7 +263,7 @@ class TsvTest  extends GroovyTestCase
         String extension = "vcf"
 
         Tsv tsv = new Tsv(PathGeneratorFile( resource,  file, extension))
-        assert tsv.getInStream() != null
+        assert tsv.getInStream() != null : "Tsv(PathGeneratorFile( resource,  file, extension)) or tsv.getInStream() is failing"
         //def tsv = new Tsv(getClass().getClassLoader().getResource(PathGeneratorStr( resource,  file, extension )))
 
     }
@@ -277,7 +280,7 @@ class TsvTest  extends GroovyTestCase
 
         def nlines  = tsv.load( true )
 
-        assert nlines == 52
+        assert nlines == 52 : "tsv.load( true ) didn't work or lines differ from expected"
 
         file = "tsvout_cols"
         extension = "tsv"
@@ -286,12 +289,13 @@ class TsvTest  extends GroovyTestCase
         def srcPath =  basePath.getParent()
         def res = tsv.write( new File("${srcPath}/${file}.${extension}"), tsv.getCols() )
 
-        assert res
+        assert res : "tsv.write( new File(\"${srcPath}/${file}.${extension}\"), tsv.getCols() ) is failing"
 
         basePath = new File(TsvTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())
         println basePath
         Tsv tf = new Tsv(basePath)
         def lines = tf.load( true )
+        //TODO an assert here
 
 
     }
@@ -305,7 +309,7 @@ class TsvTest  extends GroovyTestCase
         Tsv tsv = new Tsv(PathGeneratorFile( resource,  file, extension))
         def is = tsv.getInStream()
         tsv.setInStream( tsv.getInStream() )
-        assert is == tsv.getInStream()
+        assert is == tsv.getInStream() : "tsv.setInStream( tsv.getInStream() ) is failing"
         //tsv.setFilename( tsv.getFilename() )
 
     }
@@ -319,7 +323,7 @@ class TsvTest  extends GroovyTestCase
         Tsv tsv = new Tsv(PathGeneratorFile( resource,  file, extension))
         def fn = tsv.getFilename()
         tsv.setFilename( tsv.getFilename() )
-        assertEquals(fn, tsv.getFilename() )
+        assertEquals("tsv.setFilename() is failing", fn, tsv.getFilename() )
     }
 
     void testGetTsvMap()
@@ -333,7 +337,7 @@ class TsvTest  extends GroovyTestCase
 
         assert  (tsv.getTsvMap().keySet().contains('preamble') &&
                 tsv.getTsvMap().keySet().contains('cols') &&
-                tsv.getTsvMap().keySet().contains('rows')) == true
+                tsv.getTsvMap().keySet().contains('rows')) == true : "tsv.getTsvMap().keySet().contains('...') is failing"
     }
 
     void testGetSetTsvMap()
@@ -348,7 +352,7 @@ class TsvTest  extends GroovyTestCase
 
         assert  (tsv.getTsvMap().keySet().contains('preamble') &&
                 tsv.getTsvMap().keySet().contains('cols') &&
-                tsv.getTsvMap().keySet().contains('rows')) == true
+                tsv.getTsvMap().keySet().contains('rows')) == true : "tsv.getTsvMap().keySet().contains('...') is failing"
 
     }
 
@@ -364,7 +368,7 @@ class TsvTest  extends GroovyTestCase
         def cols = tsv.getCols()
         tsv.setCols(tsv.getCols())
 
-        assert  tsv.getCols() == cols
+        assert  tsv.getCols() == cols : "tsv.getCols() is failing"
     }
 
     void testAddColBasic()
@@ -380,8 +384,8 @@ class TsvTest  extends GroovyTestCase
         tsv.addColumn("TEST_ADD","DATA")
         def content = tsv.getRowMaps()[0]["TEST_ADD"]
 
-        assert tsv.getCols().contains("TEST_ADD")
-        assertEquals(content, 'DATA')
+        assert tsv.getCols().contains("TEST_ADD") :" tsv.getRowMaps()[0][\"TEST_ADD\"] is failing"
+        assertEquals("Cannot find the added content",content, 'DATA')
 
     }
 

@@ -29,11 +29,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext
 @Log4j
 class RunReport
 {
-    //  RDB connection object
-    //
-    def sql
-    def dbl = new DbLoader()
-
     static void main( args )
     {
         //
@@ -41,7 +36,7 @@ class RunReport
         //
         def cli = new CliBuilder(   usage: "RunReport [options] report.ext",
                                     header: '\nAvailable options (use -h for help):\n',
-                                    footer: '\nRun a stand-alone Path-OS report\n')
+                                    footer: '\nRun a stand-alone PathOS report\n')
 
         //	Options to LoadPathOS
         //
@@ -68,8 +63,8 @@ class RunReport
 
         //  Set RDB to load from
         //
-        def rdb = opt.rdb
-        def db = new DbConnect(rdb)
+        String    rdb = opt.rdb
+        DbConnect db  = new DbConnect(rdb)
         if ( ! db.valid())
         {
             log.fatal( "Unknown RDB schema [${rdb}]")
@@ -80,7 +75,7 @@ class RunReport
         //
         log.info("RunReport " + args )
 
-        //  Extract file names
+        //  Extract file name
         //
         List<String> extra = opt.arguments()
         if ( extra.size() != 1 )
@@ -90,21 +85,28 @@ class RunReport
             return
         }
         def repname  = extra[0]
+        File repfile = new File(repname)
+        if ( repfile.exists())
+        {
+            log.warn( "File already exists, overwriting ${repfile}")
+        }
 
         //  Perform data load
         //
-        new RunReport().report( rdb, opt.seqrun, opt.sample, repname )
+        boolean res = report( rdb, opt.seqrun, opt.sample, repfile )
 
-        log.info( "Done: RunReport" )
+        log.info( "Done: RunReport ${res ? "Success !" : "Failed !"}" )
     }
 
     /**
      * Main DB migrator
      *
-     * @param rdb       RDB schema to load RDB tables
-     * @param tables    Table list to migrate
+     * @param rdb       RDB schema to use for report
+     * @param seqrun    Seqrun of sample
+     * @param sample    Sample to report
+     * @param report    Report file name
      */
-    boolean report( String rdb, String seqrun, String sample, String report )
+    static boolean report( String rdb, String seqrun, String sample, File report )
     {
         def cnt
 
@@ -113,7 +115,6 @@ class RunReport
         //  Load stand-alone Hibernate context - Database JDBC is embedded in <schema>_loaderContext.xml
         //
         def db  = new DbConnect( rdb )
-        sql = db.sql()
         ApplicationContext context = new ClassPathXmlApplicationContext( db.hibernateXml )
 
         SeqSample.withTransaction
@@ -150,8 +151,8 @@ class RunReport
 
             //  Run report
             //
-            log.info( "Starting report for sample ${ss}")
-            def output = rs.runReport( ss, sql, templates, new File(report))
+            log.info( "Starting report for sample ${ss} into ${report.absolutePath}")
+            def output = rs.runReport( ss, db.sql(), templates, report )
             log.info( "Finished report in ${output}")
         }
 

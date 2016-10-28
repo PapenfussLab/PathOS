@@ -1597,7 +1597,9 @@ $sidebar-easing: 300px;
 
 #viewmodallVariants_table, #viewmodcuration_table, #searchmodfbox_curation_table {
 	font-size: 11px !important;
-	height: 80% !important;
+	top: 120px !important;
+	position: fixed;
+	height: 70% !important;
 	min-width: 700px !important;
 	td {
 		padding: 2px;
@@ -1608,9 +1610,7 @@ $sidebar-easing: 300px;
 
 	.ui-jqdialog-content.ui-widget-content {
 		height: 90%;
-		div {
-			height: 100%;
-		}
+		overflow: scroll;
 		.FormGrid {
 			height: 100% !important;
 		}

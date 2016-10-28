@@ -147,7 +147,7 @@ class SeqRelationController {
      * @param seqRelationInstance
      * @return
      */
-    def addSamplesToSeqRelation(Map params, SeqRelation seqRelationInstance) {
+    private void addSamplesToSeqRelation(Map params, SeqRelation seqRelationInstance) {
 
         //  we also set sample types to (T/N/TN) if a TumourNomrla seqrelation
         //

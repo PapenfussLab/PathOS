@@ -33,7 +33,7 @@ class Locator
 
     //  Application root directory
     //
-    static String pathos_home = '/pathology/NGS/PathOS'
+    static String pathos_home = '/pathology/NGS/pa_uat'
 
     //  Application properties object
     //
@@ -95,6 +95,10 @@ class Locator
     //
     static String jiraPass   = ""
 
+    //  Contact email for sysadmin
+    //
+    static String sysadminEmail = "christopher.welsh@petermac.org"
+
     //  Path to DLLs
     //
     static String dllPath       = pathos_home + fs + "DLL" + fs
@@ -103,7 +107,10 @@ class Locator
     //
     static Boolean useADAuthentication  = true
 
-    //  Database Username
+    //  Path to external Active Directory/LDAP config file for pathos
+    //
+    static String ADConfigurationFile = '/pathology/NGS/pa_prod/etc/pathos_ldap_conf.groovy'
+
     //
     static String dbUsername = null
 
@@ -125,6 +132,9 @@ class Locator
     //
     static String cnvViewerUrl = 'http://bioinf-pathos-test:3838/users/jmarkham/cnb'
 
+    //  default password for bootstrap pathos test users (bootstrap creates these on on-prod enviornments
+    //
+    static String defaultTestUserPassword = 'pathos7%^&'
     /**
      * Instance variable for class
      */
@@ -240,6 +250,7 @@ class Locator
 
         if ( prop.getProperty('jira.pass')) jiraPass = prop.getProperty('jira.pass')
 
+        if ( prop.getProperty('sysadmin.email')) sysadminEmail = prop.getProperty('sysadmin.email')
 
         //  Set Data Repository Server
         //
@@ -248,6 +259,14 @@ class Locator
         //  Are we using AD for Curate auth?
         //
         if ( prop.getProperty('use.ad.authentication')) useADAuthentication = prop.getProperty('use.ad.authentication').toBoolean()
+
+        //  Location of AD config file?
+        //
+        if ( prop.getProperty('ad.configuration.path')) ADConfigurationFile = prop.getProperty('ad.configuration.path')
+
+        //  Location of AD config file?
+        //
+        if ( prop.getProperty('default.test.user.password')) defaultTestUserPassword = prop.getProperty('default.test.user.password')
 
         //  Set DB paramters
         //

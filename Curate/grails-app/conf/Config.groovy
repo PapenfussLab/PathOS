@@ -137,14 +137,13 @@ if ( loc.useADAuthentication == true ) {
     // This loads a config file with LDAP properties and tells us to use LDAP for spring auth provider
     // note that loc.useADAuthentication is true by default in Locator.groovy if unset in the pa_xxx.properties file
 
-    grails.config.locations = [  "file:/pathology/NGS/PathOS/etc/pathos_ldap_conf.groovy", "file:/pathology/NGS/PathOS/etc/pathos_credentials.groovy"  ]
+    grails.config.locations = [  "file:${loc.ADConfigurationFile}" ]
 
 } else {
     // This specifically tells us to NOT use LDAP and to use standard db auth instead
     //
 
     grails.plugin.springsecurity.providerNames = [ 'daoAuthenticationProvider' ]
-    grails.config.locations = [  "file:/pathology/NGS/PathOS/etc/pathos_credentials.groovy"  ]
 
 }
 
@@ -418,7 +417,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/morphology/**':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_LAB'],
 
             '/seqRelation/**':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-
+            '/filtertemplate/**':  ['ROLE_ADMIN','ROLE_DEV'],
             '/dist/**':  ['permitAll'],
             '/hotfix.js':  ['permitAll'],
             '/hotfix.css':  ['permitAll'],

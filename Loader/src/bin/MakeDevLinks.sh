@@ -34,6 +34,7 @@ if [ -d $dir ]; then
 	ln -s ../../../../../../../../Curate/grails-app/services/org/petermac/pathos/curate/StatsService.groovy StatsService.groovy
 	ln -s ../../../../../../../../Curate/grails-app/services/org/petermac/pathos/curate/RelationService.groovy RelationService.groovy
 	ln -s ../../../../../../../../Curate/grails-app/services/org/petermac/pathos/curate/TagService.groovy TagService.groovy
-	
+	ln -s ../../../../../../../../Curate/grails-app/services/org/petermac/pathos/curate/PanelFreqService.groovy PanelFreqService.groovy
+
 	ls -1 *
 fi

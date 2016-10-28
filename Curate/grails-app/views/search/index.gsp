@@ -678,7 +678,7 @@ drawResultBox = {
         </sec:ifAnyGranted>
 
 
-        block.append("p").text("Date of Birth: " + d.extra.patient.dob.split("T")[0]);
+        block.append("p").text("Date of Birth: " + d.extra.dob);
         block.append("p").text("Sex: " + d.extra.patient.sex);
         block.append("p").text("URN: " + d.extra.patient.urn);
 

@@ -42,11 +42,12 @@ export PATHOS_HOME=/usr/local/PathOS
 #
 #   GIT Repository base URL
 #
-PATHOS_GIT='https://github.com/PapenfussLab/PathOS.git'
+PATHOS_GIT='ssh://git@115.146.86.118:7999/pat/pathos.git'
+
 #
 #   GIT Branch
 #
-GIT_BRANCH='origin/master'
+GIT_BRANCH='origin/development'
 
 #
 #   Default PathOS environment
@@ -192,6 +193,15 @@ popd
 pushd "$BUILD_HOME/Loader"
     gradle --stacktrace uploadArchives
     sed "s#LOG_HOME#${PATHOS_HOME}#" < ../PathosCore/src/etc/loader.properties > "$PATHOS_HOME/lib/loader.properties"
+popd
+
+#
+# Build Canary JAR
+#
+echo "INFO: Building Canary JAR"
+
+pushd "$BUILD_HOME/Canary"
+    gradle --stacktrace uploadArchives
 popd
 
 #

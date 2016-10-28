@@ -75,7 +75,8 @@ fi
 #
 #   Start of script
 #
-export PATHOS_HOME=${PATHOS_HOME:-/pathology/NGS/pa_uat/PathOSHome}
+. SetPathosEnv
+
 export PATHOS_BIN=${PATHOS_HOME}/bin
 export PIPELINE_HOME=${PATHOS_HOME}/Pipeline
 export BPIPE_LIB=${PIPELINE_HOME}/pipelines/stages

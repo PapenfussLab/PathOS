@@ -49,6 +49,7 @@ gulp.task("jsconcat", function() {
 			// Editable - Add any additional paths to JS Bower components here
 
 			"bower_components/d3/d3.min.js",
+			'node_modules/d3-selection-multi/build/d3-selection-multi.min.js',
 			"bower_components/jquery/dist/jquery.min.js",
 			"bower_components/jquery-ui/jquery-ui.min.js",
 			'bower_components/bootstrap-sass/assets/javascripts/bootstrap.min.js',

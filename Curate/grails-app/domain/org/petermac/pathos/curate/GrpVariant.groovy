@@ -9,23 +9,23 @@ class GrpVariant {
 
     String      muttyp = 'SNV'      //  mutation type
     String      accession           //  specific key to variant in SeqVariant/SeqCnv/SeqSv eg hgvsX including refseq -- for now this is HGVSG
+    String      description         //  Optional description of variant
     AuthUser    createdBy
     Date        dateCreated = new Date()
     Date        lastUpdated = new Date()
 
 
     static constraints =
-            {
-                muttyp(  inList:    [
-                        "SNV",
-                        "CNV",
-                        "SV",
-                ], blank: false )
-            }
-
-
-    static mapping = {
-        autoTimestamp true
+    {
+        muttyp(  inList:    [
+                            "SNV",
+                            "CNV",
+                            "SV",
+                            ], blank: false )
     }
 
+    static mapping =
+    {
+        autoTimestamp true
+    }
 }

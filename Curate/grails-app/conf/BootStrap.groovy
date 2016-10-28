@@ -3,12 +3,13 @@ import org.petermac.pathos.curate.*
 import org.petermac.pathos.curate.AuthRole
 import org.petermac.pathos.curate.AuthUser
 import org.petermac.pathos.curate.AuthUserAuthRole
-
+import org.petermac.util.Locator
 import java.text.SimpleDateFormat
 
 class BootStrap
 {
     def grailsApplication
+    def loc  = Locator.instance
     /**
      * Create initial Roles and Users for bootstrapping development
      */
@@ -99,7 +100,198 @@ class BootStrap
         }
     }
 
+    void makeFilterTemplates() 
+    {
 
+
+       def defaultTemplates =
+        [ 
+                'topSom':["Top Somatic", """{ 'groupOp': 'AND',
+                            'rules': [
+                                { 'field': 'filterFlag', 'op': 'nc', 'data': 'blk' },
+                                { 'field': 'filterFlag', 'op': 'nc', 'data': 'pnl' },
+                                { 'field': 'filterFlag', 'op': 'nc', 'data': 'gaf' },
+                                { 'field': 'filterFlag', 'op': 'nc', 'data': 'con' },
+                                { 'field': 'filterFlag', 'op': 'nc', 'data': 'sin' },
+                                { 'field': 'varFreq', 'op': 'ge', 'data': '3'},
+                                { 'field': 'varcaller', 'op': 'ne', 'data': 'Canary' }
+                        ]
+                        }"""],
+                'topCRC':["Top Colorectal","""{ "groupOp": "AND",
+                        "groups": [
+                        {"groupOp": "OR",
+                          "rules": [
+                            { "field": "gene", "op": "eq", "data": "BRAF" },
+                            { "field": "gene", "op": "eq", "data": "KRAS" },
+                            { "field": "gene", "op": "eq", "data": "NRAS" }
+                          ]
+                        }],
+                          "rules": [
+                            { "field": "filterFlag", "op": "nc", "data": "blk" },
+                            { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                            { "field": "filterFlag", "op": "nc", "data": "gaf" },
+                            { "field": "filterFlag", "op": "nc", "data": "con" },
+                            { "field": "filterFlag", "op": "nc", "data": "sin" },
+                            { "field": "varFreq", "op": "ge", "data": "3"}
+                          ]
+                    };
+                    """],
+                'topMel':["Melanoma",'''
+                            { "groupOp": "AND",
+                                "groups": [
+                                {"groupOp": "OR",
+                                  "rules": [
+                                    { "field": "gene", "op": "eq", "data": "BRAF" },
+                                    { "field": "gene", "op": "eq", "data": "NRAS" },
+                                    { "field": "gene", "op": "eq", "data": "RAC1" },
+                                    { "field": "gene", "op": "eq", "data": "KIT" }
+                                  ]
+                                }],
+                                  "rules": [
+                                    { "field": "filterFlag", "op": "nc", "data": "blk" },
+                                    { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                                    { "field": "filterFlag", "op": "nc", "data": "gaf" },
+                                    { "field": "filterFlag", "op": "nc", "data": "con" },
+                                    { "field": "filterFlag", "op": "nc", "data": "sin" },
+                                    { "field": "varFreq", "op": "ge", "data": "3"},
+                                    { "field": "varcaller", "op": "ne", "data": "Canary" }
+                                  ]
+                            }
+                            '''],
+                'topLung':["Lung",'''
+                                { "groupOp": "AND",
+                                    "groups": [
+                                    {"groupOp": "OR",
+                                      "rules": [
+                                        { "field": "gene", "op": "eq", "data": "BRAF" },
+                                        { "field": "gene", "op": "eq", "data": "KRAS" },
+                                        { "field": "gene", "op": "eq", "data": "MET" },
+                                        { "field": "gene", "op": "eq", "data": "EGFR" }
+                                      ]
+                                    }],
+                                      "rules": [
+                                        { "field": "filterFlag", "op": "nc", "data": "blk" },
+                                        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                                        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+                                        { "field": "filterFlag", "op": "nc", "data": "con" },
+                                        { "field": "filterFlag", "op": "nc", "data": "sin" },
+                                        { "field": "varFreq", "op": "ge", "data": "3"},
+                                        { "field": "varcaller", "op": "ne", "data": "Canary" }
+                                      ]
+                                }
+                                                '''],
+                'topGist':["GIST", '''
+                                                { "groupOp": "AND",
+                                    "groups": [
+                                    {"groupOp": "OR",
+                                      "rules": [
+                                        { "field": "gene", "op": "eq", "data": "PDGFRA" },
+                                        { "field": "gene", "op": "eq", "data": "KIT" }
+                                      ]
+                                    }],
+                                      "rules": [
+                                        { "field": "filterFlag", "op": "nc", "data": "blk" },
+                                        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                                        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+                                        { "field": "filterFlag", "op": "nc", "data": "con" },
+                                        { "field": "filterFlag", "op": "nc", "data": "sin" },
+                                        { "field": "varFreq", "op": "ge", "data": "3"},
+                                        { "field": "varcaller", "op": "ne", "data": "Canary" }
+                                      ]
+                                }
+                                                '''],
+                'topGerm':["Top Germline",'''
+                    { "groupOp": "AND",
+                          "rules": [
+                            { "field": "filterFlag", "op": "nc", "data": "blk" },
+                            { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                            { "field": "filterFlag", "op": "nc", "data": "gaf" },
+                            { "field": "filterFlag", "op": "nc", "data": "con" },
+                            { "field": "varFreq", "op": "ge", "data": "15"},
+                            { "field": "varcaller", "op": "ne", "data": "Canary" }
+                          ]
+                    }
+                    '''],
+                'topHaem':["Top Haem",'''
+                { "groupOp": "AND",
+                      "rules": [
+                        { "field": "filterFlag", "op": "nc", "data": "blk" },
+                        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+                        { "field": "filterFlag", "op": "nc", "data": "con" },
+                        { "field": "varFreq", "op": "ge", "data": "3"},
+                      ]
+                }'''],
+                'mpnSimple':["MPN Simple",'''
+                        { "groupOp": "AND",
+                            "groups": [
+                            {"groupOp": "OR",
+                              "rules": [
+                                { "field": "gene", "op": "eq", "data": "JAK2"  },
+                                { "field": "gene", "op": "eq", "data": "MPL"   },
+                                { "field": "gene", "op": "eq", "data": "CALR"  },
+                                { "field": "gene", "op": "eq", "data": "KIT"  },
+                                { "field": "gene", "op": "eq", "data": "SF3B1"  },
+                                { "field": "gene", "op": "eq", "data": "CSF3R"  },
+                                { "field": "gene", "op": "eq", "data": "ASXL1" }
+                              ]
+                            }],
+                              "rules": [
+                                { "field": "filterFlag", "op": "nc", "data": "blk" },
+                                { "field": "filterFlag", "op": "nc", "data": "pnl" },
+                                { "field": "filterFlag", "op": "nc", "data": "gaf" }
+                               ]
+                        }
+                '''],
+                'brcaOnly':["BRCA Only",'''
+                                        { "groupOp": "AND",
+                        "groups": [
+                        {"groupOp": "OR",
+                          "rules": [
+                            { "field": "gene", "op": "eq", "data": "BRCA1" },
+                            { "field": "gene", "op": "eq", "data": "BRCA2" }
+                          ]
+                        }],
+                          "rules": [
+                            { "field": "filterFlag", "op": "nc", "data": "blk" },
+                            { "field": "varFreq", "op": "ge", "data": "15"},
+                            { "field": "varcaller", "op": "ne", "data": "Canary" }
+                          ]
+                    }
+                '''],
+                reportableVars:["Reportable",'''
+                        { "groupOp": "AND",
+                              "rules": [
+                                { "field": "reportable", "op": "eq", "data": "1"}
+                              ]
+                        }'''],
+                'rahmanGenes':["Rahman Genes", '''
+                        {"groupOp": "AND",
+                          "rules": [
+                            { "field": "gene", "op": "in", "data": "ABCB11,ALK,APC,ATM,AXIN2,BAP1,BLM,BMPR1A,BRCA1,BRCA2,BRIP1,BUB1B,CBL,CDC73,CDH1,CDK4,CDKN1B,CDKN2A,CEBPA,CHEK2,COL7A1,CYLD,DDB2,DICER1,DIS3L2,DKC1,DOCK8,EGFR,ELANE,ERCC2,ERCC3,ERCC4,ERCC5,EXT1,EXT2,FAH,FANCA,FANCC,FANCG,FH,FLCN,GATA2,GBA,GJB2,GPC3,HFE,HMBS,HRAS,ITK,KIT,MAX,MEN1,MET,MLH1,MSH2,MSH6,MTAP,MUTYH,NBN,NF1,NF2,PALB2,PDGFRA,PHOX2B,PMS2,POLD1,POLE,POLH,PRKAR1A,PRSS1,PTCH1,PTEN,PTPN11,RAD51C,RAD51D,RB1,RECQL4,RET,RHBDF2,RMRP,RUNX1,SBDS,SDHA,SDHAF2,SDHB,SDHC,SDHD,SERPINA1,SH2D1A,SLC25A13,SMAD4,SMARCA4,SMARCB1,SMARCE1,SOS1,SRY,STAT3,STK11,SUFU,TERT,TGFBR1,TMEM127,TNFRSF6,TP53,TRIM37 ,TSC1,TSC2,UROD,VHL,WAS,WRN,WT1,XPA,XPC"
+                            }
+                        ]
+                    }'''],
+                'targetGenes':['TARGET Genes','''
+                        {"groupOp": "AND",
+                          "rules": [
+                            { "field": "gene", "op": "in", "data": "ABL1,AKT1,AKT2,AKT3,ALK,APC,AR,ARAF,ASXL1,ATM,ATR,AURKA,BAP1,BCL2,BRAF,BRCA1,BRCA2,BRD2,BRD3,BRD4,NUTM1,CCND1,CCND2,CCND3,CCNE1,CDH1,CDK12,CDK4,CDK6,CDKN1A,CDKN1B,CDKN2A,CDKN2B,CEBPA,CREBBP,CRKL,CTNNB1,DDR2,DNMT3A,EGFR,EPHA3,ERBB2,ERBB3,ERBB4,ERCC2,ERG,ERRFI1,ESR1,ETV1,ETV4,ETV5,ETV6,EWSR1,EZH2,FBXW7,FGFR1,FGFR2,FGFR3,FLCN,FLT3,GNA11,GNAQ,GNAS,HRAS,IDH1,IDH2,IGF1R,JAK2,JAK3,KDR,KIT,KRAS,MAP2K1,MAP2K2,MAP2K4,MAP3K1,MAPK1,MAPK3,MCL1,MDM2,MDM4,MED12,MEN1,MET,MITF,MLH1,KMT2A,MPL,MSH2,MSH6,MTOR,MYC,MYD88,NF1,NF2,NFKBIA,NKX2-1,NOTCH1,NOTCH2,NPM1,NRAS,NTRK3,PDGFRA,PDGFRB,PIK3CA,PIK3CB,PIK3R1,PTCH1,PTEN,RAB35,RAF1,RARA,RB1,RET,RHEB,RNF43,ROS1,RSPO2,RUNX1,SMAD2,SMAD4,SMARCA4,SMARCB1,SMO,STK11,SYK,TET2,TMPRSS2,TP53,TSC1,TSC2,VHL,WT1,XPO1,ZNRF3,PALB2,CSF1R,HNF1A,PTPN11,SRC"
+                            }
+                        ]
+                    }''']
+        ]
+//        ["Top Somatic", "Colorectal", "Melanoma", "Lung", "GIST", "Top Germline", "Top Haem", "MPN Simple", "BRCA Only", "Reportable", "Rahman Genes", "TARGET Genes"]
+  //      [ 'topSom','topCrc','topMel','topLung','topGist','topGerm','topHaem','mpnSimple','brcaOnly','reportableVars','rahmanGenes','targetGenes']]
+                defaultTemplates.each{ name, template ->
+                    if(!FilterTemplate.findByTemplateName(name) && !FilterTemplate.findByTemplate(template)) {
+                        def ft = new FilterTemplate(templateName:name,displayName:template[0],template:template[1]).save(flush:true)
+                    }
+                }
+
+    }
+    
+    
+    
     void makeBaseSpringUsers()
     {
 
@@ -112,7 +304,7 @@ class BootStrap
         AuthRole expertRole
         AuthRole devRole
 
-        String defaultpassword = grailsApplication.config.dataSource.defaultuserpassword
+        String defaultpassword = loc.defaultTestUserPassword
 
         devRole = AuthRole.find{authority=="ROLE_DEV"}
         viewerRole = AuthRole.find{authority=="ROLE_VIEWER"}
@@ -206,7 +398,7 @@ class BootStrap
         switch(GrailsUtil.environment)
         {
 
-            case ["pa_uat","pa_test"]:
+            case ["pa_uat","pa_test","pa_dev"]:
                 makeBaseSpringRoles()
                 makeBaseSpringUsers()
                 makeBaseClinContexts()
@@ -217,6 +409,7 @@ class BootStrap
                 makeBaseSpringRoles()
                 makeBaseSpringUsers()
                 makeBaseClinContexts()
+                makeFilterTemplates()
                 break;
 
             case "pa_prod":

@@ -281,8 +281,8 @@ class MutalyzerIntTest extends GroovyTestCase
         if ( ! mut.ping()) assert false, "Can't connect to Mutalyser"
 
         def http = new HTTPBuilder( 'https://mutalyzer.nl/' )
-        def proxyHost = 'localhost' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
-        def proxyPort = 3128 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
+        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
+        def proxyPort = 8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
         if ( proxyHost && proxyPort )
             http.setProxy( proxyHost, proxyPort, 'http')
 
@@ -318,8 +318,8 @@ class MutalyzerIntTest extends GroovyTestCase
         if ( ! mut.ping()) assert false, "Can't connect to Mutalyser"
 
         def http = new HTTPBuilder( 'https://mutalyzer.nl/' )
-        def proxyHost = 'localhost' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
-        def proxyPort =  3128 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
+        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
+        def proxyPort =  8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
         if ( proxyHost && proxyPort )
             http.setProxy( proxyHost, proxyPort, 'http')
 
@@ -344,8 +344,8 @@ class MutalyzerIntTest extends GroovyTestCase
         //Logger.getRootLogger().setLevel(Level.DEBUG)
 
         def http = new HTTPBuilder( 'https://mutalyzer.nl' )
-        def proxyHost = 'localhost' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
-        def proxyPort = 3128 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
+        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
+        def proxyPort = 8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
         if ( proxyHost && proxyPort )
             http.setProxy( proxyHost, proxyPort, 'http')
 

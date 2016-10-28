@@ -31,11 +31,14 @@ class DbCountTest extends GroovyTestCase
 
     }
 
-
+    /**
+     * TESTING Map countTables( String dbase, List tables = [] )
+     */
     void testCountTables()
     {
         def dbc = new DbCount()
         Map m = dbc.countTables( DB, ['auth_user','patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
+
 
         assert m.auth_user >= 1 &&
                 m.patient >= 1 &&
@@ -43,22 +46,25 @@ class DbCountTest extends GroovyTestCase
                 m.seq_sample >= 1 &&
                 m.seq_variant >= 1 &&
                 m.seqrun >= 1 &&
-                m.size() >= 4
+                m.size() >= 4 : "[T E S T ]: One of the following tables is empty [auth_user, patient, sample, seq_sample, seq_variant, seqrun]  "
 
     }
 
-    // This sis redundant, consider removing it
+    /**
+     * TESTING Map countTables( String dbase, List tables = [] ) in a different setting
+     */
     void testCountUser()
     {
         def dbc = new DbCount()
         Map m = dbc.countTables( DB, ['auth_user','patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
 
-        println( m )
-
-        assert m.size() >= 4
-        assert m.sample >= 1
+        assert m.size() >= 4 : "[T E S T]: Map contains less than 4 tables ${m} "
+        assert m.sample >= 1 : "[T E S T]: Sample table is empty "
     }
 
+    /**
+     * TESTING
+     */
     void testDiff()
     {
         Map m = new DbCount().compare( DB, DB, ['patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
@@ -67,37 +73,12 @@ class DbCountTest extends GroovyTestCase
         {
             def val = tbl.value as Map
             String s = sprintf( "Table: %-20s %8d %8d    %+3.1f%%", tbl.key, val.rows, val.diff, val.pct)
-            println( s )
+            assert tbl.key != null : "[T E S T]: null object when there should not be, ${tbl.key}"
+            assert val.rows != null : "[T E S T]: null object when there should not be, ${val.rows}"
+            assert val.pct != null : "[T E S T]: mull object ehn there should not be ${val.pct}"
         }
 
-       // assert m.size() == 8
-
-        assert m.audit.rows >= 1 &&
-                m.audit.diff != null    &&
-                m.audit.pct != null   &&
-                m.panel.rows >= 1  &&
-                m.panel.diff != null    &&
-                m.panel.pct != null   &&
-                m.patient.rows >= 1  &&
-                m.patient.diff != null    &&
-                m.patient.pct != null   &&
-                m.sample.rows >= 1  &&
-                m.sample.diff != null    &&
-                m.sample.pct != null   &&
-                m.seq_sample.rows >= 1  &&
-                m.seq_sample.diff != null    &&
-                m.seq_sample.pct != null   &&
-                m.seq_variant.rows >= 1  &&
-                m.seq_variant.diff != null    &&
-                m.seq_variant.pct != null   &&
-                m.seqrun.rows >= 1  &&
-                m.seqrun.diff != null    &&
-                m.seqrun.pct != null   &&
-                m.variant.rows >= 0  &&
-                m.variant.diff != null    &&
-                m.size() >= 6
-                //m.variant.pct == "Infinity"   &&
-
+        assert m.size() != 0 : "[T E S T]: DbCount().compare( DB, DB, ['patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] ) is empty"
 
      }
 }

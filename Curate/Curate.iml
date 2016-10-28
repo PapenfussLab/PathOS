@@ -111,7 +111,6 @@
           <root url="jar://$USER_HOME$/.grails/ivy-cache/org.bouncycastle/bctsp-jdk14/jars/bctsp-jdk14-1.38.jar!/" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/com.lowagie/itext/jars/itext-2.1.7.jar!/" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/xerces/xercesImpl/jars/xercesImpl-2.9.0.jar!/" />
-          <root url="file://$MODULE_DIR$/lib" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/org.springframework.security/spring-security-web/jars/spring-security-web-3.2.3.RELEASE.jar!/" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/org.springframework.security/spring-security-core/jars/spring-security-core-3.2.3.RELEASE.jar!/" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/com.sun.mail/javax.mail/jars/javax.mail-1.5.1.jar!/" />
@@ -145,7 +144,9 @@
           <root url="jar://$USER_HOME$/.grails/ivy-cache/org.seleniumhq.selenium/selenium-firefox-driver/jars/selenium-firefox-driver-2.52.0.jar!/" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/org.springframework.ldap/spring-ldap-core/jars/spring-ldap-core-1.3.2.RELEASE.jar!/" />
           <root url="jar://$USER_HOME$/.grails/ivy-cache/org.springframework.security/spring-security-ldap/jars/spring-security-ldap-3.2.0.RC1.jar!/" />
-          <root url="jar://$USER_HOME$/.grails/ivy-cache/PathosCore-all/jars/PathosCore-all-1.2.0.jar!/" />
+          <root url="jar://$USER_HOME$/.grails/ivy-cache/commons-beanutils/commons-beanutils/jars/commons-beanutils-1.9.2.jar!/" />
+          <root url="jar://$USER_HOME$/.grails/ivy-cache/PathosCore-all/jars/PathosCore-all-1.2.2.jar!/" />
+          <root url="file://$MODULE_DIR$/lib" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

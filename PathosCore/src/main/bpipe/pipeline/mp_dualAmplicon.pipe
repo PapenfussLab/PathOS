@@ -25,7 +25,7 @@
 
 PipelineType    = 'mp_dualAmplicon'                 //  Pipeline type
 SHOW_STAGE_FAIL = 1                                 //  Set to 1 for stage failure emails
-MailList        = [ 'ken.doig@petermac.org', 'andrei.seleznev@petermac.org','christopher.welsh@petermac.org', 'andrew.fellowes@petermac.org' ]
+MailList        = [ 'ken.doig@petermac.org', 'andrei.seleznev@petermac.org','christopher.welsh@petermac.org' ]
 HollyHost       = 'bioinf-pathos.petermac.org.au'   // Todo: this should be a property
 
 Bpipe.run

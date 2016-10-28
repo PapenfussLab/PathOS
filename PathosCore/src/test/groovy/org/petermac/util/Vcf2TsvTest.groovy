@@ -5,7 +5,7 @@ package org.petermac.util
  */
 class Vcf2TsvTest extends GroovyTestCase
 {
-
+    //TODO we need more assert functions in here
     void testComapre()
     {
         String resource = "Vcf/Examples"

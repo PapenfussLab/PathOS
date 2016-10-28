@@ -127,8 +127,7 @@ class EtlTransform
                     //
                     if ( row['AD'])
                     {
-                        //log.info( "### ${row['AD']} ${stripAlleles( row['AD'] as String, 'R', ',' )}")
-                        row['AD'] = stripAlleles( row['AD'] as String, 'R', ',' )
+                        row['AD'] = stripAlleles( row['AD'] as String, 'A', ',' )   // return the reference allele depthPath
                     }
 
                     //  Normalise and convert VCF variant
@@ -167,8 +166,8 @@ class EtlTransform
         List l = val.tokenize( sep )
 
         if ( l.size() < 2 ) return val
-        if ( type == 'A' ) return l[0]      // multiple allele field
-        if ( type == 'R' ) return l[1]      // ref then multiple allele field
+        if ( type == 'R' ) return l[0]      // return reference allele depth
+        if ( type == 'A' ) return l[1]      // return alternate allele depth
 
         return l[0]
     }

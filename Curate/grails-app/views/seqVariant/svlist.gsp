@@ -137,6 +137,11 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 #tags .tagdiv span {
     font-size: 14px;
 }
+
+#ui-id-2 {
+    z-index: 99999;
+}
+
 </style>
 
 </head>
@@ -728,27 +733,6 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
 
 
-<%--<g:if test="${viewReports.size() > 0}"> Disabled as reports are not saving properly on Rpod--%>
-<g:if test="${false}">
-    <span id="hideshowreports" class="hideshowbutton reportsection" onclick="hideshowreports('reports');">Show previously generated reports</span>
-    <div id="reports" class="reportsection" style="display:none;">
-        <p>Generated Reports:</p>
-    <g:each in="${viewReports}" var="aReport">
-        <p>
-         Created ${aReport.dateCreated} by ${aReport.user?.displayName}
-            <%-- get path for link: everything past payload directory --%>
-            <%-- cut everything off before payload --%>k
-            <g:if test="${aReport.reportFilePath.split('/payload/').size() > 1}">
-                <a href="${basepath}/payload/${aReport.reportFilePath.split('/payload/')[1]}" target="_blank">Download</a>
-            </g:if>
-
-
-        </p>
-    </g:each>
-    </div>
-    <br/>
-</g:if>
-
 </div>
 </body>
 
@@ -1180,213 +1164,11 @@ var actionableCnvs =
         { "field": "lr_median", "op": "ge", "data": "1.5"}
       ]
 };
+<%-- this sets filter templates as : "var myTemolateName = thetemplate" --%>
+<g:each in="${filterTemplates}">
+    var ${it.key} =  ${it.value}
+</g:each>
 
-//  Top Somatic Variants Search
-//
-var topSom =
-{ "groupOp": "AND",
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "filterFlag", "op": "nc", "data": "sin" },
-        { "field": "varFreq", "op": "ge", "data": "3"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  Haem Variants Search
-//
-var topHaem =
-{ "groupOp": "AND",
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "varFreq", "op": "ge", "data": "3"},
-      ]
-};
-
-//  Top Somatic CRC Search
-//
-var topCrc =
-{ "groupOp": "AND",
-    "groups": [
-    {"groupOp": "OR",
-      "rules": [
-        { "field": "gene", "op": "eq", "data": "BRAF" },
-        { "field": "gene", "op": "eq", "data": "KRAS" },
-        { "field": "gene", "op": "eq", "data": "RNF43" },
-        { "field": "gene", "op": "eq", "data": "NRAS" }
-      ]
-    }],
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "filterFlag", "op": "nc", "data": "sin" },
-        { "field": "varFreq", "op": "ge", "data": "3"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  BRCA1/2 Only
-//
-var brcaOnly =
-{ "groupOp": "AND",
-    "groups": [
-    {"groupOp": "OR",
-      "rules": [
-        { "field": "gene", "op": "eq", "data": "BRCA1" },
-        { "field": "gene", "op": "eq", "data": "BRCA2" }
-      ]
-    }],
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "varFreq", "op": "ge", "data": "15"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  MPN Simple Search
-//
-var mpnSimple =
-{ "groupOp": "AND",
-    "groups": [
-    {"groupOp": "OR",
-      "rules": [
-        { "field": "gene", "op": "eq", "data": "JAK2"  },
-        { "field": "gene", "op": "eq", "data": "MPL"   },
-        { "field": "gene", "op": "eq", "data": "CALR"  },
-        { "field": "gene", "op": "eq", "data": "KIT"  },
-        { "field": "gene", "op": "eq", "data": "SF3B1"  },
-        { "field": "gene", "op": "eq", "data": "CSF3R"  },
-        { "field": "gene", "op": "eq", "data": "ASXL1" }
-      ]
-    }],
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" }
-       ]
-};
-
-
-//  Top Somatic Melanoma Search
-//
-var topMel =
-{ "groupOp": "AND",
-    "groups": [
-    {"groupOp": "OR",
-      "rules": [
-        { "field": "gene", "op": "eq", "data": "BRAF" },
-        { "field": "gene", "op": "eq", "data": "NRAS" },
-        { "field": "gene", "op": "eq", "data": "RAC1" },
-        { "field": "gene", "op": "eq", "data": "KIT" }
-      ]
-    }],
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "filterFlag", "op": "nc", "data": "sin" },
-        { "field": "varFreq", "op": "ge", "data": "3"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  Top Somatic Lung Search
-//
-var topLung =
-{ "groupOp": "AND",
-    "groups": [
-    {"groupOp": "OR",
-      "rules": [
-        { "field": "gene", "op": "eq", "data": "BRAF" },
-        { "field": "gene", "op": "eq", "data": "KRAS" },
-        { "field": "gene", "op": "eq", "data": "MET" },
-        { "field": "gene", "op": "eq", "data": "EGFR" }
-      ]
-    }],
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "filterFlag", "op": "nc", "data": "sin" },
-        { "field": "varFreq", "op": "ge", "data": "3"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  Top Somatic GIST Search
-//
-var topGist =
-{ "groupOp": "AND",
-    "groups": [
-    {"groupOp": "OR",
-      "rules": [
-        { "field": "gene", "op": "eq", "data": "PDGFRA" },
-        { "field": "gene", "op": "eq", "data": "KIT" }
-      ]
-    }],
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "filterFlag", "op": "nc", "data": "sin" },
-        { "field": "varFreq", "op": "ge", "data": "3"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  Top Germline Variants Search
-//
-var topGerm =
-{ "groupOp": "AND",
-      "rules": [
-        { "field": "filterFlag", "op": "nc", "data": "blk" },
-        { "field": "filterFlag", "op": "nc", "data": "pnl" },
-        { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "filterFlag", "op": "nc", "data": "con" },
-        { "field": "varFreq", "op": "ge", "data": "15"},
-        { "field": "varcaller", "op": "ne", "data": "Canary" }
-      ]
-};
-
-//  Reportable variants
-//
-var reportableVars =
-{ "groupOp": "AND",
-      "rules": [
-        { "field": "reportable", "op": "eq", "data": "1"}
-      ]
-} ;
-
-//  Rahman Gene List Filter
-//
-var rahmanGenes =
-    {"groupOp": "AND",
-      "rules": [
-        { "field": "gene", "op": "in", "data": "ABCB11,ALK,APC,ATM,AXIN2,BAP1,BLM,BMPR1A,BRCA1,BRCA2,BRIP1,BUB1B,CBL,CDC73,CDH1,CDK4,CDKN1B,CDKN2A,CEBPA,CHEK2,COL7A1,CYLD,DDB2,DICER1,DIS3L2,DKC1,DOCK8,EGFR,ELANE,ERCC2,ERCC3,ERCC4,ERCC5,EXT1,EXT2,FAH,FANCA,FANCC,FANCG,FH,FLCN,GATA2,GBA,GJB2,GPC3,HFE,HMBS,HRAS,ITK,KIT,MAX,MEN1,MET,MLH1,MSH2,MSH6,MTAP,MUTYH,NBN,NF1,NF2,PALB2,PDGFRA,PHOX2B,PMS2,POLD1,POLE,POLH,PRKAR1A,PRSS1,PTCH1,PTEN,PTPN11,RAD51C,RAD51D,RB1,RECQL4,RET,RHBDF2,RMRP,RUNX1,SBDS,SDHA,SDHAF2,SDHB,SDHC,SDHD,SERPINA1,SH2D1A,SLC25A13,SMAD4,SMARCA4,SMARCB1,SMARCE1,SOS1,SRY,STAT3,STK11,SUFU,TERT,TGFBR1,TMEM127,TNFRSF6,TP53,TRIM37 ,TSC1,TSC2,UROD,VHL,WAS,WRN,WT1,XPA,XPC"
-        }
-    ]
-};
-
-//  TARGET Gene List Filter
-//
-var targetGenes =
-    {"groupOp": "AND",
-      "rules": [
-        { "field": "gene", "op": "in", "data": "ABL1,AKT1,AKT2,AKT3,ALK,APC,AR,ARAF,ASXL1,ATM,ATR,AURKA,BAP1,BCL2,BRAF,BRCA1,BRCA2,BRD2,BRD3,BRD4,NUTM1,CCND1,CCND2,CCND3,CCNE1,CDH1,CDK12,CDK4,CDK6,CDKN1A,CDKN1B,CDKN2A,CDKN2B,CEBPA,CREBBP,CRKL,CTNNB1,DDR2,DNMT3A,EGFR,EPHA3,ERBB2,ERBB3,ERBB4,ERCC2,ERG,ERRFI1,ESR1,ETV1,ETV4,ETV5,ETV6,EWSR1,EZH2,FBXW7,FGFR1,FGFR2,FGFR3,FLCN,FLT3,GNA11,GNAQ,GNAS,HRAS,IDH1,IDH2,IGF1R,JAK2,JAK3,KDR,KIT,KRAS,MAP2K1,MAP2K2,MAP2K4,MAP3K1,MAPK1,MAPK3,MCL1,MDM2,MDM4,MED12,MEN1,MET,MITF,MLH1,KMT2A,MPL,MSH2,MSH6,MTOR,MYC,MYD88,NF1,NF2,NFKBIA,NKX2-1,NOTCH1,NOTCH2,NPM1,NRAS,NTRK3,PDGFRA,PDGFRB,PIK3CA,PIK3CB,PIK3R1,PTCH1,PTEN,RAB35,RAF1,RARA,RB1,RET,RHEB,RNF43,ROS1,RSPO2,RUNX1,SMAD2,SMAD4,SMARCA4,SMARCB1,SMO,STK11,SYK,TET2,TMPRSS2,TP53,TSC1,TSC2,VHL,WT1,XPO1,ZNRF3,PALB2,CSF1R,HNF1A,PTPN11,SRC"
-        }
-    ]
-};
 
 //$('#curation_table').jqGridAfterGridComplete = loadSavedUserGrid();
 

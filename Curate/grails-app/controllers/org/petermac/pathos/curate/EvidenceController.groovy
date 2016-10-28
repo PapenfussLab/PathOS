@@ -18,7 +18,6 @@ class EvidenceController
     def SpringSecurityService
     static allowedMethods = [ update: "POST" ]
 
-
     def edit(Long id)
     {
         def variantInstance = CurVariant.get(id)
@@ -77,7 +76,7 @@ class EvidenceController
                     basepath = 'http://bioinf-pathos:8080/PathOS'
                     isTest = false
                     break;
-                case ['pa_uat','pa_stage']:
+                case ['pa_uat','pa_stage','pa_dev']:
                     basepath = 'http://bioinf-pathos-test:8080/PathOS'
                     break;
                 default:

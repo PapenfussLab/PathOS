@@ -469,8 +469,8 @@ class SeqVariantController
 
             //  Pre-fab templates for quick filtering
             //
-            navGrid     =   [ searchOpts:   [   tmplNames:      ["Top Somatic", "Colorectal", "Melanoma", "Lung", "GIST", "Top Germline", "Top Haem", "MPN Simple", "BRCA Only", "Reportable", "Rahman Genes", "TARGET Genes"],
-                                                tmplFilters:    [ 'topSom','topCrc','topMel','topLung','topGist','topGerm','topHaem','mpnSimple','brcaOnly','reportableVars','rahmanGenes','targetGenes']]
+            navGrid     =   [ searchOpts:   [   tmplNames:   FilterTemplate.findAll().displayName ,  //["Top Somatic", "Colorectal", "Melanoma", "Lung", "GIST", "Top Germline", "Top Haem", "MPN Simple", "BRCA Only", "Reportable", "Rahman Genes", "TARGET Genes"],
+                                                tmplFilters:   FilterTemplate.findAll().templateName ] // [ 'topSom','topCrc','topMel','topLung','topGist','topGerm','topHaem','mpnSimple','brcaOnly','reportableVars','rahmanGenes','targetGenes']]
                             ]
             filterToolbar = [ searchOperators: false ]
         }
@@ -659,7 +659,7 @@ class SeqVariantController
 
     //  recursive function used to display human readable filter
     //
-    String parseFilterGroup(HashMap jsonObj)
+    private String parseFilterGroup(HashMap jsonObj)
     {
         Map operands = [ "eq" :"=", "ne":"<>","lt":"<","le":"<=","gt":">","ge":">=","bw":"LIKE","bn":"NOT LIKE","in":"IN","ni":"NOT IN","ew":"LIKE","en":"NOT LIKE","cn":"LIKE","nc":"NOT LIKE","nu":"IS NULL","nn":"ISNOT NULL"]
         //println jsonObj
@@ -832,29 +832,9 @@ class SeqVariantController
 
         //grab reports
         def viewReports = SeqSampleReport.findAllBySeqSample(thisSeqSample)
-        def basepath
-        switch (GrailsUtil.environment) {
-            case "pa_prod":
-                basepath = 'http://bioinf-pathos:8080/PathOS'
 
-                break;
-            case ["pa_uat","pa_test"]:
-                basepath = 'http://bioinf-pathos-test:8080/PathOS'
-                break;
-            default:
-                basepath = 'http://localhost:8080/PathOS'
-                break;
-        }
 
-        //load icd_o domains
-        //
-        def icdo = IcdO.getAll() //mut_context in patSample ---> new field   //the value in quetion --> hist_details
-        //dropdown values ---> will be hard coded ---> put in in the code its a hack anyway
-        //mutContext new field
-
-        //FOR NOW: Not Specified
-
-        ArrayList clinContextList = ClinContext.findAll() //toString will care of this
+        ArrayList clinContextList = ClinContext.findAll()
 
 
         def curatedSvPresent = false
@@ -866,8 +846,14 @@ class SeqVariantController
             }
         }
 
+        def filterTemplates = FilterTemplate.findAll()
+        HashMap filterTemplateList = [:]
+        for (ft in filterTemplates) {
+            filterTemplateList[ft.templateName] = ft.template
+        }
 
-        return  [seqSample: thisSeqSample, isFirstReviewed: isFirstReviewed, isFinalReviewed: isFinalReviewed, isAdmin: isAdmin, isCurator: isCurator, isLab: isLab, isDev: isDev, prefsShowCols: thisPrefs.prefsColumnsShown,prefsHideCols: thisPrefs.prefsColumnsHidden,prefsColumnRemap: thisPrefs.prefsColumnRemap,prefsGridInfo: thisPrefs.prefsGridInfo, svSize:allSeqVars.size(), cnvSize: allCnvs.size(), cnvUrl: cnvUrl, cnvViewerUrl: cnvViewerUrl, viewReports: viewReports, basepath: basepath, clinContextList: clinContextList, curatedSvPresent: curatedSvPresent ]
+
+        return  [seqSample: thisSeqSample, isFirstReviewed: isFirstReviewed, isFinalReviewed: isFinalReviewed, isAdmin: isAdmin, isCurator: isCurator, isLab: isLab, isDev: isDev, prefsShowCols: thisPrefs.prefsColumnsShown,prefsHideCols: thisPrefs.prefsColumnsHidden,prefsColumnRemap: thisPrefs.prefsColumnRemap,prefsGridInfo: thisPrefs.prefsGridInfo, svSize:allSeqVars.size(), cnvSize: allCnvs.size(), cnvUrl: cnvUrl, cnvViewerUrl: cnvViewerUrl, viewReports: viewReports, clinContextList: clinContextList, curatedSvPresent: curatedSvPresent, filterTemplates: filterTemplateList ]
     }
 
     def googleSearchAction()
@@ -1249,7 +1235,7 @@ class SeqVariantController
         def ss = SeqSample.get(params.id)
 
         if (!ss.authorisedQcFlag) { //allow to review if QC failed: only block if not set
-            errors.add("Cannot complete review: Sample must pass QC first")
+            errors.add("Sorry, cannot yet complete review: Sample must pass QC first")
         }
 
 
@@ -1260,7 +1246,7 @@ class SeqVariantController
         for ( seqvar in currentVars ) {
             //REQUIREMENT: All reporting variants must be Curated
             if (seqvar.reportable && !seqvar.curatedId) {
-                def reportError = "Cannot complete review: ${seqvar} is Reported but not Curated"
+                def reportError = "Sorry, cannot yet complete review: ${seqvar} is Reported but not Curated"
                 errors.add(reportError)
 
             }
@@ -1278,7 +1264,7 @@ class SeqVariantController
                     //if our seqvar is curated...
                     //ensure variant for this seqvariant is curated and authorised
                     if (!var.authorisedFlag) {
-                        def authVarError = "Cannot complete review: The CurVariant record for seqVariant ${seqvar} is not Authorised"
+                        def authVarError = "Sorry, cannot yet complete review: The CurVariant record for seqVariant ${seqvar} is not Authorised"
                         errors.add(authVarError)
                     }
                 }
@@ -1501,7 +1487,7 @@ class SeqVariantController
             if ( ss.firstReviewBy.displayName == currentUser.getDisplayName()  && !revoke)
             {
                 def errorList = []
-                errorList.add("Final Reviewer must be different to First Reviewer.")
+                errorList.add("Sorry, cannot complete review - Final Reviewer must be different to First Reviewer.")
                 flash.errors = errorList
                 redirect( action: "svlist", id: id )
                 return
@@ -1542,7 +1528,7 @@ class SeqVariantController
             if ( ss.firstReviewBy.displayName == currentUser.getDisplayName()  && !revoke)
             {
                 def errorList = []
-                errorList.add("Second Reviewer must be different to First Reviewer.")
+                errorList.add("Sorry, cannot complete review - Second Reviewer must be different to First Reviewer.")
                 flash.errors = errorList
                 redirect( action: "svlist", id: id )
                 return

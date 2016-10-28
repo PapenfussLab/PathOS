@@ -54,4 +54,9 @@ fi
 
 cp -vf $samfile Seqrun.tsv   # Hard-wired seq sample list filename ToDo: pass file into LoadPathOS
 
+#
+#   Set PATHOS_HOME and other environment stuff
+#
+. SetLoaderEnv
+
 LoadPathOS --phase merge --rdb $dbname --orm $dbname --config $PATHOS_HOME/etc/AutoLoad.etl

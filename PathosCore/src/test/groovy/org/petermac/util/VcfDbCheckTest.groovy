@@ -11,6 +11,7 @@ class VcfDbCheckTest extends GroovyTestCase
 
     String DB
 
+    //TODO we need more tests and asserts in here
     void setUp()
     {
         def env = System.getenv()
