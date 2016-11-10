@@ -18,7 +18,7 @@ The resulting few variants are then rendered into a clinical diagnostic report s
 PathOS carries out these tasks within a hospital laboratory setting where many patients must be reported on in a reliable, consistent and efficient manner.
 
 ## Technology Platform
-PathOS take advantage of many open-source and public Java libraries to implement an enterprise-grade application suitable for hospital use and secure storage of patient medical data. It interfaces to laboratory LIMS systems for input of patient demographic details and sample and assay registration data. An HL7 interface is currently being developed to interface with other hospital records systems.
+PathOS takes advantage of many open-source and public Java libraries to implement an enterprise-grade application suitable for hospital use and secure storage of patient medical data. It interfaces to laboratory LIMS systems for input of patient demographic details and sample and assay registration data. An HL7 interface is currently being developed to interface with other hospital records systems.
 
 The web application is implemented in Java, Javascript, Groovy and Grails deployable on any server supporting java servlet containers such as Tomcat or Jboss.
 This allows for deployment in a wide range of environments.
@@ -44,6 +44,8 @@ There are a number of dependencies including the following
 - Tomcat (currently version 7.0)
 - The report renderer uses a commercial package available as a JAR from http://www.aspose.com/downloads/words/java. Without a license, a "No License" message will appear on generated reports.
 - Some of the pipeline utilities and HGVS libraries use the Genome Analysis Toolkit (Currently GATK 3.3) and the Sting utility JAR (currently 2.1.8) available from here https://software.broadinstitute.org/gatk/download/
+- JNI wrapper to the striped Smith-Waterman alignment library SSW see https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library
+
 
 ## Confguration
 The following files can be edited post deployment to configure file locations, servers, databases and security servers.
