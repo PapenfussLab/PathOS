@@ -8,14 +8,14 @@
 		<title>${variantInstance} - <g:message code="default.show.label" args="[entityName]" /></title>
 	</head>
 	<body>
-		<a href="#show-variant" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
+		<a href="#show-curVariant" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
 		<div class="nav" role="navigation">
 			<ul>
 				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
 			</ul>
 		</div>
-		<div id="show-variant" class="content scaffold-show" role="main">
+		<div id="show-curVariant" class="content scaffold-show" role="main">
 			<h1><g:message code="default.show.label" args="[entityName]" /></h1>
 			<g:if test="${flash.message}">
 			    <div class="message" role="status">${flash.message}</div>
@@ -26,9 +26,31 @@
 					<span class="property-value" aria-labelledby="variant-label">${variantInstance}</span>
 				</li>
 				<li class="fieldcontain">
-					<span id="variant-label" class="property-label">Mutation Context</span>
+					<span id="variant-label" class="property-label">Clinical Context</span>
 					<span class="property-value" aria-labelledby="variant-label"><b>${variantInstance.clinContext? variantInstance.clinContext : 'None'}</b></span>
 				</li>
+				<li class="fieldcontain">
+					<span id="variant-label" class="property-label">Group Variant</span>
+					<span class="property-value" aria-labelledby="variant-label"><b>${variantInstance.grpVariant? variantInstance.grpVariant : 'None'}</b></span>
+				</li>
+				<li class="fieldcontain">
+					<span id="variant-label" class="property-label">Originating SeqVariant</span>
+					<span class="property-value" aria-labelledby="variant-label"><b>${originating? originating : 'Unknown'}</b></span>
+				</li>
+
+				<li class="fieldcontain">
+					<span id="variant-label" class="property-label">All Linked SeqVariants</span>
+					<g:if test="${numberOfVarLinks}">
+						<span class="property-value"><a href="#none" onclick="toggleLinkedSeqVariants()">Show/Hide ${numberOfVarLinks} SeqVariants</a></span>
+
+						<ul id="linked-seqVariants" class="property-value hidden">
+							<li id="slow-load-warning"><img class="loading_logo" src="/PathOS/dist/img/pathos_logo_animated.svg"><br><span class="">Warning this might be slow if there are a lot of SeqVariants (more than 1000)</span></li>
+						</ul>
+					</g:if><g:else>
+					<span class="property-value" aria-labelledby="variant-label"><b>none</b></span>
+					</g:else>
+				</li>
+
 				<g:if test="${variantInstance?.variant}">
 				<li class="fieldcontain">
 					<span id="variant-label" class="property-label"><g:message code="seqVariant.variant.label" default="Variant" /></span>
@@ -253,6 +275,77 @@
 <script>
 	console.log("${variantInstance?.id}")
 	<g:showPageTagsScript tags="${variantInstance?.tags as grails.converters.JSON}" id="${variantInstance?.id}" controller="curvariant"/>
+
+
+
+%{--
+DKGM 24-November-2016
+Ajax stuff so that we can show all of the Linked Sequenced Variants on demand
+--}%
+
+	var allSeqVariantsLoaded = false;
+	function toggleLinkedSeqVariants(){
+		$("#linked-seqVariants").toggleClass("hidden");
+
+		if(!allSeqVariantsLoaded) {
+			allSeqVariantsLoaded = true;
+			$.ajax({
+				type: "GET",
+				url: "/PathOS/curVariant/linkedSeqVars/?id="+${variantInstance?.id},
+				success: function(d){
+						d3.select("#slow-load-warning").classed("hidden", true);
+
+						var list = d3.select("#linked-seqVariants");
+						d.sort(function(a,b){
+							return b.seqSample - a.seqSample;
+						}).forEach(function(sv){
+							list.append("li")
+								.append("b")
+								.append("a")
+								.attr("href", "/PathOS/seqVariant/svlist/"+sv.seqSample)
+								.text(sv.string);
+						});
+					},
+				cache: false,
+				contentType: false,
+				processData: false
+			});
+		}
+	}
+
+
 </script>
 	</body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -12,56 +12,72 @@ import grails.persistence.Entity
 @Entity
 class CurVariant implements Taggable
 {
-    String	variant
-    String	ens_variant
-    String	gene
-    String	gene_type
-    String	gene_pathway
-    String	gene_process
-    String	hgvsc
-    String	hgvsp
-    String	hgvsg
-    String	consequence
-    String	chr
-    String	pos
-    String	exon
-    String	pmClass = "Unclassified"
-    String	reportDesc
-    AuthUser	classified
-    AuthUser	authorised
-    Boolean authorisedFlag = false
-    Date	dateCreated = new Date()
-    Date	lastUpdated = new Date()
-    String	alamutClass
-    String  siftCat
-    String  polyphenCat
-    String	cosmic
-    String	dbsnp
-    Evidence evidence
-    ClinContext clinContext
+    //  CurVariant should be unique by grpVariant + clinContext
+    //
+    GrpVariant      grpVariant                  //  Group Variant: genomic key to this variant
+    ClinContext     clinContext                 //  Optional clinical context for this variant: may be null
 
-    static embedded = ['evidence']
 
-    static hasMany	= [seqVariants: SeqVariant,  tags: Tag ]
+    //  Embedded evidence Class encapsulating eveidence data
+    //
+    Evidence        evidence                    //  Evidence justifiying this curation
+
+    String	        variant                     //  Todo: deprecated - in GrpVariant
+    String	        ens_variant                 //  Ensembl formatted variant
+    String	        gene                        //  Gene
+    String	        gene_type                   //  Gene type: Oncogene or TSG (Tumour suprressor)
+    String	        gene_pathway                //  Gene Pathway, from Vogelstein et al
+    String	        gene_process                //  Gene Process, from Vogelstein et al
+    String	        hgvsc                       //  Todo: deprecated - in GrpVariant
+    String	        hgvsp                       //  Todo: deprecated - in GrpVariant
+    String	        hgvsg                       //  Todo: deprecated - in GrpVariant
+    String	        consequence                 //  Ensembl variant consequences
+    String	        chr                         //  Todo: deprecated - in GrpVariant
+    String	        pos                         //  Todo: deprecated - in GrpVariant
+    String	        exon                        //  Todo: deprecated - in GrpVariant
+    String	        pmClass = "Unclassified"    //  Pathogenicity currently C1: Benign .. C5: Pathogenic
+    String	        reportDesc                  //  Clinical report text
+    AuthUser	    classified                  //  User who classified
+    AuthUser	    authorised                  //  User who authorised
+    Boolean         authorisedFlag = false      //  True if authorised
+    Date	        dateCreated = new Date()    //  Creation date
+    Date	        lastUpdated = new Date()    //  Updated date
+    String	        alamutClass                 //  Todo: deprecated
+    String          siftCat                     //  Todo: deprecated - in AnoVariant
+    String          polyphenCat                 //  Todo: deprecated - in AnoVariant
+    String	        cosmic                      //  Todo: deprecated - in AnoVariant
+    String	        dbsnp                       //  Todo: deprecated - in AnoVariant
+
+
+    static embedded = ['evidence', 'grpVariant'] //  Embedded Classes
+
+    static hasMany	= [  tags: Tag, varLinks: VarLink ]
+
+
+
+    //  the mappedBy resolves the problem of multiple many-to-many and one-to-one relationships between curvar and seqvar
+    //  there's a matching line in curvar. this specifies that the manytomany is between the below vars only.
+    //  otherwise CurVar curated and SeqVar originating start getting messed up
+
+    // static belongsTo = [seqVariants: SeqVariant]
 
     static constraints =
     {
-        variant( unique: true, blank: false )
+        variant( )
+        hgvsc()
+        hgvsp( nullable: true )
         ens_variant(nullable: true)
         gene()
         gene_type(nullable: true)
-        hgvsc()
-        hgvsp( nullable: true )
-        //hgvsg( unique: 'mutContext' )
         consequence(nullable: true)
         pmClass(  inList:	[
-                "Unclassified",
-                "C1: Not pathogenic",
-                "C2: Unlikely pathogenic",
-                "C3: Unknown pathogenicity",
-                "C4: Likely pathogenic",
-                "C5: Pathogenic"
-        ], blank: false )
+                            "Unclassified",
+                            "C1: Not pathogenic",
+                            "C2: Unlikely pathogenic",
+                            "C3: Unknown pathogenicity",
+                            "C4: Likely pathogenic",
+                            "C5: Pathogenic"
+                            ],   blank: false )
         alamutClass( nullable: true )
         siftCat( nullable: true )
         polyphenCat( nullable: true )
@@ -79,24 +95,48 @@ class CurVariant implements Taggable
         authorised( nullable: true )
         dateCreated( nullable: true )
         lastUpdated()
-        seqVariants( nullable: true )
         clinContext( nullable: true )
-    }
+        grpVariant( nullable: true ) //unique: true )
+     }
 
+    //  Todo: deprecated
+    //
     static mapping =
     {
         sort alamutClass: "desc"
+        variant     index: 'variant_idx'
     }
 
     static  searchable =
     {
         only = [ 'gene', 'hgvsc', 'hgvsg', 'hgvsp', 'reportDesc', 'evidence', 'tags' ]
-        evidence component: true
-        tags component: true
+        evidence    component: true
+        tags        component: true
     }
 
     String	toString()
     {
          "${gene}:${hgvsc} ${hgvsp} ${(authorisedFlag && pmClass) ? pmClass : 'NotAuth'} ${clinContext?clinContext:'No context'}"
     }
+
+    def VarLinkService
+
+    //  get all seq variants that are linked (that is, have a var link) for this var
+    //
+    ArrayList linkedSeqVariants()
+    {
+        return VarLinkService.getSeqVariantsForCurVariant(this)
+    }
+
+    //  get seq variant from which this cur variant was made
+    //  returns null if unknown, which will be the case for variants before pathos v1.3
+    //
+    SeqVariant originatingSeqVariant()
+    {
+        return VarLinkService.getOriginatingSeqVariantForCurVariant(this)
+    }
+//    String toJsonString() {
+//        "{'clinContext':'${clinContext}','id':${id}, 'pmClass':'${pmClass}'"
+//    }
 }
+

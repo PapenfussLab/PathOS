@@ -1,789 +1,466 @@
 databaseChangeLog = {
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-1") {
-		createTable(tableName: "keyword") {
-			column(autoIncrement: "true", name: "id", type: "bigint") {
-				constraints(nullable: "false", primaryKey: "true", primaryKeyName: "keywordPK")
-			}
-
-			column(name: "version", type: "bigint") {
-				constraints(nullable: "false")
-			}
-
-			column(name: "keyword", type: "varchar(255)") {
-				constraints(nullable: "false")
-			}
-
-			column(name: "pmid", type: "varchar(255)") {
-				constraints(nullable: "false")
-			}
-		}
+/*
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-1") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "endpos", tableName: "amplicon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-2") {
-		modifyDataType(columnName: "location", newDataType: "varchar(255)", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-2") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "primerlen1", tableName: "amplicon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-3") {
-		dropNotNullConstraint(columnDataType: "varchar(255)", columnName: "location", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-3") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "primerlen2", tableName: "amplicon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-4") {
-		modifyDataType(columnName: "panel_name", newDataType: "varchar(255)", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-4") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "startpos", tableName: "amplicon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-5") {
-		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "panel_name", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-5") {
+		modifyDataType(columnName: "date", newDataType: "datetime", tableName: "pubmed")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-6") {
-		modifyDataType(columnName: "sample_name", newDataType: "varchar(255)", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-6") {
+		addNotNullConstraint(columnDataType: "datetime", columnName: "date", tableName: "pubmed")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-7") {
-		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "sample_name", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-7") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "exonEnd", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-8") {
-		addNotNullConstraint(columnDataType: "bigint", columnName: "version", tableName: "align_stats")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-8") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "exonFrame", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-9") {
-		modifyDataType(columnName: "endpos", newDataType: "varchar(255)", tableName: "amplicon")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-9") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "exonStart", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-10") {
-		modifyDataType(columnName: "primerlen1", newDataType: "varchar(255)", tableName: "amplicon")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-10") {
+		addNotNullConstraint(columnDataType: "varchar(255)", columnName: "strand", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-11") {
-		modifyDataType(columnName: "primerlen2", newDataType: "varchar(255)", tableName: "amplicon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-12") {
-		modifyDataType(columnName: "startpos", newDataType: "varchar(255)", tableName: "amplicon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-13") {
-		addNotNullConstraint(columnDataType: "bigint", columnName: "version", tableName: "amplicon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-14") {
-		modifyDataType(columnName: "evidence_justification", newDataType: "varchar(8000)", tableName: "cur_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-15") {
-		modifyDataType(columnName: "report_desc", newDataType: "varchar(8000)", tableName: "cur_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-16") {
-		modifyDataType(columnName: "justification", newDataType: "varchar(8000)", tableName: "evidence")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-17") {
-		modifyDataType(columnName: "path_comments", newDataType: "varchar(3000)", tableName: "pat_sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-18") {
-		modifyDataType(columnName: "path_morphology", newDataType: "varchar(3000)", tableName: "pat_sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-19") {
-		modifyDataType(columnName: "rep_morphology", newDataType: "varchar(3000)", tableName: "pat_sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-20") {
-		modifyDataType(columnName: "slide_comments", newDataType: "varchar(3000)", tableName: "pat_sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-21") {
-		modifyDataType(columnName: "exonEnd", newDataType: "varchar(255)", tableName: "ref_exon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-22") {
-		modifyDataType(columnName: "exonFrame", newDataType: "varchar(255)", tableName: "ref_exon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-23") {
-		modifyDataType(columnName: "exonStart", newDataType: "varchar(255)", tableName: "ref_exon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-24") {
-		modifyDataType(columnName: "idx", newDataType: "varchar(255)", tableName: "ref_exon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-25") {
-		dropNotNullConstraint(columnDataType: "varchar(255)", columnName: "idx", tableName: "ref_exon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-26") {
-		modifyDataType(columnName: "strand", newDataType: "varchar(255)", tableName: "ref_exon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-27") {
-		modifyDataType(columnName: "accession", newDataType: "varchar(255)", tableName: "ref_hgnc_genes")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-28") {
-		dropNotNullConstraint(columnDataType: "varchar(255)", columnName: "accession", tableName: "ref_hgnc_genes")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-29") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-11") {
 		modifyDataType(columnName: "genedesc", newDataType: "varchar(255)", tableName: "ref_hgnc_genes")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-30") {
-		dropNotNullConstraint(columnDataType: "varchar(255)", columnName: "genedesc", tableName: "ref_hgnc_genes")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-12") {
+		addNotNullConstraint(columnDataType: "varchar(500)", columnName: "ens_variant", tableName: "seq_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-31") {
-		modifyDataType(columnName: "hgncid", newDataType: "varchar(255)", tableName: "ref_hgnc_genes")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-13") {
+		addNotNullConstraint(columnDataType: "varchar(500)", columnName: "hgvsc", tableName: "seq_variant")
 	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-32") {
-		dropNotNullConstraint(columnDataType: "varchar(255)", columnName: "hgncid", tableName: "ref_hgnc_genes")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-33") {
-		modifyDataType(columnName: "refseq", newDataType: "varchar(255)", tableName: "ref_hgnc_genes")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-34") {
-		dropNotNullConstraint(columnDataType: "varchar(255)", columnName: "refseq", tableName: "ref_hgnc_genes")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-35") {
-		modifyDataType(columnName: "clinvar_val", newDataType: "varchar(2000)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-36") {
-		modifyDataType(columnName: "cosmic_occurs", newDataType: "varchar(1000)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-37") {
-		modifyDataType(columnName: "domains", newDataType: "varchar(2000)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-38") {
-		modifyDataType(columnName: "ens_variant", newDataType: "varchar(500)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-39") {
-		modifyDataType(columnName: "hgvsc", newDataType: "varchar(500)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-40") {
-		modifyDataType(columnName: "omim_ids", newDataType: "varchar(2000)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-41") {
-		modifyDataType(columnName: "pubmed", newDataType: "varchar(2000)", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-42") {
-		dropForeignKeyConstraint(baseTableName: "sample", baseTableSchemaName: "dblive", constraintName: "FKC9C775AAB598E252")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-43") {
-		dropForeignKeyConstraint(baseTableName: "sample", baseTableSchemaName: "dblive", constraintName: "FKC9C775AA6EA60A02")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-44") {
-		dropForeignKeyConstraint(baseTableName: "sample_test", baseTableSchemaName: "dblive", constraintName: "FK9228207B976AFA2")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-45") {
-		dropForeignKeyConstraint(baseTableName: "sample_test", baseTableSchemaName: "dblive", constraintName: "FK9228207152C7A12")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-46") {
-		dropForeignKeyConstraint(baseTableName: "seq_sample", baseTableSchemaName: "dblive", constraintName: "FK8199DD8AD7F92583")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-47") {
-		dropForeignKeyConstraint(baseTableName: "seq_sample", baseTableSchemaName: "dblive", constraintName: "FK8199DD8A6D80CE01")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-48") {
-		dropForeignKeyConstraint(baseTableName: "seq_sample", baseTableSchemaName: "dblive", constraintName: "FK8199DD8A152C7A12")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-49") {
-		dropIndex(indexName: "mp_alignstats_idx1", tableName: "align_stats")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-50") {
-		dropIndex(indexName: "mp_alignstats_idx2", tableName: "align_stats")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-51") {
-		dropIndex(indexName: "mp_alignstats_idx3", tableName: "align_stats")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-52") {
-		dropIndex(indexName: "mp_alignstats_idx4", tableName: "align_stats")
+*/
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-14") {
+		modifyDataType(columnName: "description", newDataType: "varchar(8000)", tableName: "tag")
 	}
 /*
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-53") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-15") {
+		addNotNullConstraint(columnDataType: "bigint", columnName: "seqrun_id", tableName: "vcf_upload")
+	}
+*/
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-16") {
+		dropForeignKeyConstraint(baseTableName: "grp_variant", baseTableSchemaName: "dblive", constraintName: "FK2955932BC6CECA17")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-17") {
+		dropForeignKeyConstraint(baseTableName: "tag_links", baseTableSchemaName: "dblive", constraintName: "FK7C35D6D45A3B441D")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-18") {
+		dropForeignKeyConstraint(baseTableName: "vcf_upload", baseTableSchemaName: "dblive", constraintName: "FKC37CFDA7B976AFA2")
+	}
+/*
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-19") {
 		dropIndex(indexName: "amplicon_idx1", tableName: "amplicon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-54") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-20") {
 		dropIndex(indexName: "amplicon_idx2", tableName: "amplicon")
 	}
-*/
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-55") {
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-21") {
 		dropIndex(indexName: "ano_variant_idx1", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-56") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-22") {
 		dropIndex(indexName: "ano_variant_idx2", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-57") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-23") {
 		dropIndex(indexName: "ano_variant_idx3", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-58") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-24") {
 		dropIndex(indexName: "ano_variant_idx4", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-59") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-25") {
 		dropIndex(indexName: "ano_variant_idx5", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-60") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-26") {
 		dropIndex(indexName: "ano_variant_idx6", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-61") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-27") {
 		dropIndex(indexName: "ano_variant_idx7", tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-62") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-28") {
 		dropIndex(indexName: "ano_variant_idx8", tableName: "ano_variant")
+	}*/
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-29") {
+		dropIndex(indexName: "hgvsg_uniq_1456271981333", tableName: "cur_variant")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-30") {
+		dropIndex(indexName: "variant", tableName: "cur_variant")
 	}
 /*
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-63") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-31") {
 		dropIndex(indexName: "id", tableName: "db_lock")
 	}
-*/
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-64") {
-		dropIndex(indexName: "table_name", tableName: "meta_table")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-65") {
-		dropIndex(indexName: "mp_alamutxml_idx1", tableName: "mp_alamutxml")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-66") {
-		dropIndex(indexName: "mp_alamutxml_idx2", tableName: "mp_alamutxml")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-67") {
-		dropIndex(indexName: "mp_alamutxml_idx3", tableName: "mp_alamutxml")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-68") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-32") {
 		dropIndex(indexName: "mp_alignstats_idx1", tableName: "mp_alignstats")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-69") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-33") {
 		dropIndex(indexName: "mp_alignstats_idx2", tableName: "mp_alignstats")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-70") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-34") {
 		dropIndex(indexName: "mp_alignstats_idx3", tableName: "mp_alignstats")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-71") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-35") {
 		dropIndex(indexName: "mp_alignstats_idx4", tableName: "mp_alignstats")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-72") {
-		dropIndex(indexName: "mp_amplicon_idx1", tableName: "mp_amplicon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-73") {
-		dropIndex(indexName: "mp_amplicon_idx2", tableName: "mp_amplicon")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-74") {
-		dropIndex(indexName: "mp_annovar_idx1", tableName: "mp_annovar")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-75") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-36") {
 		dropIndex(indexName: "mp_batch_idx1", tableName: "mp_batch")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-76") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-37") {
 		dropIndex(indexName: "mp_batch_idx2", tableName: "mp_batch")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-77") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-38") {
 		dropIndex(indexName: "mp_detente_idx1", tableName: "mp_detente")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-78") {
-		dropIndex(indexName: "mp_isdup_idx1", tableName: "mp_isdup")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-79") {
-		dropIndex(indexName: "mp_isdup_idx2", tableName: "mp_isdup")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-80") {
-		dropIndex(indexName: "mp_mutalyser_idx1", tableName: "mp_mutalyser")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-81") {
-		dropIndex(indexName: "mp_mutcnt_idx1", tableName: "mp_mutcnt")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-82") {
-		dropIndex(indexName: "mp_mutcnt_idx2", tableName: "mp_mutcnt")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-83") {
-		dropIndex(indexName: "mp_mutdesc_idx1", tableName: "mp_mutdesc")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-84") {
-		dropIndex(indexName: "mp_mutdesc_idx2", tableName: "mp_mutdesc")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-85") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-39") {
 		dropIndex(indexName: "mp_roi_idx1", tableName: "mp_roi")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-86") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-40") {
 		dropIndex(indexName: "mp_seqrun_idx1", tableName: "mp_seqrun")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-87") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-41") {
 		dropIndex(indexName: "mp_seqrun_idx2", tableName: "mp_seqrun")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-88") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-42") {
 		dropIndex(indexName: "mp_tumourtype_idx1", tableName: "mp_tumourtype")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-89") {
-		dropIndex(indexName: "mp_varfreq_idx1", tableName: "mp_varfreq")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-90") {
-		dropIndex(indexName: "mp_varfreq_idx5", tableName: "mp_varfreq")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-91") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-43") {
 		dropIndex(indexName: "mp_vcf_idx1", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-92") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-44") {
 		dropIndex(indexName: "mp_vcf_idx2", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-93") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-45") {
 		dropIndex(indexName: "mp_vcf_idx3", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-94") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-46") {
 		dropIndex(indexName: "mp_vcf_idx4", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-95") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-47") {
 		dropIndex(indexName: "mp_vcf_idx5", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-96") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-48") {
 		dropIndex(indexName: "mp_vcf_idx6", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-97") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-49") {
 		dropIndex(indexName: "mp_vcf_idx7", tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-98") {
-		dropIndex(indexName: "panel_refseq_idx1", tableName: "panel_refseq")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-99") {
-		dropIndex(indexName: "panel_refseq_idx2", tableName: "panel_refseq")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-100") {
-		dropIndex(indexName: "ref_bic_idx1", tableName: "ref_bic")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-101") {
-		dropIndex(indexName: "ref_cancergenes_idx1", tableName: "ref_cancergenes")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-102") {
-		dropIndex(indexName: "ref_clinvar_idx1", tableName: "ref_clinvar")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-103") {
-		dropIndex(indexName: "ref_clinvar_idx3", tableName: "ref_clinvar")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-104") {
-		dropIndex(indexName: "ref_emory_idx1", tableName: "ref_emory")
-	}
-/*
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-105") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-50") {
 		dropIndex(indexName: "ref_exon_cnt_idx1", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-106") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-51") {
 		dropIndex(indexName: "ref_exon_cnt_idx2", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-107") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-52") {
 		dropIndex(indexName: "ref_exon_idx1", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-108") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-53") {
 		dropIndex(indexName: "ref_exon_idx2", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-109") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-54") {
 		dropIndex(indexName: "ref_exon_idx3", tableName: "ref_exon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-110") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-55") {
 		dropIndex(indexName: "ref_hgnc_genes_idx2", tableName: "ref_hgnc_genes")
 	}
-*/
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-111") {
-		dropIndex(indexName: "ref_iarc_idx1", tableName: "ref_iarc")
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-56") {
+		dropIndex(indexName: "FKC9C775AA6EA60A02", tableName: "sample")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-112") {
-		dropIndex(indexName: "ref_kconfab_idx1", tableName: "ref_kconfab")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-57") {
+		dropIndex(indexName: "FKC9C775AAB598E252", tableName: "sample")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-113") {
-		dropIndex(indexName: "ref_transcript_idx1", tableName: "ref_transcript")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-58") {
+		dropIndex(indexName: "FK9228207152C7A12", tableName: "sample_test")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-114") {
-		dropIndex(indexName: "ref_transcript_idx2", tableName: "ref_transcript")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-59") {
+		dropIndex(indexName: "FK9228207B976AFA2", tableName: "sample_test")
+	}*/
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-60") {
+		dropColumn(columnName: "created_by_id", tableName: "grp_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-115") {
-		dropIndex(indexName: "ref_transcript_idx3", tableName: "ref_transcript")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-61") {
+		dropColumn(columnName: "date_created", tableName: "grp_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-116") {
-		dropIndex(indexName: "ref_transcript_idx4", tableName: "ref_transcript")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-62") {
+		dropColumn(columnName: "last_updated", tableName: "grp_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-117") {
-		dropIndex(indexName: "ref_ucscgene_idx1", tableName: "ref_ucscgene")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-118") {
-		dropIndex(indexName: "ref_ucscgene_idx2", tableName: "ref_ucscgene")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-119") {
-		dropIndex(indexName: "sample", tableName: "sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-120") {
-		dropIndex(indexName: "sample_name_variant_idx", tableName: "seq_variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-121") {
-		dropIndex(indexName: "variant", tableName: "variant")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-122") {
-		createIndex(indexName: "hgvsg_uniq_1456271981333", tableName: "cur_variant", unique: "true") {
-			column(name: "hgvsg")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-123") {
-		createIndex(indexName: "chr_idx", tableName: "roi") {
-			column(name: "chr")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-124") {
-		createIndex(indexName: "endPos_idx", tableName: "roi") {
-			column(name: "end_pos")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-125") {
-		createIndex(indexName: "panel_idx", tableName: "roi") {
-			column(name: "panel_id")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-126") {
-		createIndex(indexName: "starpos_idx", tableName: "roi") {
-			column(name: "start_pos")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-127") {
-		createIndex(indexName: "hgvsg_idx", tableName: "seq_variant") {
-			column(name: "hgvsg")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-128") {
-		createIndex(indexName: "sample_name_idx", tableName: "seq_variant") {
-			column(name: "sample_name")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-129") {
-		createIndex(indexName: "variant_idx", tableName: "seq_variant") {
-			column(name: "variant")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-130") {
-		createIndex(indexName: "seq_sample_id_uniq_1456271981366", tableName: "user_prefs", unique: "true") {
-			column(name: "seq_sample_id")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-131") {
-		dropColumn(columnName: "panel_group", tableName: "align_stats")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-132") {
-		dropColumn(columnName: "sample", tableName: "audit")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-133") {
-		dropColumn(columnName: "issue_status", tableName: "jira_issue")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-134") {
-		dropColumn(columnName: "authorised_by_id", tableName: "seq_sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-135") {
-		dropColumn(columnName: "curated_by_id", tableName: "seq_sample")
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-136") {
-		dropColumn(columnName: "sample_id", tableName: "seq_sample")
-	}
-
-
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-125-2") {
-		createIndex(indexName: "align_stats_idx1", tableName: "align_stats") {
-			column(name: "sample_name")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-125-1") {
-		createIndex(indexName: "align_stats_idx2", tableName: "align_stats") {
-			column(name: "seqrun")
-		}
-	}
-
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-125-3") {
-		createIndex(indexName: "align_stats_idx3", tableName: "align_stats") {
-			column(name: "panel_name")
-		}
-	}
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-125-4") {
-		createIndex(indexName: "align_stats_idx4", tableName: "align_stats") {
-			column(name: "amplicon")
-		}
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-63") {
+		dropColumn(columnName: "mut_context", tableName: "pat_sample")
 	}
 /*
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-137") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-64") {
+		dropColumn(columnName: "lims_work_flow", tableName: "seq_sample")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-65") {
 		dropColumn(columnName: "panel_list", tableName: "seqrun")
 	}
-*/
-	/*
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-138") {
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-66") {
+		dropColumn(columnName: "panel_id", tableName: "vcf_upload")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-67") {
+		dropColumn(columnName: "queue", tableName: "vcf_upload")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-68") {
+		dropColumn(columnName: "report_file_path", tableName: "vcf_upload")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-69") {
+		dropColumn(columnName: "sample_name", tableName: "vcf_upload")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-70") {
 		dropTable(tableName: "ano_attr")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-139") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-71") {
 		dropTable(tableName: "ano_variant")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-140") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-72") {
 		dropTable(tableName: "db_lock")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-141") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-73") {
 		dropTable(tableName: "haem_report")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-142") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-74") {
 		dropTable(tableName: "meta_table")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-143") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-75") {
 		dropTable(tableName: "modvar")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-144") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-76") {
 		dropTable(tableName: "mp_alamutxml")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-145") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-77") {
 		dropTable(tableName: "mp_alignstats")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-146") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-78") {
 		dropTable(tableName: "mp_amplicon")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-147") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-79") {
 		dropTable(tableName: "mp_annovar")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-148") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-80") {
 		dropTable(tableName: "mp_as_bu")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-149") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-81") {
 		dropTable(tableName: "mp_audit")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-150") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-82") {
 		dropTable(tableName: "mp_batch")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-151") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-83") {
 		dropTable(tableName: "mp_cnv")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-152") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-84") {
 		dropTable(tableName: "mp_curated")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-153") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-85") {
 		dropTable(tableName: "mp_detente")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-154") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-86") {
 		dropTable(tableName: "mp_detente_tests")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-155") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-87") {
 		dropTable(tableName: "mp_genedesc")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-156") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-88") {
 		dropTable(tableName: "mp_isdup")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-157") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-89") {
 		dropTable(tableName: "mp_mutalyser")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-158") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-90") {
 		dropTable(tableName: "mp_mutcnt")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-159") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-91") {
 		dropTable(tableName: "mp_mutdesc")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-160") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-92") {
 		dropTable(tableName: "mp_panelcnt")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-161") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-93") {
 		dropTable(tableName: "mp_roi")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-162") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-94") {
 		dropTable(tableName: "mp_seqrun")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-163") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-95") {
+		dropTable(tableName: "mp_tumournormal")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-96") {
 		dropTable(tableName: "mp_tumourtype")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-164") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-97") {
 		dropTable(tableName: "mp_varfreq")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-165") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-98") {
 		dropTable(tableName: "mp_vcf")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-166") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-99") {
 		dropTable(tableName: "panel_group")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-167") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-100") {
 		dropTable(tableName: "panel_refseq")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-168") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-101") {
 		dropTable(tableName: "ref_bic")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-169") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-102") {
 		dropTable(tableName: "ref_cancergenes")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-170") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-103") {
 		dropTable(tableName: "ref_clinvar")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-171") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-104") {
 		dropTable(tableName: "ref_emory")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-172") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-105") {
 		dropTable(tableName: "ref_hgmd")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-173") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-106") {
 		dropTable(tableName: "ref_hgmdimputed")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-174") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-107") {
 		dropTable(tableName: "ref_iarc")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-175") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-108") {
 		dropTable(tableName: "ref_kconfab")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-176") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-109") {
 		dropTable(tableName: "ref_transcript")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-177") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-110") {
 		dropTable(tableName: "ref_ucscgene")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-178") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-111") {
 		dropTable(tableName: "sample")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-179") {
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-112") {
 		dropTable(tableName: "sample_test")
 	}
 
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-180") {
-		dropTable(tableName: "tmp_sin")
-	}*/
-
-	changeSet(author: "seleznev andrei (generated)", id: "1456271983038-181") {
-		dropTable(tableName: "variant")
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-113") {
+		dropTable(tableName: "sv_report")
 	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-114") {
+		dropTable(tableName: "tag_links")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-115") {
+		dropTable(tableName: "tmp_sin")
+	}
+
+	changeSet(author: "seleznev andrei (generated)", id: "1479267294173-116") {
+		dropTable(tableName: "tmp_testvar")
+	}*/
 }

@@ -91,25 +91,24 @@ class RunReport
             log.warn( "File already exists, overwriting ${repfile}")
         }
 
-        //  Perform data load
+        //  Perform report generation
         //
-        boolean res = report( rdb, opt.seqrun, opt.sample, repfile )
+        def res = report( rdb, opt.seqrun as String, opt.sample as String, repfile )
 
         log.info( "Done: RunReport ${res ? "Success !" : "Failed !"}" )
     }
 
     /**
-     * Main DB migrator
+     * Sample report method
      *
      * @param rdb       RDB schema to use for report
      * @param seqrun    Seqrun of sample
      * @param sample    Sample to report
      * @param report    Report file name
+     * @return          Success of reporting
      */
-    static boolean report( String rdb, String seqrun, String sample, File report )
+    static Boolean report( String rdb, String seqrun, String sample, File report )
     {
-        def cnt
-
         log.info( "Reporting on ${seqrun}:${sample} from RDM ${rdb}")
 
         //  Load stand-alone Hibernate context - Database JDBC is embedded in <schema>_loaderContext.xml
@@ -127,7 +126,7 @@ class RunReport
             if ( ! sr )
             {
                 log.fatal( "Couldn't find seqrun ${seqrun}")
-                return false
+                return Boolean.FALSE
             }
 
             //  Find SeqSample object to report
@@ -136,7 +135,7 @@ class RunReport
             if ( ! ss )
             {
                 log.fatal( "Couldn't find seqrun ${seqrun} sample ${sample}")
-                return false
+                return Boolean.FALSE
             }
 
             //  Find templates for sample
@@ -146,17 +145,28 @@ class RunReport
             if ( ! templates )
             {
                 log.error( "No templates found for sample ${ss}")
-                return false
+                return Boolean.FALSE
             }
 
             //  Run report
             //
-            log.info( "Starting report for sample ${ss} into ${report.absolutePath}")
-            def output = rs.runReport( ss, db.sql(), templates, report )
+            log.info( "Starting report for sample ${ss} into ${report.absolutePath}" )
+            def output
+            try
+            {
+                def rrs = new ReportRenderService()
+                output = rrs.runReport( ss, false, db.sql(), templates, report )
+            }
+            catch( Exception e )
+            {
+                org.codehaus.groovy.runtime.StackTraceUtils.sanitize(e).printStackTrace()
+                log.fatal( "Exiting: Couldn't report on ${sample} " + e.toString())
+                return( Boolean.FALSE )
+            }
             log.info( "Finished report in ${output}")
         }
 
-        return true
+        return Boolean.TRUE
     }
 }
 

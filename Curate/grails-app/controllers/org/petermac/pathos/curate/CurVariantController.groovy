@@ -7,6 +7,7 @@
 
 package org.petermac.pathos.curate
 
+import grails.converters.JSON
 import org.grails.plugin.easygrid.Easygrid
 import org.grails.plugin.easygrid.Filter
 import org.petermac.pathos.pipeline.UrlLink
@@ -21,6 +22,8 @@ class CurVariantController
 {
     static scaffold = CurVariant
     def SpringSecurityService
+    def VarLinkService
+
     static allowedMethods = [ update: "POST" ]
 
     def index()
@@ -50,9 +53,7 @@ class CurVariantController
     {
         def variantInstance
 
-        if (params.hgvsg) { //we have a urlmapping for show/ that passes hgvsg
-            variantInstance = CurVariant.findByHgvsg(params.hgvsg)
-        } else if (id) {    //in case this is called directly
+        if (id) {    //in case this is called directly
             variantInstance = CurVariant.get(id)
         }
 
@@ -68,7 +69,28 @@ class CurVariantController
         Locator loc = Locator.instance
         def jiraAddress = loc.jiraAddress
 
-        [ variantInstance: variantInstance, jiraIssues:jiraIssues, jiraAddress:jiraAddress ]
+        Integer numberOfVarLinks = variantInstance?.varLinks.size()
+
+        [ variantInstance:variantInstance, jiraIssues:jiraIssues, jiraAddress:jiraAddress, numberOfVarLinks:numberOfVarLinks, originating:variantInstance?.originatingSeqVariant() ]
+    }
+    def linkedSeqVars(Long id)
+    {
+        CurVariant variantInstance
+
+        if (id) {    //in case this is called directly
+            variantInstance = CurVariant.get(id)
+        }
+        ArrayList<SeqVariant> linkedSeqVars = variantInstance?.linkedSeqVariants()
+
+        ArrayList<HashMap> results = linkedSeqVars.collect {
+            [
+                id: it?.id,
+                seqSample: it?.seqSample?.id,
+                string: it?.seqSample?.toString() +":"+ it?.toString()
+            ]
+        }
+
+        render results as JSON
     }
 
     def edit(Long id)
@@ -103,7 +125,7 @@ class CurVariantController
     def update(Long id, Long version)
     {
         def currentUser = springSecurityService.currentUser as AuthUser
-        def variantInstance = CurVariant.get(id)
+        def variantInstance = CurVariant.get(id) //todo not variant, but groupVariant variant
         if (!variantInstance)
         {
             flash.message = message(code: 'default.not.found.message', args: [message(code: 'variant.label', default: 'CurVariant'), id])
@@ -153,10 +175,10 @@ class CurVariantController
 
         //  Create audit message
         //
-        audit_msg = "Set authorisation to ${usrAuth} for ${variantInstance.variant} to ${variantInstance.pmClass}"
+        audit_msg = "Set authorisation to ${usrAuth} for ${variantInstance.grpVariant.accession} to ${variantInstance.pmClass}"
 
         def audit = new Audit(  category:    'curation',
-                                variant:     variantInstance.variant,
+                                variant:     ${variantInstance.grpVariant.accession} ,
                                 complete:    new Date(),
                                 elapsed:     0,
                                 software:    'Path-OS',
@@ -218,11 +240,20 @@ class CurVariantController
 
         try
         {
+
             //  Remove all SeqVariant links to the CurVariant record
             //
-            def seqvars = SeqVariant.findAllByVariant( variantInstance.variant )
+
+
+            def seqvars = variantInstance.linkedSeqVariants()
             for ( SeqVariant seqvar in seqvars ) {                        // Note: cant use var.seqVariants in loop
-                variantInstance.removeFromSeqVariants(seqvar)
+                //variantInstance.removeFromSeqVariants(seqvar)
+                //delete var link
+                def varlinks = VarLink.findAllBySeqVariantAndCurVariant(seqvar,variantInstance)
+                for (vl in varlinks)
+                {
+                    vl.delete()
+                }
             }
 
             //   Remove all JiraIssue linksto the CurVariant record
@@ -242,10 +273,10 @@ class CurVariantController
             //
             //  Create audit message
             //
-            def audit_msg = "Deleted CurVariant ${variantInstance.variant} and ${seqvars.size()} SeqVariants"
+            def audit_msg = "Deleted CurVariant ${variantInstance.toString()} and ${seqvars.size()} SeqVariants"
 
             def audit = new Audit(  category:    'curation',
-                                    variant:     variantInstance.variant,
+                                    variant:     ${variantInstance.toString()},
                                     complete:    new Date(),
                                     elapsed:     0,
                                     software:    'Path-OS',
@@ -427,21 +458,6 @@ class CurVariantController
         }
     }
 
-//    def linkToSeqVarAnno()
-//    {
-//        if ( params.id )
-//        {
-//            //  need to get seqrun and seqsample to build URL form it
-//            //
-//            def cv = CurVariant.get(params.id)
-//            def sv = SeqVariant.findByCurated(cv)
-//
-//            //  redirect( action: "svlist", id: sv.seqSample.id )
-//            //
-//            redirect( action: "listAnno", controller:"annoVariant", params: [id: sv.id] )
-//        }
-//    }
-
     def linkToCurVar()
     {
         if ( params.id )
@@ -456,43 +472,104 @@ class CurVariantController
         }
     }
 
-   /*todo remove
-    def getAllMutContexts() {
 
-        def criteria = CurVariant.createCriteria()
-        //def mutcontexts = criteria.listDistinct() {
-        def mutcontexts = criteria.listDistinct {
-            projections {
-                distinct("mutContext")
-            }
-            // setResultTransformer(CriteriaSpecification.ROOT_ENTITY)
+    def lookUpCV ( Long id )
+    {
+        HashMap m = [:]
+        CurVariant cv = CurVariant.get( id )
+        if (cv) {
+            m.cv = cv.properties
+
+//            def list = VarLinkService.g
+
+
         }
 
-        //default
 
-        ArrayList mutContextList = ['No Context','Acute Lymphoblastic Leukemia',
-                                    'Acute Myeloid Leukemia',
-                                    'Anaplastic Large Cell Lymphoma',
-                                    'Basal Cell Carcinoma',
-                                    'Bladder Cancer',
-                                    'Breast Cancer',
-                                    'Chronic Myeloid Leukemia',
-                                    'Colorectal Cancer',
-                                    'Gastric Cancer',
-                                    'GIST',
-                                    'Glioma',
-                                    'Inflammatory Myofibroblastic Tumor',
-                                    'Lung Cancer',
-                                    'Medulloblastoma',
-                                    'Melanoma',
-                                    'Myelodysplastic Syndromes',
-                                    'Neuroblastoma',
-                                    'Ovarian Cancer',
-                                    'Rhabdomyosarcoma',
-                                    'Thymic Carcinoma',
-                                    'Thyroid Cancer',
-                                    'Germline']
 
-        return mutcontexts
-    }*/
+
+        render m
+    }
+
+    def getSV ( long id ) {
+//        render org.petermac.pathos.curate.VarLinkService.get
+    }
+
+    def updateCV () {
+        def id = params.id
+        def report = params.report
+        def evidence = params.evidence
+
+        CurVariant cv = CurVariant.get(id);
+
+        cv.reportDesc = report;
+        cv.save();
+
+        cv.evidence.justification = evidence;
+        cv.evidence.save();
+
+        render "Updated, please refresh page"
+    }
+
+    def newCV () {
+        def id = params.id
+        def cc = params.cc
+
+        ClinContext context = ClinContext.findByDescription(cc);
+
+        SeqVariant sv = SeqVariant.get(id);
+
+        VarLinkService.createNewCurVarFromSeqVar(sv, context);
+
+        render "Updated, please refresh page"
+    }
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

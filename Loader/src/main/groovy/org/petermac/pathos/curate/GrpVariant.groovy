@@ -4,28 +4,39 @@ package org.petermac.pathos.curate
 import grails.persistence.Entity
 import org.petermac.pathos.pipeline.Locus
 
+/**
+ *  Class to encapsulate curated variant keys, currently it's typically HGVSg
+ */
 @Entity
-class GrpVariant {
-
+class GrpVariant
+{
+    String      accession           //  specific key to variant in SeqVariant/SeqCnv/SeqSv eg HGVSx including refseq -- for now this is HGVSg
     String      muttyp = 'SNV'      //  mutation type
-    String      accession           //  specific key to variant in SeqVariant/SeqCnv/SeqSv eg hgvsX including refseq -- for now this is HGVSG
     String      description         //  Optional description of variant
-    AuthUser    createdBy
-    Date        dateCreated = new Date()
-    Date        lastUpdated = new Date()
-
 
     static constraints =
     {
+        accession( nullable: false )
+        description( nullable:true )
+
         muttyp(  inList:    [
                             "SNV",
                             "CNV",
-                            "SV",
+                            "SV"
                             ], blank: false )
     }
 
     static mapping =
     {
         autoTimestamp true
+        accession     index: 'accession_idx'
     }
+
+
+
+    String	toString()
+    {
+        "${muttyp}: ${accession}"
+    }
+
 }

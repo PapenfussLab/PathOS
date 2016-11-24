@@ -46,6 +46,8 @@ class SmithWaterman
             //  This low level call below bypasses this but needs an absolute path to the DLL (dynamic link library)
             //  The dllPath property of Locator class parameterises the absolute path to the directory holding the DLL
             //
+            log.info( "Loading SmithWaterman JNI Library from ${loc.dllPath + 'libsswjni.jnilib'}" )
+
             Runtime.getRuntime().load0( GroovyClassLoader.class, loc.dllPath + "libsswjni.jnilib")
         }
         catch ( UnsatisfiedLinkError e)

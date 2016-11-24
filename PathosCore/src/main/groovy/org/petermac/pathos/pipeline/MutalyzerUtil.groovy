@@ -28,11 +28,12 @@ class MutalyzerUtil
      *
      * @param   infile      VCF File
      * @param   ofile       Output VCF file
-     * @param   cacheDB     Annotation cache DB to use
+     * @param   cacheDB     Annotation cache DB to use (not used if nocache is set)
      * @param   nocache     Dont cache variants
+     * @param   tsMap       Use this Map instead (not used if nocache is false)
      * @return              Number of variants output
      */
-    static int convertVcf( File infile, File ofile, String cacheDB, boolean nocache )
+    static int convertVcf( File infile, File ofile, String cacheDB, boolean nocache, Map tsMap )
     {
         //  Read in VCF variants as HGVSg
         //
@@ -45,9 +46,9 @@ class MutalyzerUtil
 
         //  Process all variants: either from cache or direct to Mutalyzer
         //
-        List<Map> vars = []
-        if ( nocache )
-            vars = normaliseVariants( hgs, cacheDB )
+        List<Map> vars
+        if ( nocache && ! cacheDB )
+            vars = normaliseVariants( hgs, null, tsMap )
         else
             vars = cacheVariants( hgs, cacheDB )
 
@@ -143,9 +144,10 @@ class MutalyzerUtil
      *
      * @param   vars    Map of HGVSg variants keyed on HGVSg
      * @param   rdb     RDB to use for preferred transcripts
+     * @param   tsMap   Map of gene -> refseq Transcript
      * @return          List of Maps of normalised variants
      */
-    static List<Map> normaliseVariants( List vars, String rdb )
+    static List<Map> normaliseVariants( List vars, String rdb, Map tsMap )
     {
         //  Convert hgvsg to transcripts
         //
@@ -153,7 +155,7 @@ class MutalyzerUtil
 
         //  Filter transcripts to preferred gene transcripts
         //
-        List<Map> filterts = filterTranscripts( mutl, rdb )
+        List<Map> filterts = filterTranscripts( mutl, rdb, tsMap )
 
         //  Run name checker on HGVSc variants
         //
@@ -171,13 +173,19 @@ class MutalyzerUtil
      *
      * @param   mutl        List of Maps for each variant [variant:, error:, transcripts: ]
      * @param   dbname      Database for transcript references
+     * @param   tsMap       Map of gene -> refseq Transcript
      * @return              List of filtered mRNA refseq transcripts [variant:, error:, transcripts:, filterts:, refseq:, lrg: ]
      */
-    static List<Map> filterTranscripts( List<Map> mutl, String dbname )
+    static List<Map> filterTranscripts( List<Map> mutl, String dbname, Map tsMap )
     {
         //  Transcript class for selecting the preferred transcript for each variant
+        //  Can be from
         //
-        def tscl = new Transcript( dbname )
+        def tscl
+        if ( dbname )
+            tscl = new Transcript( dbname )
+        else
+            tscl = new Transcript( tsMap )
 
         for ( mut in mutl )
         {

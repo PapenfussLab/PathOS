@@ -39,7 +39,9 @@ class SeqVariant implements Taggable
     Boolean     filtered
     String      filterFlag
     Boolean     reportable
-    Double      varPanelPct     // populated by Filtering
+    Double      varPanelPct     // populated by Filtering DEPRECATED
+    Integer         varSamplesSeenInPanel  //varSeenInPanel is how often that variant has been seen in a panel
+    Integer         varSamplesTotalInPanel //varTotalInpanel is how many vars there are in that var's panel. that is, panel freq is: varSeenInPanel / varTotalInPanel
     Double      gmaf
     String		ens_transcript
     String		ens_gene
@@ -88,6 +90,7 @@ class SeqVariant implements Taggable
     String      ampbias
     String      homopolymer
     String      varcaller
+    ClinContext clinContext
 
     static constraints =
         {
@@ -166,9 +169,20 @@ class SeqVariant implements Taggable
             ampbias( nullable: true )
             homopolymer( nullable: true )
             varcaller( nullable: true )
+            varSamplesSeenInPanel( nullable: true)
+            varSamplesTotalInPanel( nullable: true)
+
+            clinContext( nullable: true )
         }
 
-    static hasMany = [ tags: Tag ]
+    static hasMany = [ tags: Tag, varLinks: VarLink ]
+
+
+    //  the mappedBy resolves the problem of multiple many-to-many and one-to-one relationships between curvar and seqvar
+    //  there's a matching line in curvar. this specifies that the manytomany is between the below vars only.
+    //  otherwise CurVar curated and SeqVar originating start getting messed up
+  //  static mappedBy = [curVariants: 'seqVariants']
+
 
     //  Indexes on seqSample,sampleName,variant,hgvsg
     //
@@ -184,5 +198,74 @@ class SeqVariant implements Taggable
     String	toString()
     {
         "${gene}:${hgvsc}"
+    }
+
+
+    /**
+     * returns panel freq (from 0-100)
+     * @return
+     */
+    BigDecimal panelFreq() {
+        try {
+            BigDecimal pf = ( this.varSamplesSeenInPanel.div(this.varSamplesTotalInPanel) )
+            return pf * 100
+       } catch(all) {  //on any exception (null, divide-by-zero might happen)
+            return 0
+       }
+    }
+
+    /**
+     * Check if this SV is curated in a certain context.
+     * I.e. there is a CurVariant AND it is linked
+     *
+     * @param cc
+     * @return
+     */
+    boolean curatedInContext(ClinContext cc)
+    {
+        boolean result = false;
+        this.varLinks.each { VarLink link ->
+            if (link?.curVariant?.clinContext == cc) {
+                result = true;
+            }
+        }
+        return result;
+    }
+
+    def VarLinkService
+
+    //  get all cur variants that are linked (that is, have a var link) for this seq var
+    //
+    ArrayList linkedCurVariants()
+    {
+        return VarLinkService.getCurVariantsForSeqVariant(this)
+    }
+
+    CurVariant CurVariantMatchingContext(ClinContext cc = this.clinContext)
+    {
+        return VarLinkService.getCurVariantMatchingContext(this,cc)
+    }
+
+    CurVariant currentCurVariant()
+    {
+        return VarLinkService.getCurrentCV(this)
+    }
+
+    //  get the preferred cur variant for this seq variant
+    //
+    CurVariant preferredCurVariant()
+    {
+        return VarLinkService.getPreferredCurVariantForSeqVariant(this)
+    }
+
+    // set a cur variant as a preferred cur variant for this seq variant
+    boolean makePreferredCurVariant(CurVariant cv)
+    {
+        return VarLinkService.setPreferredCurVariantForSeqVariant(cv,this)
+    }
+
+    boolean curate(ClinContext cc,defaultPreferred=false)
+    {
+        return VarLinkService.createNewCurVarFromSeqVar(this,cc,defaultPreferred)
     }
 }

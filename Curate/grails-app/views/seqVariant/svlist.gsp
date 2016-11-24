@@ -6,7 +6,7 @@
 
   --}%
 
-<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
+<%@ page import="grails.converters.JSON; org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -446,7 +446,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathologist}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Pathologist Review</span>
+            <span class="property-label">Pathologist Review</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathologist}
             </span>
@@ -455,7 +455,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="seqrun-label" class="property-label"> </span>
+        <span class="property-label"> </span>
         <span class="property-value" aria-labelledby="sampleName-label">
             <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                 <g:submitButton id="updateHolly" name="first" value="Update Patient Data"/>
@@ -472,7 +472,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathComments}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Pathologist Comments</span>
+            <span class="property-label">Pathologist Comments</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathComments}
             </span>
@@ -483,7 +483,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     <g:if test="${seqSample?.patSample?.repMorphology}">
 
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Report Morphology</span>
+            <span class="property-label">Report Morphology</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.repMorphology}
             </span>
@@ -492,7 +492,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathMorphology}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Notes</span>
+            <span class="property-label">Notes</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathMorphology}
             </span>
@@ -502,7 +502,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.retSite}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Tissue Site</span>
+            <span class="property-label">Tissue Site</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.retSite}
             </span>
@@ -512,30 +512,18 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.tumourPct}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Tumour %</span>
+            <span class="property-label">Tumour %</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.tumourPct}
             </span>
         </li>
     </g:if>
 
-   <%-- <g:if test="${seqSample?.sample?.hollyLastUpdated}">
-        <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Last Update Details</span>
-            <span class="property-value" aria-labelledby="sampleName-label">
-                ${seqSample.sample.hollyLastUpdated}
-            </span>
-        </li>
-    </g:if>--%>
-
-
-
-
 
 </g:if>
 <g:else>
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Patient Details</span>
+            <span class="property-label">Patient Details</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                     <g:submitButton id="updateHolly" name="first" value="Check Patient Details"/>
@@ -549,7 +537,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="seqrun-label" class="property-label"> </span>
+        <span class="property-label"> </span>
         <span class="property-value" aria-labelledby="sampleName-label">
             <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                 <g:submitButton id="updateHolly" name="first" value="Update Patient Data"/>
@@ -563,17 +551,15 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="seqrun-label" class="property-label">Clinical Context</span>
+        <span id="clinContext-label" class="property-label">Clinical Context</span>
         <span class="property-value" aria-labelledby="sampleName-label">
-            <g:form action="updateClinContext" id="${seqSample?.id}" name="refreshHollyForm">
-
+            <g:form action="updateClinContext" id="${seqSample?.id}" name="updateClinContextForm">
 
                 <g:select id="clinContext" name="clinContext" from="${clinContextList}"  noSelection="${['None':'None']}" optionKey="code"  value="${seqSample.clinContext? seqSample.clinContext.code : 'None'}" />
-                <g:submitButton id="updateClinContext" name="updateClinClontext" disabled="true" value="Change" style="margin-top:4px;"/>
-                <g:hiddenField name="patsampleid" id="patsampleid" value="${seqSample?.patSample?.id}"/>
+                <g:submitButton id="updateClinContext" name="updateClinContext" disabled="true" value="Save Change" style="margin-top:4px;"/>
                 <g:hiddenField name="seqsampleid" id="seqsampleid" value="${seqSample?.id}"/>
-                <g:hiddenField name="hollylastupdate" id="hollylastupdate" value="${seqSample?.patSample?.hollyLastUpdated}"/>
             </g:form>
+            <span id="get-a-curator">To change the Clinical Context, please contact a Curator.</span>
         </span>
 
     </li>
@@ -605,7 +591,8 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <grid:grid  name="curation">
         <grid:set caption='${seqSample.seqVariants.size()} Total Sequenced Variants'/>
-        <grid:set col='curated'         width="130" formatter='f:variantFormatter' editable='false'/>
+        <grid:set col='matchingCurVariant'         formatter="f:matchingCVFormatter" cellattr='f:matchingCVcellattr' width="130" editable='false'/>
+        <grid:set col='allCuratedVariants'          formatter="f:allCVFormatter" cellattr="f:allCVcellattr" width="45" editable='false'/>
         <grid:set col='gene'            width="70"  formatter='f:geneFormatter' editable='false'/>
         <grid:set col='siftCat'         width="45"  formatter='f:classFormatter' editable='false'/>
         <grid:set col='mutTasteCat'     width="45"  formatter='f:classFormatter' editable='false'/>
@@ -618,7 +605,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='variant'         width="130" editable='false'/>
         <grid:set col='sampleName'      width="65"  hidden='f:true' editable='false' />
         <grid:set col='clin_sig'        width="70"  editable='false'/>
-        <grid:set col='filterFlag'      width="100" editable='false'/>
+        <grid:set col='filterFlag'      width="100" editable='false' cellattr='f:filterFlagTooltip'/>
         <grid:set col='hgvsc'           width="170" editable='false'/>
         <grid:set col='hgvsp'           width="150" editable='false'/>
         <grid:set col='consequence'     width="150" editable='false'/>
@@ -635,7 +622,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='readDepth'       width="55"  editable='false' formatter='integer'/>
         <grid:set col='cosmicOccurs'    width="150" hidden='f:true'  editable='false'/>
         <grid:set col='pubmed'          width="70"  hidden='f:true'  editable='false'/>
-        <grid:set col='varPanelPct'     width="70"  hidden='f:false'  editable='false' formatter='number'/>
+        <grid:set col='varPanelPct'     width="80"  hidden='f:false'  editable='false' />
         <grid:set col='ens_transcript'  width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='ens_gene'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='ens_protein'     width="70"  hidden='f:true'  editable='false'/>
@@ -647,8 +634,6 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='genedesc'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='omim_ids'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='biotype'         width="70"  hidden='f:true'  editable='false'/>
-        <grid:set col='curated'         cellattr='f:curatedTooltip' editable='false'/>
-        <grid:set col='filterFlag'      cellattr='f:filterFlagTooltip' editable='false'/>
         <grid:set col='cosmic'          cellattr='f:cosmicTooltip' editable='false'/>
         <grid:set col='siftVal'         width="45"  hidden='f:true' editable='false'/>
         <grid:set col='mutTasteVal'     width="45"  hidden='f:true' editable='false'/>
@@ -828,26 +813,6 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     return 'title="' + ttl + '"';
 }
 
-/**
-* Add evidence tooltip for curated variant
-*
-* @param rowId      the id of the row
-* @param val        the value which will be added in the cell
-* @param rawObject  the raw object of the data row
-* @param cm         all the properties of this column listed in the colModel
-* @param rdata      the data row which will be inserted in the row
-*
-* @returns {string} Cell title attribute title="tooltip description"
-*/
-function curatedTooltip(rowId, val, rawObject, cm, rdata)
-{
-//    console.log("Testing: "+JSON.stringify(rdata))
-
-    if ( val == '' ) return '';
-    var ttl = rdata['curated_evd'];
-
-    return 'title="' + ttl + '"';
-}
 
 /**
 * Add cosmic details tooltip for curated variant
@@ -868,6 +833,7 @@ function cosmicTooltip(rowId, val, rawObject, cm, rdata)
     return 'title="' + ttl + '"';
 }
 
+
 /**
 * Formatter for colouring and linking to a curated CurVariant
 *
@@ -876,16 +842,142 @@ function cosmicTooltip(rowId, val, rawObject, cm, rdata)
 * @param rowObject      Array of cell values: expecting the first value to be the ID of the linked CurVariant
 * @returns {string}     Link to curated CurVariant nicely coloured by pathogenicity
 */
-function variantFormatter( cellvalue, options, rowObject )
+function matchingCVFormatter( cellvalue, options, rowObject )
 {
-    if ( cellvalue == null || cellvalue.length == 0 ) return '';
+    var allContexts = JSON.parse(rowObject[8]); //AES please avoid magic numbers
+    var current_cc_match = null;
 
-    var fld = classFormatter( cellvalue, options, rowObject );
+    allContexts.forEach(function(d){
+        if(PathOS.svlist.ccc(d.clinContext, seqSample.clinContext)) {
+            current_cc_match = d;
+        }
+    });
 
-    //  Todo: this is a maintenance risk - hard wired link and positional parameter to pass an object linkage through to Javascript
-    //
+    if( current_cc_match && PathOS.svlist.ccc(current_cc_match.clinContext, seqSample.clinContext) ) {
+        return drawCV(current_cc_match, options.rowId);
+    } else {
+        return "";
+    }
+}
+function matchingCVcellattr(rowId, val, rawObject, cm, rdata)
+{
+}
 
-    return "<a href='/PathOS/curVariant/sampleLink?id=" + rowObject[0] + "'>" + fld + '</a>';
+var seqSample = ${seqSample as JSON}
+
+function allCVFormatter( cellvalue, options, rowObject )
+{
+    var data = JSON.parse(cellvalue),
+        result = "",
+        worstClass = 0,
+        pmClasses = ['Unclassified', 'C1', 'C2', 'C3', 'C4', 'C5'],
+        number = 1,
+        title = [];
+    if(data.length >= 1) {
+        data.forEach(function(cv){
+            var pmClass = cv.pmClass.split(":")[0];
+            var code = cv.clinContext ? cv.clinContext.code : "Generic";
+            title.push(pmClass+":"+code);
+            if(pmClasses.indexOf(pmClass) > worstClass) {
+                worstClass = pmClasses.indexOf(pmClass);
+            }
+        });
+        result = "<a href='#none' class='cv-"+pmClasses[worstClass]+"' title='"+title.join("\n")+"' onclick='PathOS.svlist.showCVs("+options.rowId+")'>"+data.length+"</a> "
+    }
+    return result;
+}
+
+
+function allCVcellattr(rowId, val, rawObject, cm, rdata)
+{
+    if (val === "null"){
+        console.log("val is a string that says null");
+    } else {
+
+    }
+    return "";
+}
+
+function drawCV(cv, sv) {
+    var name = "Generic",
+        id = cv.id,
+        pmClass = "Unclassified",
+        ssClassText = "";
+
+    if ( seqSample.clinContext === null ) {
+        if( cv.clinContext === null ) {
+            ssClassText = "ssClass ";
+        }
+    } else {
+        if( cv.clinContext !== null ) {
+            if ( seqSample.clinContext.id === cv.clinContext.id ) {
+                ssClassText = "ssClass ";
+            }
+        }
+    }
+
+    if(cv.pmClass.indexOf(":") > -1) {
+        pmClass = cv.pmClass.split(":")[0];
+    } else {
+        pmClass = cv.pmClass;
+    }
+    if(cv.clinContext) {
+        name = cv.clinContext.code;
+    }
+    // This commented version points at the old CurVariant show page, which we are replacing with a dialog box:
+     return "<a href='/PathOS/curVariant/show?id="+id+"' class='"+ssClassText+"cvlabel cv-"+pmClass+"'>"+name+":"+pmClass+"</a> "
+    //return "<a href='#none' onclick='PathOS.svlist.showCVs("+sv+")' class='"+ssClassText+"cvlabel cv-"+pmClass+"'>"+name+":"+pmClass+"</a> "
+}
+
+
+
+
+
+/**
+* Add evidence tooltip for curated variant
+*
+* @param rowId      the id of the row
+* @param val        the value which will be added in the cell
+* @param rawObject  the raw object of the data row
+* @param cm         all the properties of this column listed in the colModel
+* @param rdata      the data row which will be inserted in the row
+*
+* @returns {string} Cell title attribute title="tooltip description"
+*/
+function curatedTooltip(rowId, val, rawObject, cm, rdata)
+{
+    //console.log("Testing: "+JSON.stringify(rdata))
+
+    //var curated_cell = d3.select('#'+rowId+" [aria-describedby='curation_table_curated']").html('');
+    //console.log(d3.select(this));
+
+
+    if ( val == '' ) return '';
+    var ttl = rdata['curated_evd'];
+
+    return 'title="' + ttl + '"';
+}
+
+
+
+
+/**
+*
+* @param cellvalue
+* @param options
+* @param rowObject
+* @returns {string}     HTML that gets written in the cell
+*
+*/
+
+function curVariantsFormatter ( cellvalue, options, rowObject )
+{
+    //console.log(rowObject);
+    return cellvalue;
+}
+function curVarAttrs ( rowId, val, rawObject, cm, rdata )
+{
+    return '';
 }
 
 /**
@@ -1197,12 +1289,52 @@ $( document ).ready(function() {
         };
 
 
+<sec:ifAnyGranted roles="ROLE_ADMIN, ROLE_DEV, ROLE_CURATOR">
+    original_context = $("#clinContext").val();
+    $('#get-a-curator')
+        .css('display', 'none');
+    $('#updateClinContext')
+        .prop('disabled',false);
 
-       $('#clinContext').change(function(){  //enable change mut context button
-                 $('#updateClinContext').prop('disabled',false);
+    $('#updateClinContextForm').submit(function(e){
+            var self = this;
+            e.preventDefault();
+            if(original_context == $("#clinContext").val()) {
+                alert("You haven't changed the Clinical Context");
+            } else {
+
+                %{--/*
+                * DKGM 24-November-2016
+                * Adding some logic here to check if the reportable column has been ticked.
+                * Easygrid is really weird, and there are 4 possible values for that checkbox:
+                * "true", "false", "Yes", "on"
+                * "true" means true
+                * "false" means false
+                * "Yes" means true, but the user has clicked that row in this session
+                * "on" means false, but the user has clicked that row in this session
+                *
+                * If any of the checkboxes are true:
+                * we should give the user a warning before allowing them to change contexts
+                */--}%
+
+                var giveWarning = false;
+                $('td[aria-describedby="curation_table_reportable"] input').each(function(i, d){
+                    var value = $(d).val();
+                    console.log(value);
+                    if(value == "Yes" || value == "true") {
+                        giveWarning = true;
+                    }
+                });
+                if(giveWarning) {
+                    if(confirm("Some 'Sequenced Variants' from this 'Sequenced Sample' have already been marked as reportable in this 'Clinical Context', are you sure you want to change context? The new context might not have 'Curated Variant' entries yet, please remember to create them if needed for reports.")) {
+                        this.submit();
+                    }
+                } else {
+                    this.submit();
+                }
+            }
         });
-
-
+</sec:ifAnyGranted>
 
 
      $("#finalReviewForm").submit(function() {
@@ -1411,7 +1543,8 @@ function addToIGV(sample, dataUrl, id){
     var downsample = null;
     $("#curation_table").on('click', function(){
         setTimeout(function(){
-            if (current_id != $(".ui-row-ltr.ui-state-highlight").attr('id')) {
+            if ($(".ui-row-ltr.ui-state-highlight").length > 0 &&
+            current_id != $(".ui-row-ltr.ui-state-highlight").attr('id')) {
                 current_id = $(".ui-row-ltr.ui-state-highlight").attr('id');
                 PathOS.tags.update_object(current_id);
                 $("#footer-message").remove();

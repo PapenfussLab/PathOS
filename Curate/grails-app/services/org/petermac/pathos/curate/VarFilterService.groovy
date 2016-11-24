@@ -168,11 +168,15 @@ class VarFilterService
     {
         def    panelGroup   = variant.seqSample.panel.panelGroup        // panel group of the variant
         def    varfreq      = varfreqMap[ panelGroup ]                  // get the map of variant freq.
-        Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
+        //Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
 
-        //  Save frequency of variant in the panel by sample for display
-        //
-        variant.varPanelPct = varPanelPct
+        //set panel freq calculations
+        def panfreq = calcPanelFrequency(variant)
+        if (panfreq.size() == 2) {
+            variant.varSamplesSeenInPanel = panfreq[0]
+            variant.varSamplesTotalInPanel = panfreq[1]
+        }
+
 
         List flag = applyRules( variant.properties, panelGroup, rules, initFlagList )
         if ( flag )
@@ -242,7 +246,7 @@ class VarFilterService
 
         //  CurVariant panel frequency
         //
-        if (  filterRules.varPanelPct && (var.varPanelPct > ( filterRules.varPanelPct as double))) flagList << "pnl"
+        if (  filterRules.varPanelPct && (var.panelFreq() > ( filterRules.varPanelPct as double))) flagList << "pnl"
 
         //  Amplicon read distribution
         //
@@ -834,6 +838,81 @@ class VarFilterService
         return outList
     }
 
+
+
+
+    /**
+     * calc panel frequency for a given seqvariant
+     * returns a list of 2 ints: nominator and denominator
+     * @param sv
+     * @return
+     */
+    List<Integer> calcPanelFrequency (SeqVariant sv) {
+
+        def qry = """
+                SELECT sv.hgvsg, ss.id, ss.sampleType FROM org.petermac.pathos.curate.SeqVariant as sv
+                join sv.seqSample as ss
+                WHERE ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType !=' Synthetic') OR ss.sampleType IS NULL)
+                AND ss.panel=:thisPanel
+                """
+        def res = SeqVariant.executeQuery(qry,[thisPanel:sv.seqSample.panel])
+        def updated = 0
+
+        def nall =  res.groupBy { it[1] }.size()
+
+
+        def nvar
+        try {
+            nvar = res.findAll { it[0] == sv.hgvsg }.groupBy { it[1] }.size()
+        } catch (all) { //we might not find anything because eg the sv is only in a control sample
+           nvar = null
+        }
+
+        return  [nvar,nall]
+    }
+
+
+    /**
+     * mass update function
+     * sets panel freqs for all supplied variants that are in supplied panel
+     * if an sv in the list is not in panel p, it will be ingored
+     * @param svs list of svs
+     * @param p panel
+     * @return int num of svs updated
+     */
+    int setPanelFrequenciesForVariantsInPanel (Panel p) {
+        def sSamples = SeqSample.findAllByPanel(p)
+        def svs = SeqVariant.findAllBySeqSampleInList(sSamples)
+
+        def qry = """
+                SELECT sv.hgvsg, ss.id, ss.sampleType FROM org.petermac.pathos.curate.SeqVariant as sv
+                join sv.seqSample as ss
+                WHERE ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType !=' Synthetic') OR ss.sampleType IS NULL)
+                AND ss.panel=:thisPanel
+                """
+        def res = SeqVariant.executeQuery(qry,[thisPanel:p])
+        def updated = 0
+
+        def nall =  res.groupBy { it[1] }.size()
+
+        for (sv in svs) {
+            def nvar
+            try {
+                nvar = res.findAll { it[0] == sv.hgvsg }.groupBy{ it[1] }.size()
+            } catch (all) { //we might not find anything because eg the sv is only in a control sample
+                nvar = null
+            }
+            if (nvar) {
+                sv.varSamplesSeenInPanel = nvar
+                sv.varSamplesTotalInPanel = nall
+                sv.save(flush:true,failOnError:true)
+                updated++
+            }
+
+        }
+
+        return updated
+    }
 
 
 }

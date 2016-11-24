@@ -85,7 +85,7 @@
         hide: true,
         title: "PathOS v1.2 (Jon Snow) feature list:",
         data: features
-    })
+    });
 
     var status = new PathOS.module({
         name: 'status',
@@ -108,7 +108,7 @@
             "Tag Libraries":"${grailsApplication.tagLibClasses.size()}",
             "git rev-parse HEAD":"<g:render template='/git'/>"
         }
-    })
+    });
 
 
 
@@ -130,8 +130,8 @@ $.ajax({
                 .each(function(d){
                     var row = d3.select(this);
 
-                    row.append('td')
-                            .text(PathOS.date(d.runDate));
+                    // This stupid split then join shit, is because we want a nonbreaking space here. DKGM 28-10-16
+                    row.append('td').html(d.runDate.split(" ").join("&nbsp;"));
 
                     row.append('td')
                         .attr("nowrap", true)

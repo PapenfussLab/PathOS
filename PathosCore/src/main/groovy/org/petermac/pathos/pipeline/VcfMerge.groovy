@@ -10,7 +10,12 @@
 package org.petermac.pathos.pipeline
 
 /**
- *  Utility to Merge multipl VCF files
+ *  Utility to Merge multiple VCF files
+ *  VCF files and loaded pairwise from first to last
+ *  eg The first file in the list is considered the primary VCF
+ *  Subsequent VCFs and merged one by one.
+ *  The parameters present in the rows are the union of all distinct field headers
+ *  in all the VCFs
  *
  *  Author:     Ken Doig
  *  Date:       24-May-16
@@ -77,7 +82,7 @@ class VcfMerge
             File vcf = new File( ivf as String )
             if ( ! vcf.exists())
             {
-                log.fatal( "File ${vcf} doesn't exists: Exiting")
+                log.fatal( "File ${vcf} doesn't exist: Exiting")
                 System.exit(1)
             }
             vcfs << vcf
@@ -167,43 +172,73 @@ class VcfMerge
     static Vcf mergeVcf( Vcf primary, String primLabel, Vcf merge, String mergeLabel )
     {
         Vcf merged = new Vcf( primary )
+
+        //  Add extra columns from another VCF
+        //
+        List extraCols = merged.addColumns( merge )
+
         List<Map> pmaps = primary.rowMaps
         List<Map> mmaps = merge.rowMaps
+        List<Map> mergeMaps = []
+
+        //  extra column to record the source VCF or "Intersection" if in both
+        //
         List    varCall = []
 
         //  Loop through variants and flag
+        //
         for ( pmap in pmaps )
         {
             String vc = primLabel
+
+            //  look for the primary VCF row in the merge VCF rows
+            //  match on chr,pos,ref,alt
+            //
             Map m = mmaps.find { it.CHROM == pmap.CHROM && it.POS == pmap.POS && it.REF == pmap.REF && it.ALT == pmap.ALT }
 
+            //  found a row in both VCfs
+            //
             if ( m )
             {
                 log.debug( "Found matching variant ${m.CHROM + ':' + m.POS}" )
                 log.debug( "Primary variant ${pmap.CHROM + ':' + pmap.POS}" )
                 vc = "Intersection"
+
+                //  remove intersection row from merge rows
+                //
                 mmaps.remove( m )
                 log.debug( "Merge variants remaining ${mmaps.size()}" )
+
+                //  Copy across new merge VCF columns into merged VCF columns
+                //
+                for ( col in extraCols )
+                {
+                    pmap.put( col, m.get(col))
+                }
             }
 
+            //  save source VCF label in list
+            //
             varCall << vc
+
+            mergeMaps << pmap
         }
 
-        //  Add remaining merge Maps into primary
+        //  Add remaining merge VCF row Maps into merged VCF row
         //
         for( m in mmaps )
         {
-            pmaps   << m
-            varCall << mergeLabel
-            //log.debug( "Added merge map ${m}")
+            mergeMaps << m
+            varCall   << mergeLabel
         }
 
-        //  Add new header column
+        //  Add new header column for source VCF identifier
         //
         Map varcallCol = [ name: 'Identified', cat: 'INFO', type: 'String', description: 'Variant caller of variant']
-
         log.debug( "Merge rows ${pmaps.size()} varcall rows=${varCall.size()}")
-        merged.setRowMaps( pmaps )
+
+        //
+        merged.setRowMaps( mergeMaps )
         merged.addColumn( varcallCol, varCall )
 
         //  Sort list of variants

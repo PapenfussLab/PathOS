@@ -204,7 +204,7 @@
                 </span>
 
                 <span class="property-value" aria-labelledby="stats-label" style="width: 400pt">
-                    <roi:roiList sample="${seqSampleInstance}" template="${thisPatAssay.testName}"/>
+                    <roi:roiList sample="${seqSampleInstance}" testset="${thisPatAssay.testName}"/>
                 </span>
 
             </g:each>

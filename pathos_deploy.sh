@@ -196,6 +196,15 @@ pushd "$BUILD_HOME/Loader"
 popd
 
 #
+# Build Canary JAR
+#
+echo "INFO: Building Canary JAR"
+
+pushd "$BUILD_HOME/Canary"
+    gradle --stacktrace uploadArchives
+popd
+
+#
 # Build Curate WAR
 #
 echo "INFO: Building Curate WAR"

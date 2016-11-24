@@ -1,2 +1,0 @@
-#!/bin/bash
-java -Xmx1G -Xms800M -XX:MaxPermSize=1G -XX:PermSize=1G -jar DemoPathOS.jar context=PathOS host=localhost port=9000 org.petermac.pathos.curate.TestRunnerService

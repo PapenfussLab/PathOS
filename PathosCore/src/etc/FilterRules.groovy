@@ -21,7 +21,7 @@
 */
 
 
-println( "Filter Configuration Ver 1.2.0")
+println( "Filter Configuration Ver 1.2.2")
 
 
 //
@@ -696,12 +696,13 @@ rules
             //
             manifests =	[
                         'CCP_NSC_v0.1',            // Nimblegen SeqCap
-                        'CCP_SSL_v0.1'             // Agilent SureSelect
+                        'CCP_SSL_v0.1',            // Agilent SureSelect
+                        'Pathology_hyb_CCP_1'      // Hybridisation Capture Panel
                         ]
 
             //	Pattern match for wildcard matching manifests
             //
-            manifestPattern = 'CCP_.*'
+            manifestPattern = 'Pathology_hyb_.*'
 
             //	Miniumum variant read depth
             //

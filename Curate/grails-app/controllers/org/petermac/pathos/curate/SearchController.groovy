@@ -24,15 +24,18 @@ def index =
 }
 
 def quickSearch = {
-    render getResults(params.q as String, 1, 0) as JSON
+    HashMap results = getResults(params.q as String, 1, 0)
+    render results as JSON
 }
 
 def search = {
-    render getResults(params.q as String, 10, 0) as JSON
+    HashMap results = getResults(params.q as String, 10, 0)
+    render results as JSON
 }
 
 def deepSearch = {
-    render getResults(params.q as String, 10, params.o as Integer) as JSON
+    HashMap results = getResults(params.q as String, 10, params.o as Integer)
+    render results as JSON
 }
 
 def putTime = {
@@ -103,8 +106,8 @@ def svExact = {
     render SeqVariant.executeQuery(query, [query: q]) as JSON
 }
 
-    def getResults( String q, Integer n, Integer o) {
-        def searchResults = [:]
+    HashMap getResults( String q, Integer n, Integer o) {
+        HashMap searchResults = [:]
         if ( !n ) {
             n = 10;
         }
@@ -183,11 +186,13 @@ def svExact = {
         return searchResults
     }
 
-    Map convertObjectToMap( def object ) {
-        Map result = [:]
+    HashMap convertObjectToMap( def object ) {
+        HashMap result = [:]
         object.properties.each { prop, val ->
             switch(prop) {
-                case ["seqVariants", "seqSamples", "patAssays"]:
+                case "varLinkService":
+                    break;
+                case ["seqVariants", "seqSamples", "patAssays", "varLinks"]:
                     result[prop] = val.size()
                     break;
                 default:
@@ -208,7 +213,7 @@ def svExact = {
      * String link      The URI to the table, after which the id of the element is appended
      * @return          Searchable Map of hits
      */
-    private Map trySearch( Map config )
+    HashMap trySearch( HashMap config )
     {
         try
         {
@@ -218,8 +223,7 @@ def svExact = {
 
             def luceneQuery = "(${q}) OR (*${q}*)"
 
-            Map m = config.table.search(luceneQuery, [ max: config.n, offset: config.o ])
-
+            def m = config.table.search(luceneQuery, [ max: config.n, offset: config.o ])
 
             m.link          = config.link
             m.name          = config.name
@@ -262,7 +266,7 @@ def svExact = {
                         case 'Sequenced Sample':
                                 def seqVariants = []
                                 obj.seqVariants.each { sv ->
-                                        Map data = [
+                                        HashMap data = [
                                                 id: sv.id,
                                                 name: sv.toString(),
                                                 hgvsc: sv.hgvsc,
@@ -294,6 +298,9 @@ def svExact = {
                                 }
                                 def patient = obj.patient
                                 extra.dob = formatDate(date:patient.dob, format:'dd-MMM-yyyy')
+                                extra.collectDate = formatDate(date:obj.collectDate , format:'dd-MMM-yyyy')
+                                extra.rcvdDate = formatDate(date:obj.rcvdDate , format:'dd-MMM-yyyy')
+                                extra.requestDate = formatDate(date:obj.requestDate , format:'dd-MMM-yyyy')
                                 extra.patient = patient
                                 extra.patAssays = patAssays
                                 extra.seqSamples = seqSamples
@@ -310,7 +317,7 @@ def svExact = {
                                 extra.seqSamples = seqSamples
                             break
                         case 'Curated Variant':
-                                def seqVariants = SeqVariant.findAllByCurated(obj)
+                                def seqVariants = VarLink.findAllByCurVariant( obj );
                                 extra.seqVariants = seqVariants
                             break
                         default:
@@ -334,7 +341,7 @@ def svExact = {
 
             return m
         }
-        catch( Exception exp)
+        catch( Exception exp )
         {
             log.debug( "Search Error: ${exp.message}", exp )
             return [error: "Search Error: ${exp.message}"]

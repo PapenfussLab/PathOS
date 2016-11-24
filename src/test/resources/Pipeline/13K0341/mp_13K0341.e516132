@@ -1,4 +1,0 @@
-2014-09-26 12:47:06,551 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Start Pipeline [--igv, --sample, 13K0341, --seqrun, 130822_M00139_0022_000000000-A5D1J, --ref, /pipeline/RunFolder/MiSeq/Indexes/CancerGNA10212011_170_190_Viewermanifest.fasta, --srcdir, /pathology/NGS/Samples/Molpath/130822_M00139_0022_000000000-A5D1J/13K0341]
-2014-09-26 12:47:06,596 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Processing IGV
-2014-09-26 12:47:07,460 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Done: processed /pathology/NGS/External/130822_M00139_0022_000000000-A5D1J/13K0341
-2014-09-26 12:47:07,460 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Files: [bam:false, vcf:false, vep:false, igv:false, vcftsv:false, veptsv:false]

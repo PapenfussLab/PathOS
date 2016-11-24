@@ -325,8 +325,22 @@ class SeqrunController
 
 
     def latestRuns() {
+        ArrayList<Seqrun> seqruns = Seqrun.list().take(10)
+        ArrayList<HashMap> results = []
 
-        render Seqrun.list().take(10) as JSON;
+        seqruns.each {
+            results.push([
+                    runDate: formatDate(date:it.runDate, format:'dd MMM'),
+                    seqrun: it.seqrun,
+                    panelList: it.panelList,
+                    library: it.library,
+                    platform: it.platform,
+                    authorised: it.authorised,
+                    passfailFlag: it.passfailFlag
+            ])
+        }
+
+        render results as JSON;
     }
 
 }

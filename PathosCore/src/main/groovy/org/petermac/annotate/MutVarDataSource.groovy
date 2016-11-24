@@ -74,7 +74,7 @@ class MutVarDataSource extends VarDataSource
 
         //  Mutalyze all uncached variants
         //
-        List<Map> mutvars = MutalyzerUtil.normaliseVariants( novelVars, rdb )
+        List<Map> mutvars = MutalyzerUtil.normaliseVariants( novelVars, rdb, null )
 
         for ( mut in mutvars )
         {

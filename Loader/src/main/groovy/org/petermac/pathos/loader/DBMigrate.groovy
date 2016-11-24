@@ -19,6 +19,9 @@
 
 package org.petermac.pathos.loader
 
+import groovy.time.TimeCategory
+
+import groovy.time.*
 import groovy.util.logging.Log4j
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -70,6 +73,7 @@ class DBMigrate
             afoor( longOpt: 'applyoorfilters', 	    'Set OOR filter flags for all seqvariants explicitly' )
             d( longOpt:     'debug',                'Turn on debug logging')
             p(longOpt: 'panelfreqs',             '(re)calculate panel frequencies for all seqvariants in given panel')
+            vl( longOpt:     'varlinks',                'v1.3 make varlinks for all cur variants')
         }
 
         def opt = cli.parse( args )
@@ -183,6 +187,10 @@ class DBMigrate
             tables = 'CalculatePanelFrequencies'
         }
 
+        if  ( opt.varlinks )
+        {
+            tables = 'ClinContextGrpVariant'
+        }
         //  Perform data load
         //
         new DBMigrate().migrate( rdb, orm, tables )
@@ -277,6 +285,8 @@ class DBMigrate
         if ( tables.contains('CurVariant'))
             copyCurVariants( rdb )
 
+        if ( tables.contains('ClinContextGrpVariant'))
+            migrateToClinContextModel( orm  )
 
 
         //  SeqVariant filtering
@@ -1089,37 +1099,33 @@ class DBMigrate
         println "Updated ${rowcnt} PatSamples with data from Holly"
     }
 
-
-
-
-
-
+    /**
+     * mass update function
+     * set panel frequencies for all seqvariants
+     * @param orm
+     */
     static void calcPanelFrequencies( String orm ) {
         //check if the panel freq updated table exists: if not , run the setup from scratch function
 
         def db  = new DbConnect( orm )
         def sql = db.sql()
-        def pfs = new PanelFreqService()
 
-        //def qry = """ SHOW TABLES LIKE 'panel_freq_updated' """
-        def qry = """ SELECT * FROM panel_freq_updated """
-        def rows = sql.rows( qry.toString())
-        println rows
 
-        if (!rows) {
-            PanelFreq.withTransaction {
-                println "Panel Freq table not found or empty. Populating."
-                pfs.createPanelFreqUpdateTable(orm)
-            }
-        }
-        // now calc the panel freqs
-        //
         SeqVariant.withTransaction {
-
-            if (!pfs.calcLatestPanelFrequencies( )) {
-                println "Error: could not populate latest panel freq. Warning! Current panel freqs might be incorrect! "
+            def timeStart
+            def timeStop
+            def v
+            def allPanels = Panel.findAll()
+            def updated = 0
+            def vf = new VarFilterService()
+            timeStart = new Date()
+            for (p in allPanels) {
+               updated += vf.setPanelFrequenciesForVariantsInPanel(p)
             }
+            timeStop = new Date()
+            println "Did " + updated + " in " + TimeCategory.minus(timeStop, timeStart)
         }
+
 
     }
 
@@ -1300,5 +1306,49 @@ class DBMigrate
 
         return true
     }
+
+     boolean migrateToClinContextModel( String orm ) {
+        //populate var links
+
+
+         def timeStart = new Date()
+        //some code you want to time
+        if (! VarLink.findAll() ) { //only if we have no varlinks..
+            def insQry = """
+                INSERT INTO var_link (seq_variant_id,cur_variant_id,preferred,originating,version)
+                SELECT sv.id, cv.id, true, false, 0 FROM seq_variant AS sv INNER JOIN cur_variant AS cv ON cv.id=sv.curated_id
+                WHERE sv.curated_id IS NOT NULL
+                """
+
+            def res = sql.execute(insQry)
+        } else {
+            println "VarLinks exist in database. Refusing."
+            return false
+        }
+         def timeStop = new Date()
+         TimeDuration duration = TimeCategory.minus(timeStop, timeStart)
+         println "Created VarLinks in: " + duration
+
+         timeStart = new Date()
+        //populate GrpVariants
+        CurVariant.withTransaction {
+
+            def allCv = CurVariant.findAll()
+            for(cv in allCv) {
+                cv.grpVariant =  new GrpVariant(accession:cv.hgvsg,muttyp:'SNV')
+                cv.save()
+            }
+        }
+
+         timeStop = new Date()
+         duration = TimeCategory.minus(timeStop, timeStart)
+         println "Crated GrpVariants for all CurVariants in " + duration
+
+
+        return true
+
+    }
+
+
 }
 

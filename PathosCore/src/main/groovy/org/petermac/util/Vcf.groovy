@@ -364,14 +364,22 @@ class Vcf extends Tsv
      * Add a new column to a VCF
      *
      * @param colMeta   Map of column meta data
-     * @param colData   Column data List
+     * @param colData   Column data List (optional)
      * @return          modified Vcf
      */
-    public void addColumn( Map colMeta, List colData )
+    public void addColumn( Map colMeta, List colData = null )
     {
         //  Add meta data to preamble
         //
         this.setPreamble( addPreamble( colMeta ))
+
+        //  Create a dummy list if no data supplied
+        //
+        if ( ! colData )
+        {
+            colData = new ArrayList()
+            for ( int i=0; i < super.nrows(); ++i ) colData.add(null)
+        }
 
         //  Add an additional column to each row
         //
@@ -389,7 +397,7 @@ class Vcf extends Tsv
     {
         if ( super.nrows() != colData.size())
         {
-            log.error( "Incorrect number of rows to add")
+            log.error( "Incorrect number of rows to add this=${super.nrows()} add=${colData.size()}")
             return tsvMap.rows
         }
 
@@ -893,6 +901,26 @@ class Vcf extends Tsv
         setRows( lrows )
 
         return this
+    }
+
+    /**
+     * Add new columns from another Vcf to this Vcf
+     *
+     * @param merge   Vcf with columns to add
+     */
+    public List<String> addColumns( Vcf merge )
+    {
+        List<Map> mrgCols = merge.getMetaCols()
+
+        List newCols = mrgCols.name
+        List oldCols = this.get_meta_cols().name
+        List addCols = newCols - oldCols
+        List<Map> addNewCols = mrgCols.findAll { it.name in addCols }
+
+        for ( col in addNewCols )
+            this.addColumn( col )
+
+        return addCols
     }
 
     /**

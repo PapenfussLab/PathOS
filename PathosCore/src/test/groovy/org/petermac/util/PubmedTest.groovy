@@ -24,7 +24,7 @@ class PubmedTest extends GroovyTestCase
     {
         Pubmed pm = new Pubmed()
 
-        assert pm.ping(): "This is returnoing false"
+        assert pm.ping(): "This is returning false"
     }
 
     void testArticle()

@@ -1,3 +1,0 @@
-. SetPathosEnv
-RUN=`basename $0`
-java $JAVA_OPTS -cp $CLASSPATH org.petermac.pathos.pipeline.$RUN $*

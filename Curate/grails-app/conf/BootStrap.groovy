@@ -377,9 +377,86 @@ class BootStrap
                 //NO ROLE for guest
             }
         }
+    }
+
+    /**
+     * Hack to create test data for testing SeqVariant/CurVariant/VarLink refactoring
+     *
+     * Create VarLinks and CurVariant, GrpVariant and ClinContext objects for all Curated Variants in
+     * the run 160721_M01053_0393_000000000-ATRVA
+     *
+     * To reset the database, run the following SQL
+     * SQL> set foreign_key_checks=0;
+     * SQL> delete from	cur_variant where clin_context_id is not null;
+     * SQL> delete from var_link;
+     */
+    void makeVarLinkTest()
+    {
+        log.info( "In BootStrap makeVarLinkTest")
+
+        ClinContext cc1  = ClinContext.findByCode( 'BC' )
+        ClinContext cc2  = ClinContext.findByCode( 'CRC' )
+
+        Seqrun sr = Seqrun.findBySeqrun('160721_M01053_0393_000000000-ATRVA')
+
+        //  Update all samples in run
+        //
+        for ( sample in sr.seqSamples )
+        {
+            //  Process all variants in Sample
+            //
+            for ( sv in sample.seqVariants )
+            {
+                //  Only need to update variants that have been curated
+                //
+                if ( sv.curated )
+                {
+                    log.info( "SeqVariant ${sv.gene}:${sv.hgvsg}")
+                    makeNewCvs( sv, cc1 )
+                    makeNewCvs( sv, cc2 )
+                }
+            }
+        }
+    }
+
+    /**
+     * Create the VarLinks for a SV/CV pair and a new ClinContext
+     *
+     * @param sv    SeqVariant to add context to
+     * @param cc    Clinical context CV to add
+     */
+    void makeNewCvs( SeqVariant sv, ClinContext cc )
+    {
+        //  Get sv curated variant
+        //
+        CurVariant cv = CurVariant.get( sv.curated.id )
+
+        def gv = new GrpVariant( accession: sv.hgvsg )
+
+        //  Update original CurVariant with GrpVariant
+        //
+        cv.grpVariant = gv
+        cv.save()
+
+        //  Create originating VarLink
+        //
+        VarLink  vl = VarLink.findBySeqVariantAndCurVariant( sv, cv )
+        if ( ! vl )
+        {
+            vl = new VarLink( curVariant: cv, seqVariant: sv, originating: true, preferred: true ).save( flush:true, failOnError:true )
+            log.info( "VarLink ${vl}")
+        }
 
 
+        //  Create new CurVariant for this ClinContext
+        //
+        CurVariant newcv  = new CurVariant( grpVariant: gv, evidence: cv.evidence, hgvsg: sv.hgvsg, hgvsp: sv.hgvsp , variant: sv.hgvsg, gene: cv.gene, hgvsc: cv.hgvsc ,pmClass: cv.pmClass, clinContext: cc )
+        newcv.save( flush: true, failOnError: false )
 
+        //  Link new cv to sv
+        //
+        vl = new VarLink( curVariant: newcv, seqVariant: sv, originating: false, preferred: false ).save( flush:true, failOnError:false )
+        log.info( "VarLink ${vl}")
     }
 
     def searchableService
@@ -392,44 +469,46 @@ class BootStrap
     {
         servletContext ->
 
+            //  Create some test records for CurVariant refactoring
+            //
+
 
             //  Bootstrap users for development environment
-        //
-        switch(GrailsUtil.environment)
-        {
+            //
+            switch(GrailsUtil.environment)
+            {
+                case [ 'pa_uat', 'pa_test', 'pa_dev' ]:
+                    makeBaseSpringRoles()
+                    makeBaseSpringUsers()
+                    makeBaseClinContexts()
+                    //makeVarLinkTest()
+                    break;
 
-            case ["pa_uat","pa_test","pa_dev"]:
-                makeBaseSpringRoles()
-                makeBaseSpringUsers()
-                makeBaseClinContexts()
+                case 'pa_local':
+                    makeBaseSpringRoles()
+                    makeBaseSpringUsers()
+                    makeBaseClinContexts()
+                    //makeVarLinkTest()
+                    break;
 
-                break;
+                case 'pa_prod':
+                    //makeBaseSpringUsers()
+                    break;
+            }
 
-            case "pa_local":
-                makeBaseSpringRoles()
-                makeBaseSpringUsers()
-                makeBaseClinContexts()
-                makeFilterTemplates()
-                break;
+            // Don't bother reindexing Searchable if the environment is pa_local
+            // On pa_local, just press the "reindex" button in Admin Options to reindex
+            // DKGM 6-Sept-2016
+            if(GrailsUtil.environment != 'pa_local' ) {
+                println "Reindexing the search"
+                searchableService.reindex()
+            } else {
+                println "GrailsUtil.environment is pa_local, don't bother reindexing the search"
+            }
 
-            case "pa_prod":
-                //makeBaseSpringUsers()
-                break;
-        }
-
-        // Don't bother reindexing Searchable if the environment is pa_local
-        // On pa_local, just press the "reindex" button in Admin Options to reindex
-        // DKGM 6-Sept-2016
-        if(GrailsUtil.environment != "pa_local") {
-            println "Reindexing the search"
-            searchableService.reindex()
-        } else {
-            println "GrailsUtil.environment is pa_local, don't bother reindexing the search"
-        }
-
-        // Manually start the mirroring process to ensure that it comes after the automated migrations.
-        println "Starting Searchable mirroring service"
-        searchableService.startMirroring()
+            // Manually start the mirroring process to ensure that it comes after the automated migrations.
+            println "Starting Searchable mirroring service"
+            searchableService.startMirroring()
     }
 
     def destroy =

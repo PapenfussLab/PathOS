@@ -1,4 +1,0 @@
-2014-09-26 12:51:06,895 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Start Pipeline [--igv, --sample, 14M5510, --seqrun, 140703_M01053_0080_000000000-AA8H7, --ref, /pipeline/RunFolder/MiSeq/Indexes/Germline_v4-8_071013_with_off_target_manifest.fasta, --srcdir, /pathology/NGS/Samples/Molpath/140703_M01053_0080_000000000-AA8H7/14M5510]
-2014-09-26 12:51:06,938 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Processing IGV
-2014-09-26 12:51:07,957 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Done: processed /pathology/NGS/External/140703_M01053_0080_000000000-AA8H7/14M5510
-2014-09-26 12:51:07,958 [main] INFO  org.petermac.pathos.pipeline.Pipeline - Files: [bam:false, vcf:false, vep:false, igv:false, vcftsv:false, veptsv:false]

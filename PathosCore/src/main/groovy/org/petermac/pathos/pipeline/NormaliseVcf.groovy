@@ -47,11 +47,11 @@ class NormaliseVcf
         //
         cli.with
         {
-            h( longOpt: 'help',		      'this help message' )
-            d( longOpt: 'debug',		  'turn on debugging' )
-            f( longOpt: 'force',          'force an already normalised file to be renormalised' )
-            r( longOpt: 'rdb',   args: 1, 'cache RDB to use' )
-            n( longOpt: 'nocache',        'Dont cache variants' )
+            h( longOpt: 'help',		           'this help message' )
+            d( longOpt: 'debug',		       'turn on debugging' )
+            r( longOpt: 'rdb',        args: 1, 'cache RDB to use' )
+            n( longOpt: 'nocache',             'Dont cache variants' )
+            t( longOpt: 'transcript', args: 1, 'File of transcripts mapping genes -> refseq (without version)' )
         }
 
         def opt = cli.parse( args )
@@ -81,6 +81,30 @@ class NormaliseVcf
             System.exit(1)
         }
 
+        Map tsMap = null
+        if ( opt.transcript )
+        {
+            if ( opt.rdb )
+            {
+                log.fatal( "Can't have options --transcript and --rdb together")
+                System.exit(1)
+            }
+
+            File tsf = new File( opt.transcript as String )
+            if ( ! tsf.exists())
+            {
+                log.fatal( "Transcript file doesn't exist ${opt.transcript}")
+                System.exit(1)
+            }
+
+            tsMap = loadTranscripts( tsf )
+            if ( tsMap.size() < 1 )
+            {
+                log.fatal( "No Transcripts found in file ${opt.transcript}")
+                System.exit(1)
+            }
+        }
+
         //  Test Mutalyzer is available
         //
         if ( ! (new Mutalyzer()).ping())
@@ -96,7 +120,10 @@ class NormaliseVcf
 
         try
         {
-            nmut = normaliseVcf( infile, ofile, opt.rdb ?: null, opt.nocache )
+            if ( opt.rdb )
+                nmut = normaliseVcfDb( infile, ofile, opt.rdb as String, opt.nocache )
+            else
+                nmut = normaliseVcfFile( infile, ofile, tsMap )
         }
         catch( Exception e )
         {
@@ -116,15 +143,61 @@ class NormaliseVcf
     }
 
     /**
-     * Normalise VCF variants
+     * Normalise VCF variants using DB cache and DB transcripts
      *
      * @param   infile      VCF File
      * @param   ofile       Output VCF file
      * @param   cacheDB     Cache DB to use
      * @return              Number of variants output
      */
-    static int normaliseVcf( File infile, File ofile, String cacheDB, boolean nocache )
+    static int normaliseVcfDb( File infile, File ofile, String cacheDB, boolean nocache )
     {
-        return MutalyzerUtil.convertVcf( infile, ofile, cacheDB, nocache )
+        return MutalyzerUtil.convertVcf( infile, ofile, cacheDB, nocache, null )
+    }
+
+    /**
+     * Normalise VCF variants using transcript Map and no DB
+     *
+     * @param   infile      VCF File
+     * @param   ofile       Output VCF file
+     * @param   tsFile      Map of gene -> refseq mapping
+     * @return              Number of variants output
+     */
+    static int normaliseVcfFile( File infile, File ofile, Map tsMap )
+    {
+        return MutalyzerUtil.convertVcf( infile, ofile, null, true, tsMap )
+    }
+
+    /**
+     * Load transcripts from a TSV file of genes and refseq transcripts (without version)
+     *
+     * @param   tsFile  File of genes/transcripts
+     * @return          Map of [ gene: refseq ]
+     */
+    static Map loadTranscripts( File tsFile )
+    {
+        Map tsMap = [:]
+        List<String> tss = tsFile.readLines()
+        for ( ts in tss )
+        {
+            List<String> cc = ts.split( /\t/ )  // use tab as separator between gene and transcript
+
+            //  must have two columns
+            //
+            if ( cc.size() != 2 )
+            {
+                log.error( "Expecting 2 columns <gene> <tab> <refseq>: found [${ts}]")
+                return tsMap
+            }
+
+            //  Add to Map
+            //
+            if ( cc.size() == 2)
+            {
+                tsMap << [ (cc[0].trim()) : cc[1].trim() ]
+            }
+        }
+
+        return tsMap
     }
 }

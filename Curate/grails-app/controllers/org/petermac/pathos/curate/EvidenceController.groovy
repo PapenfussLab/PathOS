@@ -128,7 +128,7 @@ class EvidenceController
 
 
 
-            def response = jnotifier.createJiraIssue("${issueSummary}", "${valout}", "Task","molpath")
+            def response = jnotifier.createJiraIssue("${issueSummary}", "${valout.replaceAll(':p','\\:p')}", "Task","molpath")
 
             if (response) {
                 if (response.containsKey('errors')) {
@@ -167,9 +167,9 @@ class EvidenceController
 
         //  Create audit message
         //
-        def audit_msg = "Set classification for ${variantInstance.variant} to ${variantInstance.pmClass} from ${prevClass}"
+        def audit_msg = "Set classification for ${variantInstance.toString()} to ${variantInstance.pmClass} from ${prevClass}"
         def audit     = new Audit(  category:    'curation',
-                                    variant:     variantInstance.variant,
+                                    variant:     variantInstance.toString(),
                                     complete:    new Date(),
                                     elapsed:     0,
                                     software:    'Path-OS',

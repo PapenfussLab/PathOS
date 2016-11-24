@@ -1084,7 +1084,7 @@ class DbLoader
                 //  Set link to CurVariant table if this variant has been curated
                 //  Todo: find curVariant by hgvsg and mutContext as well
                 //
-                row.curated = CurVariant.findByHgvsg( row.hgvsg )
+                //row.curated = CurVariant.findByHgvsg( row.hgvsg )
 
                 //  Add 1 letter AA format
                 //
@@ -1098,6 +1098,22 @@ class DbLoader
                 //  Create new SeqVariant and bind properties via enriched map of properties from SQL
                 //
                 def sv = new SeqVariant( row as Map )
+
+                //  Add all mappable CurVariants to the new SeqVariant
+                //
+                List<CurVariant> cvs = CurVariantService.findCurVariantsByGenomic( sv )
+                for ( cv in cvs )
+                {
+                    sv.addToCurVariants( cv )
+
+                    //  Set default curated property (preferred curated variant)
+                    //  Choose the CurVariant without a ClinContext
+                    //
+                    if ( ! cv.clinContext )
+                    {
+                        sv.curated = cv
+                    }
+                }
 
                 //  Save the new SeqVariant instance
                 //

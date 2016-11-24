@@ -36,8 +36,6 @@ mp_runCanary =
         }
 
         exec    """
-                PATH="${MP_PATHOS_HOME}/bin:$PATH";
-
                 Canary  \
                         --amplicon ${panelPath}/${PANEL}.fasta \
                         --primers  ${panelPath}/${PANEL}.fasta.primers \
