@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+#		tsvtodb.sh			Insert a TSV file into a Mysql table
+#
+#		01		kdoig		10-Feb-15
+#
+#		Usage: tsvtodb
+#
+#vim:ts=4
+
+#
+#	process -options
+#
+HELP=0
+schema=dbalt
+host=bioinf-pathos-test
+cols=0
+nocreate=""
+password=""
+
+while getopts t:d:r:p:h\? opt					# Add additional options here
+do	case "$opt" in
+	r)		schema="$OPTARG";;
+	t)		table="$OPTARG";;
+	d)		host="$OPTARG";;
+	n)		nocreate="--no-create";;
+	p)      password="$OPTARG";;
+	h)		HELP=1;;
+	[?])	HELP=1;;
+	esac
+done
+shift `expr $OPTIND - 1`
+
+#
+#	output usage if required
+#
+if [ $# -ne 1 -o $HELP -eq 1 ]; then	# Set number of required arguments here
+	echo "
+    Usage: `basename $0` [options] in.tsv
+
+    Options:    -r <schema>     RDB schema to use [dbalt]
+                -t <table>      Table to populate
+                -d <host>       Host for DB [bioinf-pathos-test]
+                -p <password>   Database password
+
+    Insert a TSV file into a Mysql table
+	" 1>&2
+
+	exit 1
+fi
+
+#
+#	Start of script
+if [ "$table" == "" ];then
+	table=`basename $1 .tsv`
+fi
+#
+csvsql 	 \
+	--insert \
+	$nocreate \
+	--db mysql+mysqldb://bioinformatics:${password}@${host}/${schema} \
+	--table $table \
+	-t $1

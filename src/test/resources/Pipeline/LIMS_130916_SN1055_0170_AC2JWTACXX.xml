@@ -1,0 +1,469 @@
+<opt>
+  <Lanes>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="1" LibraryID="5412" LibraryName="MGC367" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="GTGAAA" Index2="" LibraryID="5406" LibraryName="AOCS-106-2-5" MeanFragmentLength="299" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2273" SampleName="AOCS-106-2-5">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5407" LibraryName="AOCS-107-2-8" MeanFragmentLength="333" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2274" SampleName="AOCS-107-2-8">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="TGACCA" Index2="" LibraryID="5408" LibraryName="AOCS-108-2-0" MeanFragmentLength="306" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2275" SampleName="AOCS-108-2-0">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="ACAGTG" Index2="" LibraryID="5409" LibraryName="AOCS-113-2-9" MeanFragmentLength="288" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2276" SampleName="AOCS-113-2-9">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="GCCAAT" Index2="" LibraryID="5410" LibraryName="AOCS-115-2-4" MeanFragmentLength="284" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2277" SampleName="AOCS-115-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CAGATC" Index2="" LibraryID="5411" LibraryName="AOCS-116-2-7" MeanFragmentLength="303" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2278" SampleName="AOCS-116-2-7">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="2" LibraryID="5412" LibraryName="MGC367" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="GTGAAA" Index2="" LibraryID="5406" LibraryName="AOCS-106-2-5" MeanFragmentLength="299" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2273" SampleName="AOCS-106-2-5">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5407" LibraryName="AOCS-107-2-8" MeanFragmentLength="333" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2274" SampleName="AOCS-107-2-8">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="TGACCA" Index2="" LibraryID="5408" LibraryName="AOCS-108-2-0" MeanFragmentLength="306" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2275" SampleName="AOCS-108-2-0">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="ACAGTG" Index2="" LibraryID="5409" LibraryName="AOCS-113-2-9" MeanFragmentLength="288" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2276" SampleName="AOCS-113-2-9">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="GCCAAT" Index2="" LibraryID="5410" LibraryName="AOCS-115-2-4" MeanFragmentLength="284" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2277" SampleName="AOCS-115-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CAGATC" Index2="" LibraryID="5411" LibraryName="AOCS-116-2-7" MeanFragmentLength="303" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2278" SampleName="AOCS-116-2-7">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="3" LibraryID="5412" LibraryName="MGC367" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="GTGAAA" Index2="" LibraryID="5406" LibraryName="AOCS-106-2-5" MeanFragmentLength="299" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2273" SampleName="AOCS-106-2-5">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5407" LibraryName="AOCS-107-2-8" MeanFragmentLength="333" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2274" SampleName="AOCS-107-2-8">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="TGACCA" Index2="" LibraryID="5408" LibraryName="AOCS-108-2-0" MeanFragmentLength="306" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2275" SampleName="AOCS-108-2-0">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="ACAGTG" Index2="" LibraryID="5409" LibraryName="AOCS-113-2-9" MeanFragmentLength="288" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2276" SampleName="AOCS-113-2-9">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="GCCAAT" Index2="" LibraryID="5410" LibraryName="AOCS-115-2-4" MeanFragmentLength="284" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2277" SampleName="AOCS-115-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CAGATC" Index2="" LibraryID="5411" LibraryName="AOCS-116-2-7" MeanFragmentLength="303" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="990" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="991" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="992" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2278" SampleName="AOCS-116-2-7">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="4" LibraryID="5419" LibraryName="MGC368" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5413" LibraryName="AOCS-104-2-X" MeanFragmentLength="350" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2279" SampleName="AOCS-104-2-X">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CTTGTA" Index2="" LibraryID="5414" LibraryName="AOCS-123-2-0" MeanFragmentLength="292" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2280" SampleName="AOCS-123-2-0">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="AGTCAA" Index2="" LibraryID="5415" LibraryName="AOCS-134-4-2" MeanFragmentLength="350" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2281" SampleName="AOCS-134-4-2">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="AGTTCC" Index2="" LibraryID="5416" LibraryName="AOCS-141-4-6" MeanFragmentLength="307" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2282" SampleName="AOCS-141-4-6">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="ATGTCA" Index2="" LibraryID="5417" LibraryName="AOCS-152-2-3" MeanFragmentLength="299" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2283" SampleName="AOCS-152-2-3">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CCGTCC" Index2="" LibraryID="5418" LibraryName="AOCS-153-2-6" MeanFragmentLength="309" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2284" SampleName="AOCS-153-2-6">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="5" LibraryID="5419" LibraryName="MGC368" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5413" LibraryName="AOCS-104-2-X" MeanFragmentLength="350" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2279" SampleName="AOCS-104-2-X">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CTTGTA" Index2="" LibraryID="5414" LibraryName="AOCS-123-2-0" MeanFragmentLength="292" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2280" SampleName="AOCS-123-2-0">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="AGTCAA" Index2="" LibraryID="5415" LibraryName="AOCS-134-4-2" MeanFragmentLength="350" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2281" SampleName="AOCS-134-4-2">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="AGTTCC" Index2="" LibraryID="5416" LibraryName="AOCS-141-4-6" MeanFragmentLength="307" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2282" SampleName="AOCS-141-4-6">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="ATGTCA" Index2="" LibraryID="5417" LibraryName="AOCS-152-2-3" MeanFragmentLength="299" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2283" SampleName="AOCS-152-2-3">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CCGTCC" Index2="" LibraryID="5418" LibraryName="AOCS-153-2-6" MeanFragmentLength="309" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2284" SampleName="AOCS-153-2-6">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="6" LibraryID="5419" LibraryName="MGC368" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5413" LibraryName="AOCS-104-2-X" MeanFragmentLength="350" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2279" SampleName="AOCS-104-2-X">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CTTGTA" Index2="" LibraryID="5414" LibraryName="AOCS-123-2-0" MeanFragmentLength="292" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2280" SampleName="AOCS-123-2-0">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="AGTCAA" Index2="" LibraryID="5415" LibraryName="AOCS-134-4-2" MeanFragmentLength="350" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2281" SampleName="AOCS-134-4-2">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="AGTTCC" Index2="" LibraryID="5416" LibraryName="AOCS-141-4-6" MeanFragmentLength="307" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2282" SampleName="AOCS-141-4-6">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="ATGTCA" Index2="" LibraryID="5417" LibraryName="AOCS-152-2-3" MeanFragmentLength="299" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2283" SampleName="AOCS-152-2-3">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CCGTCC" Index2="" LibraryID="5418" LibraryName="AOCS-153-2-6" MeanFragmentLength="309" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="993" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="994" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="995" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2284" SampleName="AOCS-153-2-6">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="7" LibraryID="5424" LibraryName="MGC369" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="GTCCGC" Index2="" LibraryID="5420" LibraryName="AOCS-088-4-1" MeanFragmentLength="301" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2285" SampleName="AOCS-088-4-1">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="GTGAAA" Index2="" LibraryID="5421" LibraryName="AOCS-088-2-4" MeanFragmentLength="303" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2286" SampleName="AOCS-088-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5422" LibraryName="AOCS-090-4-1" MeanFragmentLength="367" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2287" SampleName="AOCS-090-4-1">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="TGACCA" Index2="" LibraryID="5423" LibraryName="AOCS-090-2-4" MeanFragmentLength="354" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2288" SampleName="AOCS-090-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+    <Lane CustomIndexing="False" ExperimentOnSite="True" ExperimentPlatform="HiSeq2000" ExperimentRunDate="" IsPool="True" LaneNumber="8" LibraryID="5424" LibraryName="MGC369" MixedOwnership="False">
+      <Libraries>
+        <Library AnalysisType="RNA-Seq" Index="GTCCGC" Index2="" LibraryID="5420" LibraryName="AOCS-088-4-1" MeanFragmentLength="301" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2285" SampleName="AOCS-088-4-1">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="GTGAAA" Index2="" LibraryID="5421" LibraryName="AOCS-088-2-4" MeanFragmentLength="303" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2286" SampleName="AOCS-088-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="CGATGT" Index2="" LibraryID="5422" LibraryName="AOCS-090-4-1" MeanFragmentLength="367" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2287" SampleName="AOCS-090-4-1">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+        <Library AnalysisType="RNA-Seq" Index="TGACCA" Index2="" LibraryID="5423" LibraryName="AOCS-090-2-4" MeanFragmentLength="354" ReferenceGenome="Human(HG19)" UserEmail="Elizabeth.Christie@petermac.org" UserID="ddf01c10-2e5d-4c9c-9f65-5f10e6fd8210" UserName="Elizabeth Christie">
+          <AuxiliaryLanes>
+            <AuxiliaryLane LaneID="996" LaneStatus="Pending" />
+            <AuxiliaryLane LaneID="997" LaneStatus="Pending" />
+          </AuxiliaryLanes>
+          <Sample SampleID="2288" SampleName="AOCS-090-2-4">
+            <Annotation></Annotation>
+          </Sample>
+        </Library>
+      </Libraries>
+    </Lane>
+  </Lanes>
+  <RunInfo ExperimentID="170" ExperimentName="130916_SN1055_0170_AC2JWTACXX" Multiplex="True" OnSite="True" Platform="HiSeq2000" RunLength="100" SEPE="PE" />
+</opt>

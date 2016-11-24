@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+#		ImportDB	Import Database
+#
+#		01		kdoig		06-Nov-14
+#
+#		Usage: ImportDB host schema dump.sql
+#
+#vim:ts=4
+
+#
+#	process -options
+#
+HELP=0
+password=""
+while getopts p:h\? opt					# Add additional options here
+do	case "$opt" in
+	h)		HELP=1;;
+	p)      password="$OPTARG";;
+	[?])	HELP=1;;
+	esac
+done
+shift `expr $OPTIND - 1`
+
+#
+#	output usage if required
+#
+if [ $# -lt 3 -o $HELP -eq 1 ]; then	# Set number of required arguments here
+	echo "
+	Usage: `basename $0` -p <db password> host schema dump.sql
+
+	Import Database
+	" 1>&2
+
+	exit 1
+fi
+
+#
+#	Start of script
+#
+
+host=$1
+schema=$2
+dumpfile=$3
+
+if [ ! -r $dumpfile ]; then
+	echo No Dumps file
+	exit 1
+fi
+
+echo Importing host $host schema $schema from $dumpfile
+mysql -h $host --user bioinformatics --password=$password $schema < $dumpfile

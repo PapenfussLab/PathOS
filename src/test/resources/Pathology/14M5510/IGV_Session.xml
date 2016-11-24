@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Session genome="b37" locus="All" version="4">
+    <Resources>
+        <Resource path="http://bioinf-ensembl.petermac.org.au/Pathology/Molpath/140703_M01053_0080_000000000-AA8H7/14M5510/14M5510.vcf"/>
+        <Resource path="http://bioinf-ensembl.petermac.org.au/Pathology/Molpath/140703_M01053_0080_000000000-AA8H7/14M5510/14M5510.bam"/>
+        <Resource path="http://bioinf-ensembl.petermac.org.au/Panels/Germline_v4-8_071013_with_off_target_manifest/Amplicon.bed"/>
+    </Resources>
+    <Panel height="227" name="DataPanel" width="2543">
+        <Track altColor="0,0,178" color="0,0,178" colorMode="GENOTYPE" displayMode="EXPANDED" featureVisibilityWindow="500000" fontSize="10" id="http://bioinf-ensembl.petermac.org.au/Pathology/Molpath/140703_M01053_0080_000000000-AA8H7/14M5510/14M5510.vcf" name="14M5510.vcf" renderName="false" renderer="BASIC_FEATURE" showDataRange="true" sortable="false" visible="true" windowFunction="count"/>
+    </Panel>
+    <Panel height="511" name="Panel1345787442607" width="2543">
+        <Track altColor="0,0,178" autoScale="true" color="175,175,175" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="http://bioinf-ensembl.petermac.org.au/Pathology/Molpath/140703_M01053_0080_000000000-AA8H7/14M5510/14M5510.bam_coverage" name="14M5510.bam Coverage" showDataRange="true" visible="true">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="60.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" color="0,0,178" colorOption="UNEXPECTED_PAIR" displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="10" id="http://bioinf-ensembl.petermac.org.au/Pathology/Molpath/140703_M01053_0080_000000000-AA8H7/14M5510/14M5510.bam" name="14M5510.bam" showDataRange="true" sortByTag="" visible="true"/>
+    </Panel>
+    <Panel height="300" name="FeaturePanel" width="2543">
+        <Track altColor="0,0,178" color="0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" id="Reference sequence" name="Reference sequence" showDataRange="true" sortable="false" visible="true"/>
+        <Track altColor="0,0,178" color="0,0,178" colorScale="ContinuousColorScale;0.0;160.0;255,255,255;0,0,178" displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="10" height="35" id="b37_genes" name="Gene" renderer="BASIC_FEATURE" showDataRange="true" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="160.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+        <Track altColor="0,0,178" color="0,0,178" colorScale="ContinuousColorScale;0.0;8.0;255,255,255;0,0,178" displayMode="EXPANDED" featureVisibilityWindow="-1" fontSize="10" height="45" id="http://bioinf-ensembl.petermac.org.au/Panels/Germline_v4-8_071013_with_off_target_manifest/Amplicon.bed" name="Amplicon.bed" renderer="BASIC_FEATURE" showDataRange="true" sortable="false" visible="true" windowFunction="count">
+            <DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="8.0" minimum="0.0" type="LINEAR"/>
+        </Track>
+    </Panel>
+    <PanelLayout dividerFractions="0.18988391376451078,0.6177446102819237"/>
+</Session>

@@ -1,0 +1,5 @@
+RUN=`basename $0`
+BINDIR=`dirname $0`
+export JAVA_OPTS="$JAVA_OPTS -XX:MaxPermSize=4072m -Xmx4072m -XX:UseGCOverheadLimit"
+. $BINDIR/SetPathosEnv
+java $JAVA_OPTS -cp $CLASSPATH org.petermac.util.$RUN $*

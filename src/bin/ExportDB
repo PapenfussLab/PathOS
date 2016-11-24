@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+#		ExportDB.sh		Dump Database
+#
+#		01		kdoig		22-Oct-14
+#		02		kdoig		26-Aug-15   Removed Dumps directory requirement
+#
+#		Usage: ExportDB
+#
+#vim:ts=4
+
+#
+#	process -options
+#
+HELP=0
+dumpfile="none"
+table=""
+password=""
+
+while getopts d:s:t:o:p:h\? opt					# Add additional options here
+do	case "$opt" in
+	h)		HELP=1;;
+	d)      host="$OPTARG";;
+	s)      schema="$OPTARG";;
+	t)      table="$OPTARG";;
+	o)      dumpfile="$OPTARG";;
+	p)      password="$OPTARG";;
+	[?])	HELP=1;;
+	esac
+done
+shift `expr $OPTIND - 1`
+
+#
+#	output usage if required
+#
+if [ -z "$host" ] || [ -z "$schema" ] || [ -z "$dumpfile" ] || [ $HELP -eq 1 ]; then	# Set number of required arguments here
+	echo "
+	Usage: `basename $0` -d databasehost -s schema -p dbpassword -o outputfile [-t table]
+
+	Dump Database or Table
+	" 1>&2
+
+	exit 1
+fi
+
+#
+#	Start of script
+#
+
+if [ "$dumpfile" == "none" ];then
+    if [ "x$table" == "x" ];then
+	    dumpfile=${host}-${schema}-`date +%F`.sql
+	else
+	    dumpfile=${host}-${schema}-${table}-`date +%F`.sql
+	fi
+fi
+
+echo Dumping $host:$schema:$tab to "$dumpfile"
+
+mysqldump -h $host --user bioinformatics --password=$password --result-file="$dumpfile" $schema $table

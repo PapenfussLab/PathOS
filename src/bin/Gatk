@@ -1,0 +1,3 @@
+. SetPathosEnv
+RUN=GATK
+java $JAVA_OPTS -cp $CLASSPATH org.petermac.util.$RUN $*

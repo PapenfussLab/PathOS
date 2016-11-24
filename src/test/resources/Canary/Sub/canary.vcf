@@ -1,0 +1,36 @@
+##fileformat=VCFv4.1
+##source=VarScan2
+##INFO=<ID=ADP,Number=1,Type=Integer,Description="Average per-sample depth of bases with Phred score >= 20">
+##INFO=<ID=WT,Number=1,Type=Integer,Description="Number of samples called reference (wild-type)">
+##INFO=<ID=HET,Number=1,Type=Integer,Description="Number of samples called heterozygous-variant">
+##INFO=<ID=HOM,Number=1,Type=Integer,Description="Number of samples called homozygous-variant">
+##INFO=<ID=NC,Number=1,Type=Integer,Description="Number of samples not called">
+##INFO=<ID=HGVSg,Number=1,Type=String,Description="HGVSg format of variant">
+##INFO=<ID=numAmps,Number=1,Type=String,Description="Number of amplicons with variant / amplicons including locus">
+##INFO=<ID=amps,Number=1,Type=String,Description="Amplicon names with variant">
+##INFO=<ID=gene,Number=1,Type=String,Description="gene of variant">
+##INFO=<ID=ampbias,Number=1,Type=String,Description="is there a bias across amplicons for variant">
+##INFO=<ID=fsRescue,Number=1,Type=String,Description="Can variant be rescued from a frameshift in phase">
+##INFO=<ID=homopolymer,Number=1,Type=String,Description="Is variant next to a homopolymer run">
+##FILTER=<ID=str10,Description="Less than 10% or more than 90% of variant supporting reads on one strand">
+##FILTER=<ID=indelError,Description="Likely artifact due to indel reads at this position">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Raw Read Depth as reported by SAMtools">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Quality Read Depth of bases with Phred score >= 20">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Depth of reference-supporting bases (reads1)">
+##FORMAT=<ID=AD,Number=1,Type=Integer,Description="Depth of variant-supporting bases (reads2)">
+##FORMAT=<ID=FREQ,Number=1,Type=String,Description="Variant allele frequency">
+##FORMAT=<ID=PVAL,Number=1,Type=String,Description="P-value from Fisher's Exact Test">
+##FORMAT=<ID=RBQ,Number=1,Type=Integer,Description="Average quality of reference-supporting bases (qual1)">
+##FORMAT=<ID=ABQ,Number=1,Type=Integer,Description="Average quality of variant-supporting bases (qual2)">
+##FORMAT=<ID=RDF,Number=1,Type=Integer,Description="Depth of reference-supporting bases on forward strand (reads1plus)">
+##FORMAT=<ID=RDR,Number=1,Type=Integer,Description="Depth of reference-supporting bases on reverse strand (reads1minus)">
+##FORMAT=<ID=ADF,Number=1,Type=Integer,Description="Depth of variant-supporting bases on forward strand (reads2plus)">
+##FORMAT=<ID=ADR,Number=1,Type=Integer,Description="Depth of variant-supporting bases on reverse strand (reads2minus)">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	canary
+4	55599436	.	T	C	.	PASS	HGVSg=chr4:g.55599436T>C;numAmps=1/1;amps=KIT24_28.chr4.55599320.55599348_tile_1	GT:DP:RD:AD:FREQ	0/1:13:0:13:100.000000
+4	55946081	.	A	G	.	PASS	HGVSg=chr4:g.55946081A>G;numAmps=1/1;amps=KDR1.chr4.55946114.55946257_tile_1	GT:DP:RD:AD:FREQ	0/1:12:0:12:100.000000
+9	80409345	.	A	G	.	PASS	HGVSg=chr9:g.80409345A>G;numAmps=1/1;amps=GNAQ_5.chr9.80409379.80409508_tile_1	GT:DP:RD:AD:FREQ	0/1:15:4:11:73.333336
+10	89720749	.	C	T	.	PASS	HGVSg=chr10:g.89720749C>T;numAmps=1/1;amps=PTEN13.chr10.89720716.89720852_tile_1	GT:DP:RD:AD:FREQ	0/1:23:13:10:43.478260
+10	89720791	.	A	G	.	PASS	HGVSg=chr10:g.89720791A>G;numAmps=1/1;amps=PTEN13.chr10.89720716.89720852_tile_1	GT:DP:RD:AD:FREQ	0/1:23:13:10:43.478260

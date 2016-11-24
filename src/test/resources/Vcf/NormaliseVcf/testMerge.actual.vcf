@@ -1,0 +1,33 @@
+##fileformat=VCFv4.1
+##source=VarScan2
+##INFO=<ID=ADP,Number=1,Type=Integer,Description="Average per-sample depth of bases with Phred score >= 20">
+##INFO=<ID=WT,Number=1,Type=Integer,Description="Number of samples called reference (wild-type)">
+##INFO=<ID=HET,Number=1,Type=Integer,Description="Number of samples called heterozygous-variant">
+##INFO=<ID=HOM,Number=1,Type=Integer,Description="Number of samples called homozygous-variant">
+##INFO=<ID=NC,Number=1,Type=Integer,Description="Number of samples not called">
+##INFO=<ID=HGVSg,Number=1,Type=String,Description="HGVSg format of variant">
+##INFO=<ID=HGVSc,Number=1,Type=String,Description="HGVSc format of variant">
+##INFO=<ID=HGVSp,Number=1,Type=String,Description="HGVSp format of variant">
+##INFO=<ID=gene,Number=1,Type=String,Description="gene of variant">
+##INFO=<ID=lrg,Number=1,Type=String,Description="LRG transcript of variant">
+##INFO=<ID=muterr,Number=1,Type=String,Description="Mutalyzer error message for variant">
+##INFO=<ID=status,Number=1,Type=String,Description="Mutalyzer status of variant">
+##FILTER=<ID=str10,Description="Less than 10% or more than 90% of variant supporting reads on one strand">
+##FILTER=<ID=indelError,Description="Likely artifact due to indel reads at this position">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Raw Read Depth as reported by SAMtools">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Quality Read Depth of bases with Phred score >= 20">
+##FORMAT=<ID=RD,Number=1,Type=Integer,Description="Depth of reference-supporting bases (reads1)">
+##FORMAT=<ID=AD,Number=1,Type=Integer,Description="Depth of variant-supporting bases (reads2)">
+##FORMAT=<ID=FREQ,Number=1,Type=String,Description="Variant allele frequency">
+##FORMAT=<ID=PVAL,Number=1,Type=String,Description="P-value from Fisher's Exact Test">
+##FORMAT=<ID=RBQ,Number=1,Type=Integer,Description="Average quality of reference-supporting bases (qual1)">
+##FORMAT=<ID=ABQ,Number=1,Type=Integer,Description="Average quality of variant-supporting bases (qual2)">
+##FORMAT=<ID=RDF,Number=1,Type=Integer,Description="Depth of reference-supporting bases on forward strand (reads1plus)">
+##FORMAT=<ID=RDR,Number=1,Type=Integer,Description="Depth of reference-supporting bases on reverse strand (reads1minus)">
+##FORMAT=<ID=ADF,Number=1,Type=Integer,Description="Depth of variant-supporting bases on forward strand (reads2plus)">
+##FORMAT=<ID=ADR,Number=1,Type=Integer,Description="Depth of variant-supporting bases on reverse strand (reads2minus)">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	14K0212A
+17	29545989	.	T	TT	.	PASS	ADP=289;WT=0;HET=1;HOM=0;NC=0;HGVSg=chr17:g.29545989_29545990insT;HGVSc=NM_000267.3:c.1528-34_1528-33insT;lrg=LRG_214t1:c.1528-34_1528-33insT;muterr=(variantchecker):_Intronic_position_given_for_a_non-genomic_reference_sequence.	GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR	0/1:56:289:289:140:149:51.56%:5.8073E-57:38:37:140:0:149:0
+17	29545994	.	T	TT	.	PASS	ADP=290;WT=0;HET=1;HOM=0;NC=0;HGVSg=chr17:g.29545994_29545995insT;HGVSc=NM_000267.3:c.1528-29_1528-28insT;lrg=LRG_214t1:c.1528-29_1528-28insT;muterr=(variantchecker):_Intronic_position_given_for_a_non-genomic_reference_sequence.	GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR	0/1:44:290:290:165:123:42.41%:4.9893E-45:39:40:165:0:123:0

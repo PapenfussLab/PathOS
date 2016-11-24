@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+#		qsub_pipeline.pbs	Run pipeline on cluster
+#
+#		01		kdoig		03-Apr-13
+#
+#vim:ts=4
+
+#PBS -S /bin/bash
+#PBS -l walltime=8:00:00
+#PBS -l nodes=1:ppn=8
+ 
+Pipeline $QSUB_OPTS

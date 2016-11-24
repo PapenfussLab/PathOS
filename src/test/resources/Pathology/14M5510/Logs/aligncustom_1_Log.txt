@@ -1,0 +1,43 @@
+Fri Jul  4 13:47:29 2014	Aligning: /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/14M5510_TGCTGGCTTG_L001_R1_001.fastq.gz and /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz
+Fri Jul  4 13:47:29 2014	Executing: alignCustomAmplicon.pl -p 8 -o /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001_tmp.bam /pipeline/RunFolder/MiSeq/Indexes/Germline_v4-8_071013_with_off_target_manifest.fasta /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/14M5510_TGCTGGCTTG_L001_R1_001.fastq.gz /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/14M5510_TGCTGGCTTG_L001_R2_001.fastq.gz /pipeline/RunFolder/MiSeq/Indexes/Germline_v4-8_071013_with_off_target_manifest.fasta.primers 2>&1
+
+Using alignCustomAmplicon version 1.01 
+
+[samopen] SAM header is present: 236 sequences.
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing Find Amplicon Thread
+Closing NW2 Aligner
+Closing Alignment Processor
+Closing Alignment Processor
+Closing Alignment Processor
+Closing Alignment Processor
+Closing Sam File Line Generator
+Closing Sam File Line Generator
+Closing Sam File Line Generator
+Closing Bam Writer 127563 Reads Written
+Closing Sam File Line Generator
+Cache hits align contig: 226749
+Alignment cache hits: 18757
+Fri Jul  4 13:57:45 2014	Moving /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001_tmp_stats.csv & /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001_tmp_ambiguous.csv to /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/14M5510_TGCTGGCTTG_L001_stats.csv
+
+Fri Jul  4 13:57:45 2014	Converting /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001_tmp.bam To Genome Coordinates
+Fri Jul  4 13:57:45 2014	Executing: ConvertBedCoordsToGenome.pl /home/data/reference/indexes/human/g1k_v37/fasta/human_g1k_v37.fasta /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001_tmp.bam /pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001.bam 2>&1
+
+Fri Jul  4 13:57:46 2014	Using ConvertBedCoordsToGenome version 0.1 
+
+Fri Jul  4 13:57:46 2014	Opening pipe to Samtools and iterating over reads:
+Fri Jul  4 13:57:46 2014	Writing header lines to bam file
+[sam_header_read2] 84 sequences loaded.
+Fri Jul  4 13:57:52 2014	Running picard to sort and index bam file
+Fri Jul  4 13:57:52 2014	ConvertBedCoordsToGenome Command: SortSam.sh I=/pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001.bam.tmp O=/pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001.bam SO=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true
+[Fri Jul 04 13:57:52 EST 2014] net.sf.picard.sam.SortSam INPUT=/pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001.bam.tmp OUTPUT=/pathology/processing/MiSeq/140703_M01053_0080_000000000-AA8H7/Project_Sophie-Polychronopoulos/Sample_14M5510/TMP/14M5510_TGCTGGCTTG_L001.bam SORT_ORDER=coordinate VALIDATION_STRINGENCY=SILENT CREATE_INDEX=true    VERBOSITY=INFO QUIET=false COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_MD5_FILE=false
+[Fri Jul 04 13:57:52 EST 2014] Executing as bioinf@bioinf-compute2.petermac.org.au on Linux 2.6.32-279.22.1.el6.x86_64 amd64; OpenJDK 64-Bit Server VM 1.7.0_09-icedtea-mockbuild_2013_02_20_12_08-b00; Picard version: 1.77(1266)
+INFO	2014-07-04 13:57:53	SortSam	Finished reading inputs, merging and writing to output now.
+[Fri Jul 04 13:57:55 EST 2014] net.sf.picard.sam.SortSam done. Elapsed time: 0.05 minutes.
+Runtime.totalMemory()=1010696192

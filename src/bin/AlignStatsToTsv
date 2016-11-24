@@ -1,0 +1,3 @@
+. SetPathosEnv
+RUN=`basename $0`
+java $DEBUG -Dlog4j.configuration=file:$LOGPROP -cp $CLASSPATH org.petermac.util.$RUN $*

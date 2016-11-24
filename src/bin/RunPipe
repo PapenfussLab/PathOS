@@ -1,0 +1,196 @@
+#!/bin/bash
+#
+#       RunPipe     Pipeline runner for a sequencing run
+#
+#       01      Ken Doig    01-Feb-15
+#       02      Ken Doig    14-Aug-15   Rewrote for pipeline integration
+#       03      Ken Doig    28-Aug-15   Added cluster queue option
+#       03      Ken Doig    28-Aug-15   Added slurm testing option
+#
+#vim:ts=4:et:sw=4
+
+##set -x
+
+#
+#   process -options
+#
+HELP=0
+bg=0
+debug=1
+rootdir=/pathology/NGS/Samples/Testing
+cluster=slurm
+rdb=pa_stage
+queue=pathology
+pipe=mp_dualAmplicon
+seqrun=NoRun
+nargs=$#
+sample=all
+TEST=0
+
+export PROC_MODE='PPN'
+
+while getopts a:q:r:s:p:d:ctbh\? opt                    # Add additional options here
+
+do  case "$opt" in
+    b)      bg=1;;
+    d)      rootdir="$OPTARG";;
+    p)      pipe="$OPTARG";;
+    q)      queue="$OPTARG";;
+    r)      rdb="$OPTARG";;
+    s)      seqrun="$OPTARG";;
+    a)      sample="$OPTARG";;
+    c)      cluster=slurm;;
+    t)      TEST=1;;
+    h)      HELP=1;;
+    [?])    HELP=1;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
+#
+#   output usage if required
+#
+if [ $nargs -eq 0 -o $# -gt 1 -o $HELP -eq 1 ]; then    # Set number of required arguments here
+    echo "
+    Usage: `basename $0` [options] [seqrun.tsv]
+    or     `basename $0` [options]
+
+    Options:
+            -b              Run in background and on cluster
+            -c              Run on Slurm cluster [default]
+            -t              Use Pipeline Testing for source
+            -s <seqrun>     Seqrun identifier
+            -a <sample>     Single sample to process [all in run]
+            -p <pipe>       Pipeline to run [mp_dualAmplicon]
+            -d <rootdir>    Root directory for pipeline output [/pathology/NGS/Samples/Testing]
+            -r <dbname>     DB schema for cacheing and loading [pa_stage]
+            -q <queue>      Cluster queue to use [pathology]
+
+    Pipeline runner for a sequencing run
+    " 1>&2
+
+    exit 1
+fi
+
+#
+#   Start of script
+#
+. SetPathosEnv
+
+export PATHOS_BIN=${PATHOS_HOME}/bin
+export PIPELINE_HOME=${PATHOS_HOME}/Pipeline
+export BPIPE_LIB=${PIPELINE_HOME}/pipelines/stages
+
+#
+#   Load slurm modules
+#
+if [ "$cluster" == "slurm" ]; then
+    . /etc/profile.d/modules.sh
+
+    module load bpipe/0.9.8.6_rc2
+    module load vt/1.0
+    module load igvtools/2.3.72
+    module load fastqc/0.10.1
+    module load samtools/0.1.18
+    module load varscan/2.3.3
+    module load gatk/3.4
+    module load primal-aligner/1.01
+    module load pipeline/1.0
+    module load picard/1.141
+    module load ensembl/78
+    module load perl-modules/1.0
+    module unload java/1.8.0_102-jre
+    module load java/1.7.0_80         # load this last as default is Java 8
+fi
+
+#
+#   Supplied samples TSV file ?
+#
+samtsv=${1:-"none"}
+
+#
+#   Set bpipe arguments
+#
+bpargs="-r --threads 75 --param DBNAME=$rdb --param DEBUG=$debug --param PIPELINE=$pipe --param MP_PATHOS_HOME=$PATHOS_HOME"
+
+if [ ! -d $rootdir ];then
+    echo "FATAL: root directory doesn't exist: $rootdir"
+    exit 1
+fi
+
+#
+#   Change dir to root of seqrun for processing
+#
+export rundir=$rootdir/$seqrun/RunPipe/$pipe
+mkdir -p $rundir
+
+#
+#   Move in samples file if any
+#
+if [ "$samtsv" != "none" ];then
+    cp -v $samtsv $rundir/Seqrun.tsv
+fi
+
+#
+#   Move to run directory and execute bpipe
+#
+pushd $rundir
+
+    #
+    #   Set pipeline to run
+    #
+    pipeline=$PIPELINE_HOME/pipelines/${pipe}.pipe
+    if [ ! -s $pipeline ];then
+        echo "FATAL: missing pipeline: $pipeline"
+        exit 1
+    fi
+
+    #
+    #   Set Seqrun.tsv file
+    #
+    if [ "$samtsv" == "none" ];then
+        samtsv="Seqrun.tsv"
+
+        #   Set individual sample to run
+        #
+        samarg=""
+        if [ $sample != "all" ];then
+            samarg="--sample $sample"
+        fi
+
+        #   Set pipeline testing source
+        #
+        limsarg=""
+        if [ $TEST -eq 1 ];then
+            limsarg="--limsxml /pipeline/Testing/*/$seqrun/LIMS_${seqrun}.xml"
+        fi
+
+        $PATHOS_BIN/GenSeqrun --seqrun $seqrun --pipeline $pipe --output $samtsv --base $rootdir $samarg $limsarg
+    fi
+
+    #
+    #   Make sure we have a run file
+    #
+    if [ ! -s Seqrun.tsv ]; then
+        echo "FATAL: RunPipe: no samples to process for $seqrun"
+        exit 1
+    fi
+
+    #
+    #   Run on cluster
+    #
+    BPIPE_CONFIG=${PATHOS_HOME}/etc/bpipe.config
+
+    if [ $bg -eq 1 ];then
+        sed -e "s/pathology/$queue/" -e "s/torque/$cluster/" < ${PATHOS_HOME}/etc/bpipe.config > bpipe.config
+        nohup bpipe.pm.sh run $bpargs $pipeline Seqrun.tsv &
+    else
+        rm -f bpipe.config
+        bpipe.pm.sh run $bpargs $pipeline Seqrun.tsv
+    fi
+
+    logdate=`date +%y%m%d`
+    logtime=`date +%T`
+    echo -e "$logdate\t$logtime\t$seqrun\t$rundir\tstarted" >> ${PATHOS_HOME}/log/RunPipe.log
+
+popd  &> /dev/null

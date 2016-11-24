@@ -1,0 +1,26 @@
+##fileformat=VCFv4.1
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=MQ,Number=1,Type=Integer,Description="RMS Mapping Quality">
+##FORMAT=<ID=GQX,Number=1,Type=Integer,Description="Minimum of {Genotype quality assuming variant position,Genotype quality assuming non-variant position}">
+##FORMAT=<ID=VF,Number=1,Type=Float,Description="Variant Frequency, the ratio of the sum of the called variant depth to the total depth">
+##INFO=<ID=BaseQRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref base qualities">
+##INFO=<ID=Dels,Number=1,Type=Float,Description="Fraction of Reads Containing Spanning Deletions">
+##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias">
+##FILTER=<ID=LowGQX,Description="Locus GQX is less than 10.0000 or not present">
+##FILTER=<ID=LowVariantFreq,Description="Low variant frequency < 0.20">
+##FILTER=<ID=LowGQ,Description="GQ below < 30.00">
+##FILTER=<ID=R8,Description="IndelRepeatLength is greater than 8">
+##FILTER=<ID=SB,Description="Strand bias (SB) is greater than than -10">
+##FILTER=<ID=LowDP,Description="Depth (DP) is less than 20">
+##FILTER=<ID=IndelConflict,Description="Locus is in region with conflicting indel calls.">
+##FILTER=<ID=SiteConflict,Description="Site genotype conflicts with proximal indel call. This is typically a heterozygous SNV call made inside of a heterozygous deletion.">
+##FILTER=<ID=LowMQ,Description="Site MQ is less than 0.0000">
+##FILTER=<ID=LowQD,Description="Locus QD is less than 0.0000">
+##source=GATK 1.6
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
+3	37067339	.	CAGATATTTC	C	.	PASS	can=chr3:g.37067339_37067347del;numAmps=1/1;amps=MLH1.chr3.37067240.37067240_tile_1	GT:DP:RD:AD:FREQ	0/1:200:60:140:70.0
+3	37067338	.	ACAGATATTT	A	.	PASS	can=chr3:g.37067339_37067347del;numAmps=1/1;amps=MLH1.chr3.37067240.37067240_tile_1	GT:DP:RD:AD:FREQ	0/1:200:60:140:70.0
