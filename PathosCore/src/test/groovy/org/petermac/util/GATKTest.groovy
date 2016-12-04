@@ -22,30 +22,25 @@ class GATKTest extends GroovyTestCase
 {
     GATK gatk = null
 
-    /**
-     * TESTING Constructor
-     */
     void setUp()
     {
         gatk = new GATK()
-        assert gatk instanceof GATK
     }
 
-    /**
-     * TESTING String getBases( String locus, boolean revcomp = false )
-     * invalid case
-     */
+    // New reference genome
     void testGetBases()
     {
-        // This is a valid reference obtained from NCBI
-        println('https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.33/#/def_region-REGION108')
-        String bases = gatk.getBases("1:2448811-2448900")
-        assert bases == 'TCTACAAATGACAAGCAACTTCCTGCCAACAATGCCAGCGGCCTGTCCTGAGGGGTCCGACTAGCTTTGTGCGTGACCTCAGGTTAACTG' : "[T E S T]: gatk.getBases( 1:2448811-2448900 ) is not finding the bases "
+
+       // Fails
+        String bases = new GATK().getBases( 'gi|428186265|gb|JH992965.1|:100-140' )	//'5:100000-100040'
+
+        assert bases == 'GCTGCATCTTCGATGACTGCTGACAGCTCGCTGACGAGCTG'
+
+        bases = gatk.getBases( 'gi|428186265|gb|JH992965.1|:500-540' )
+        assert bases == 'CGATAGACGTGTTGCCGCCGTTGCACAGCCCCTCCATCTCC'
     }
 
-    /**
-     * TESTING  int validateVcf( String vcffile )
-     */
+    // New reference genome
     void testValidateVcf()
     {
 
@@ -56,7 +51,7 @@ class GATKTest extends GroovyTestCase
         String basePath = new File(GATKTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())
 
         int ret = gatk.validateVcf( basePath )
-        assert ret == -1 : "Value  gatk.validateVcf( path ) is different from -1"
+        assert ret == -1// 0
 
         //  VCF with error
         file = "err"
@@ -64,7 +59,8 @@ class GATKTest extends GroovyTestCase
         println basePath
         ret = gatk.validateVcf( basePath )
 
-        assert ret != 0 : "[T E S T]: Value gatk.validateVcf( basePath ) is 0"
+        assert ret != 0
+
 
     }
 

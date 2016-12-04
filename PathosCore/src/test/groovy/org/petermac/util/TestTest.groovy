@@ -17,15 +17,15 @@ class TestTest extends GroovyTestCase
     void testIN()
     {
         println "IN"
-        assert true: "This is really interesting, something in GroovyTestCase is failing"
+        assert true
     }
 
     void testDummy()
     {
         String s = "xxxx URL"
 
-        assert s.contains('URL') : "String function is BAD"
-        assert s.endsWith('URL') : "String function is BAD"
+        assert s.contains('URL')
+        assert s.endsWith('URL')
 
     }
 
@@ -35,7 +35,7 @@ class TestTest extends GroovyTestCase
         def sdf = new SimpleDateFormat("yyMMdd")
         Date runDate = sdf.parse(seqdate[0..5])
 
-        assert runDate.toString() =~ /Tue Dec 31 00:00:00 .* 2013/ :"To String command is not working"
+        assert runDate.toString() =~ /Tue Dec 31 00:00:00 .* 2013/
     }
 
     void testParseInsilico()
@@ -45,9 +45,9 @@ class TestTest extends GroovyTestCase
         def m = ( t as String =~ /(\w+)\(([\d\.]+)\)/ )
         log.info( "${t} ${m}")
 
-        assert m.count == 1 : "m = ( t as String =~ /(\\w+)\\(([\\d\\.]+)\\)/ ).count() fails"
-        assert m[0][2] == '0.57' : "m[0][2] has adifferent value"
-        assert m[0][1] == 'possibly_damaging': "m[0][1] has a different value"
+        assert m.count == 1
+        assert m[0][2] == '0.57'
+        assert m[0][1] == 'possibly_damaging'
     }
 
     //TODO: New updates in the DB system do not require this

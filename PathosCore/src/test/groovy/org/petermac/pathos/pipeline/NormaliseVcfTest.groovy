@@ -29,7 +29,7 @@ class NormaliseVcfTest extends GroovyTestCase
 
         DB = env["PATHOS_DATABASE"]
         if(DB == null)
-            DB = "pa_uat"
+            DB = "pa_local"
 
     }
 
@@ -50,8 +50,8 @@ class NormaliseVcfTest extends GroovyTestCase
     void testNormaliseVcf14() { assert testRunNorm("Vcf/NormaliseVcf","test14","vcf", noCache) }
     void testNormaliseVcf15() { assert testRunNorm("Vcf/NormaliseVcf","test15","vcf", noCache) }
     void testNormaliseVcf16() { assert testRunNorm("Vcf/NormaliseVcf","test16","vcf", noCache) }
-    //void testNormaliseVcfGeneral() { assert testRunNorm("Vcf/NormaliseVcf","testGeneral","vcf", noCache) }
-    //void testNormaliseVcfSuper() { assert testRunNorm("Vcf/NormaliseVcf","testSuper","vcf", noCache) }
+    void testNormaliseVcfGeneral() { assert testRunNorm("Vcf/NormaliseVcf","testGeneral","vcf", noCache) }
+    void testNormaliseVcfSuper() { assert testRunNorm("Vcf/NormaliseVcf","testSuper","vcf", noCache) }
 
     //  Test case of two equivalent variants to be merged and both being renamed from INS to DUP
     //

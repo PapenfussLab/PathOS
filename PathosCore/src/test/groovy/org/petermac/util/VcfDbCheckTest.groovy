@@ -11,7 +11,6 @@ class VcfDbCheckTest extends GroovyTestCase
 
     String DB
 
-    //TODO we need more tests and asserts in here
     void setUp()
     {
         def env = System.getenv()
@@ -32,8 +31,8 @@ class VcfDbCheckTest extends GroovyTestCase
         String file = "tumour"
         String extension ="vcf"
 
-        String seqrun = '12K0304_CCCAACCT-TAAGACA'
-        String sample = '12K0304'
+        String seqrun = '150217_SN1055_0250_AC66EMACXX'
+        String sample = '12M9931'
         String dbname = DB
 
         def vcfFiles = []

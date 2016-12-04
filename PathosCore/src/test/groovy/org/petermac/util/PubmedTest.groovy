@@ -24,7 +24,7 @@ class PubmedTest extends GroovyTestCase
     {
         Pubmed pm = new Pubmed()
 
-        assert pm.ping(): "This is returning false"
+        assert pm.ping()
     }
 
     void testArticle()
@@ -33,7 +33,7 @@ class PubmedTest extends GroovyTestCase
 
         assert pm.fetchArticle( '26370340' ).pmid == '26370340'
         Map art = pm.fetchArticle( 'pmID:26370340' )
-        assert art.pmid == '26370340' : "pm.fetchArticle( 'pmID:26370340' ) does not exist"
+        assert art.pmid == '26370340'
 
         assert art.journal == 'The Lancet. Oncology'
 
@@ -48,11 +48,11 @@ class PubmedTest extends GroovyTestCase
 
         assert pm.fetchArticle( '12114654' ).pmid == '12114654'
         Map art = pm.fetchArticle( 'pmID:12114654' )
-        assert art.pmid == '12114654': " pm.fetchArticle( 'pmID:12114654' ) does not exist"
+        assert art.pmid == '12114654'
 
-        assert art.title == 'Expression of Hepatocyte Growth Factor (HGF) and its Receptor (MET) in Medullary Carcinoma of the Thyroid.' : "Title does not exist"
+        assert art.title == 'Expression of Hepatocyte Growth Factor (HGF) and its Receptor (MET) in Medullary Carcinoma of the Thyroid.'
 
-        assert art.date == '2002-01-12':"Date is invalid"
+        assert art.date == '2002-01-12'
 
         for( attr in art)
             println "${attr.key}\t\t${attr.value}"
@@ -63,7 +63,7 @@ class PubmedTest extends GroovyTestCase
         Pubmed pm = new Pubmed()
 
         Map art = pm.fetchArticle( 'rubbish' )
-        assert art == [:] :" pm.fetchArticle( 'rubbish' ) is returning something"
+        assert art == [:]
     }
 
     void testAbstract()

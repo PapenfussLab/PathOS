@@ -5,9 +5,6 @@ package org.petermac.util
  */
 class ExtractorTest extends GroovyTestCase {
 
-    /**
-     * TESTING static String wordToText( File wf )
-     */
     void testWordToText()
     {
         String resource = "Word"
@@ -16,13 +13,10 @@ class ExtractorTest extends GroovyTestCase {
 
         def doc =   PathGeneratorFile( resource,  file, extension)
         def ext = new Extractor()
-        assert ext.wordToText(doc) instanceof String :"[T E S T]: This is not an instance of string"
+        assert ext.wordToText(doc) instanceof String
 
     }
 
-    /**
-     * TESTING  private static int extractWord( List<File> inws, String rdb, File ofile, File tfile )
-     */
     void testExtractWord()
     {
         String resource = "Word"
@@ -42,23 +36,31 @@ class ExtractorTest extends GroovyTestCase {
         File postOfile = new File("${srcPath}/ofile")
         File postTfile = new File("${srcPath}/tfile")
         print postOfile
-        assert postOfile.exists() &&  postTfile.exists() : "[T E S T]: Files ${postOfile} and ${postTfile} don't exist! "
+        assert postOfile.exists() &&  postTfile.exists()
     }
 
-    /**
-     * TESTING  private static boolean mutAdd( String gene, String mut )
-     *
-     */
+
     void testAddMethods()
     {
         def ext = new Extractor()
-        String gene = "RAS"
-        String mut =  "p.c.1940A>T, p.Asn647Ile"
-        assert ext.mutAdd( gene, mut): "[T E S T]: gene, ${gene} or mut ${mut} is not in format (gene='word', mut=p.c.1940A>T, p.Asn647Ile)"
-        mut = "p.c.1940A>T"
-        assert ext.mutAdd( gene, mut): "[T E S T]: gene, ${gene} or mut ${mut} is not in format (gene='word', mut=p.c.1940A>T, p.Asn647Ile)"
+        String gene = "c.1940A>T"
+        String mut =  "p.Asn647Ile"
+        ext.mutAdd( gene, mut)
+
+
     }
 
+//    // Requires Word Files
+//    void testGetReportMap()
+//    {
+//        assert false
+//    }
+//
+//    //Requires word files
+//    void testSetReportMap()
+//    {
+//        assert false
+//    }
 
     File PathGeneratorFile(String resource, String file,String extension )
     {

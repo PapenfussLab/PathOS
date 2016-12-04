@@ -5,7 +5,7 @@ package org.petermac.util
  */
 class VcfCompareTest extends GroovyTestCase
 {
-    //TODO we need more testing in this
+
     void testCompare()
     {
 
@@ -24,7 +24,7 @@ class VcfCompareTest extends GroovyTestCase
         def out =  vcfComp.runVcfCompare( vcfA, vcfB )
 
 
-        assert out.tp == 18 && out.fp == 0 && out.fn == 0 :"vcfComp.runVcfCompare( vcfA, vcfB ) is failing or values are not as expected"
+        assert out.tp == 18 && out.fp == 0 && out.fn == 0
 
         file = "tumour"
         vcfA = new File(VcfCompareTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())

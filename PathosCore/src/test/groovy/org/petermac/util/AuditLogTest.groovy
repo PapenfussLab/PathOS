@@ -5,91 +5,80 @@ package org.petermac.util
  */
 class AuditLogTest extends GroovyTestCase
 {
-    /**
-        Test loading class Audit
-    */
-    void testAuditLogConstructor()
-    {
-        def au = new AuditLog()
-        assert au instanceof AuditLog:"[T E S T]: cannot load class AuditLog()"
-    }
-
-    /**
-        Failing proving an invalid constructor
-    */
-    void testFailLoaAudit()
-    {
-        def Error = shouldFail GroovyRuntimeException, {  new AuditLog("d") }
-        assert Error.contains("Could not find matching constructor for") : "[T E S T]: Class is loading with an invalid constructor parameter, new AuditLog(\"d\")  "
-    }
-
-    /**
-        Testing  AuditLog.logAudit( File out, String category, String task, Map params)
-
-        Test the creation writing of ./src/test/resources/Audit_TEST.txt
-        This test will assert 3 main tasks,
-        1) The creation of the file and writing 5 lines of elements.
-        2) Checking the number of columns.
-        3) Checking if the file got deleted.
-     */
     void testLogAudit()
     {
-
-        def params = ['seqrun':'ACTG','variant':'VAR', 'sample':'SAMPLE', 'complete':'', 'elapsed':'25', 'software':'PathOS','version':'2.0','username':'luis lara', 'description':'DESCRIPTION' ]
-        File TestFile = new File("src/test/resources/Audit_TEST.txt")
-
-        AuditLog.logAudit( TestFile, "pipeline", "sequence",  params)
-        AuditLog.logAudit( TestFile, "lims", "sequence",  params)
-        AuditLog.logAudit( TestFile, "record", "sequence",  params)
-        AuditLog.logAudit( TestFile, "curation", "sequence",  params)
-        AuditLog.logAudit( TestFile, "database", "sequence",  params)
-
-        def Data = TestFile.text
-        def lines = Data.tokenize('\n')
-        def columns = lines[0].tokenize('\t')
-
-
-        assert lines.size() == 5 : "[T E S T] assert 1/3: src/test/resources/Audit_TEST.txt file does not contain 5 lines"
-        assert columns.size() == 11 : "[T E S T] assert 2/3: src/test/resources/Audit_TEST.txt file does not contain 11 columns"
-
-        def Removed_File = TestFile.delete()
-        assert Removed_File : "[T E S T] assert 3/3: src/test/resources/Audit_TEST.txt cannot be deleted"
+        def au = new AuditLog()
 
     }
 
-    /**
-        Test Failure by invalid input argument
-     */
-    void testFailLogAudit_Date()
+    void testParams()
     {
 
-        File TestFile = new File("src/test/resources/Audit_TEST.txt")
-        def param = ['seqrun':'ACTG','variant':'VAR', 'sample':'SAMPLE', 'complete':'2016-01-01 00:01:01', 'elapsed':'25', 'software':'PathOS','version':'2.0','username':'luis lara', 'description':'DESCRIPTION' ]
+        // How can I test the time?
+        def params = ['seqrun':'ACTG','variant':'VAR', 'sample':'SAMPLE', 'complete':'', 'elapsed':'25', 'software':'PathOS','version':'2.0','username':'luis lara', 'description':'DESCRIPTION' ]
+        File f = new File("Audit.txt")
 
-        def Error = shouldFail IllegalArgumentException, { AuditLog.logAudit( TestFile, "database", "dbmerge",  param) }
-        assert Error.contains( "Cannot format given Object as a Date") : "[T E S T] assert 2/2: Generated type of error is giving a different comment than,  Cannot format given Object as a Date"
+        AuditLog.logAudit( f, "pipeline", "sequence",  params)
+        AuditLog.logAudit( f, "lims", "sequence",  params)
+        AuditLog.logAudit( f, "record", "sequence",  params)
+        AuditLog.logAudit( f, "curation", "sequence",  params)
+        AuditLog.logAudit( f, "database", "sequence",  params)
+
+        AuditLog.logAudit( f, "pipeline", "align",  params)
+        AuditLog.logAudit( f, "lims", "align",  params)
+        AuditLog.logAudit( f, "record", "align",  params)
+        AuditLog.logAudit( f, "curation", "align",  params)
+        AuditLog.logAudit( f, "database", "align",  params)
+
+        AuditLog.logAudit( f, "pipeline", "annotate",  params)
+        AuditLog.logAudit( f, "lims", "annotate",  params)
+        AuditLog.logAudit( f, "record", "annotate",  params)
+        AuditLog.logAudit( f, "curation", "annotate",  params)
+        AuditLog.logAudit( f, "database", "annotate",  params)
+
+        AuditLog.logAudit( f, "pipeline", "register",  params)
+        AuditLog.logAudit( f, "lims", "register",  params)
+        AuditLog.logAudit( f, "record", "register",  params)
+        AuditLog.logAudit( f, "curation", "register",  params)
+        AuditLog.logAudit( f, "database", "register",  params)
+
+        AuditLog.logAudit( f, "pipeline", "report",  params)
+        AuditLog.logAudit( f, "lims", "report",  params)
+        AuditLog.logAudit( f, "record", "report",  params)
+        AuditLog.logAudit( f, "curation", "report",  params)
+        AuditLog.logAudit( f, "database", "report",  params)
+
+        AuditLog.logAudit( f, "pipeline", "dbload",  params)
+        AuditLog.logAudit( f, "lims", "dbload",  params)
+        AuditLog.logAudit( f, "record", "dbload",  params)
+        AuditLog.logAudit( f, "curation", "dbload",  params)
+        AuditLog.logAudit( f, "database", "dbload",  params)
+
+        AuditLog.logAudit( f, "pipeline", "dbmerge",  params)
+        AuditLog.logAudit( f, "lims", "dbmerge",  params)
+        AuditLog.logAudit( f, "record", "dbmerge",  params)
+        AuditLog.logAudit( f, "curation", "dbmerge",  params)
+        AuditLog.logAudit( f, "database", "dbmerge",  params)
 
     }
 
-
-    /**
-        Testing provide input arguments that do no get logged.
-     */
-    void testWarningMessages()
+    void testLogError()
     {
-        File TestFile = new File("src/test/resources/Audit_TEST.txt")
+        //TODO:
+        //This will break the code, 'complete':'2016-01-01 00:01:01'
+      //  param = ['seqrun':'ACTG','variant':'VAR', 'sample':'SAMPLE', 'complete':'2016-01-01 00:01:01', 'elapsed':'25', 'software':'PathOS','version':'2.0','username':'luis lara', 'description':'DESCRIPTION' ]
+       // println AuditLog.logAudit( f, "database", "dbmerge",  param)
+
         def params = ['seqrun':'ACTG','variant':'VAR', 'sample':'SAMPLE', 'complete':'', 'elapsed':'25', 'software':'PathOS','version':'2.0','username':'luis lara', 'description':'DESCRIPTION' ]
-        AuditLog.logAudit( TestFile, "", "dbmerge",  params)
-        AuditLog.logAudit( TestFile, "database", "",  params)
-        AuditLog.logAudit( TestFile, "", "",  params)
-        AuditLog.logAudit( TestFile, "TEST", "dbmerge",  params)
-        AuditLog.logAudit( TestFile, "", "TEST",  params)
-        AuditLog.logAudit( TestFile, "TEST", "TEST",  params)
+        File f = new File("Audit.txt")
 
-        println("[T E S T]: 6 Warning messages should be printed")
-
-        assert TestFile.delete() == false : "[T E S T]: Failed in breaking the test and a log File was created"
-
+        //This following should display an error but not break the code
+        AuditLog.logAudit( f, "", "dbmerge",  params)
+        AuditLog.logAudit( f, "database", "",  params)
+        AuditLog.logAudit( f, "", "",  params)
+        AuditLog.logAudit( f, "TEST", "dbmerge",  params)
+        AuditLog.logAudit( f, "", "TEST",  params)
+        AuditLog.logAudit( f, "TEST", "TEST",  params)
     }
 
 

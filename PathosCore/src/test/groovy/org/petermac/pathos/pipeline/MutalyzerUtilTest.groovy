@@ -56,7 +56,7 @@ class MutalyzerUtilTest extends GroovyTestCase
         def mutUt = new MutalyzerUtil()
 
        // assert
-        println mutUt.convertVcf(infile, ofile, cacheDB, false, null ) == 52
+        println mutUt.convertVcf(infile, ofile, cacheDB, false) == 52
 
 
     }

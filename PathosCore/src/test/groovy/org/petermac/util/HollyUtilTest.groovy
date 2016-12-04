@@ -22,28 +22,22 @@ class HollyUtilTest extends GroovyTestCase
 {
     HollyUtil hu
 
-    /**
-     * TESTING Constructor
-     */
     void setUp()
     {
         hu = new HollyUtil()
-        assert hu instanceof HollyUtil : "[T E S T]: Cannot create class"
     }
 
-    /**
-     * TESTING static Map getSample( String sample )
-     */
+    // will crash, where is /pathology ?
     void testGetSample()
     {
         Map res = hu.getSample( '15K2876' )
-        assert res.sample == '15K2876' :"[T E S T ]: hu.getSample( '15K2876' ) is not working"
 
+        assert res.sample == '15K2876'
+
+        for( attr in res)
+            println "${attr.key}\t\t${attr.value}"
     }
-    /**
-     * TESTING static Map getSample( String sample )
-     * with more samples
-     */
+
     void testAll()
     {
         List<String> samples = ['14M3434',
@@ -281,16 +275,20 @@ class HollyUtilTest extends GroovyTestCase
                 '15k4377'
                 ]
 
+//        for ( sample in samples )
         for ( sample in samples )
         {
             Map res = hu.getSample( sample )
 
             if ( ! res )
             {
+                println "Sample not found " + sample
                 continue
             }
-            assert res.sample == sample : "[T E  S T]: Sample ${sample} is invalid"
+            assert res.sample == sample
 
+            for( attr in res)
+                println "${attr.key}\t\t${attr.value}"
         }
     }
 }

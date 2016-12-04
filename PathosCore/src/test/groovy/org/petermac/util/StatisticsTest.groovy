@@ -29,14 +29,14 @@ class StatisticsTest extends GroovyTestCase
 
         l = [100000,20000.2345,30000.22222]
 
-        assert 50000.153 == Statistics.mean(l) : "Mean from Statistics.mean(l) is wrong"
+        assert 50000.153 == Statistics.mean(l)
     }
 
     void testSd()
     {
         def l = [ 1, 2, 3 ]
 
-        assert 1.0 == Statistics.stddev(l) :"Standard Deviation form Statistics.stddev(l) is wrong"
+        assert 1.0 == Statistics.stddev(l)
     }
 
     void testQueue()
@@ -48,18 +48,18 @@ class StatisticsTest extends GroovyTestCase
         q << 2
         q << 3
 
-        assert 1.0 == Statistics.stddev(q): "Standard Deviation from Statistics.stddev(q) is wrong "
+        assert 1.0 == Statistics.stddev(q)
     }
 
     void testCI()
     {
         def l = [ 1, 2, 3 ]
-        assert Statistics.confidenceInterval(0.0, 1.0) == "-1.0..1.0" : "Confidence interval from Statistics.confidenceInterval(0.0, 1.0)  is wrong"
+        assert Statistics.confidenceInterval(0.0, 1.0) == "-1.0..1.0"
     }
 
     void testStats()
     {
-        assert Statistics.stats([ 1, 2, 3 ]) == "{mean=2.0, stddev=1.0, confint=0.0..4.0}":"Summary statistics from Statistics.stats([ 1, 2, 3 ]) are wrong"
+        assert Statistics.stats([ 1, 2, 3 ]) == "{mean=2.0, stddev=1.0, confint=0.0..4.0}"
 
     }
 

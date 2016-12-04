@@ -5,7 +5,7 @@ package org.petermac.util
  */
 class HouseKeepingTest extends GroovyTestCase
 {
-    //TODO Leave this test for later, wierd perfomance
+
     String DB
 
     void setUp()
@@ -16,15 +16,14 @@ class HouseKeepingTest extends GroovyTestCase
 
     }
 
-//    void testCheckifup()
-//    {
-//        def hk = new HouseKeeping()
-//
-//       // hk.checkifup("pa_test")
-//        println(DB)
-//        hk.checkifup("pa_dev", true)
-//        //hk.checkifup("pa_reseach")
-//    }
+    void testCheckifup()
+    {
+        def hk = new HouseKeeping()
+
+        hk.checkifup("pa_test")
+        hk.checkifup("pa_uat")
+        hk.checkifup("pa_reseach")
+    }
 
     void testCheckDir()
     {

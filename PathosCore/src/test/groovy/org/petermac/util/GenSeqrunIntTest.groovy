@@ -30,7 +30,6 @@ class GenSeqrunIntTest extends GroovyTestCase
     void setUp()
     {
         vdc = new VcfDbCheck()
-        assert vdc instanceof VcfDbCheck :"[T E S T]: Fail in loading the constructor."
 
         def env = System.getenv()
 
@@ -43,10 +42,6 @@ class GenSeqrunIntTest extends GroovyTestCase
 
     }
 
-    /**
-     * TESTING   static Map runVcfCompare( File qryf, File reff )
-     * using multiple input paramters
-     */
     void testGermlineVcfCompareSample__151217_M01053_0311_000000000_AJHWD_15K5074() { vcfCompareRegressionSample( '151217_M01053_0311_000000000-AJHWD', '15K5074') }
 
     void testGermlineVcfCompareSeqrun__151217_M01053_0311_000000000_AJHWD() { vcfCompareRegressionSeqrun( '151217_M01053_0311_000000000-AJHWD') }
@@ -55,17 +50,14 @@ class GenSeqrunIntTest extends GroovyTestCase
 
     void testGermlineVcfDbCheckSeqrun__151217_M01053_0311_000000000_AJHWD() { vcfDbCheckRegressionSeqrun( '151217_M01053_0311_000000000-AJHWD') }
 
-    /**
-     * TESTING  static Map runVcfCompare( File qryf, File reff )
-     * using multiple input paramters
-     */
     void vcfCompareRegressionSeqrun( String seqrun )
     {
         String resource_EXP = "NGS/expect/${seqrun}"
 
         File expectedSeqrun = new File(GenSeqrunIntTest.getClass().getResource( "/${resource_EXP}" ).getPath())
+        println expectedSeqrun
 
-        assert expectedSeqrun.exists() : "[T E S T]: File does not exist (${expectedSeqrun})"
+        assert expectedSeqrun.exists()
 
         expectedSeqrun.eachDir
                 {
@@ -74,9 +66,8 @@ class GenSeqrunIntTest extends GroovyTestCase
                 }
     }
 
-    /**
-     * TESTING CORE of static Map runVcfCompare( File qryf, File reff )
-     */
+    //  Check expected VCF file matches actual VCF for seqrun and sample
+    //
     void vcfCompareRegressionSample( String seqrun, String sample )
     {
         String resource_ACT = "NGS/actual/${seqrun}/${sample}"
@@ -101,16 +92,15 @@ class GenSeqrunIntTest extends GroovyTestCase
         assert comp.fp == 0 : "No false positives expected ${comp}"
     }
 
-    /**
-     * TESTING CORE of static Map runVcfCompare( File qryf, File reff )
-     */
+    //  Check all sample VCFs in a seqrun match the Database
+    //
     void vcfDbCheckRegressionSeqrun( String seqrun )
     {
         String resource_ACT = "NGS/expect/${seqrun}"
 
         File expectedSeqrun = new File(GenSeqrunIntTest.getClass().getResource( "/${resource_ACT}" ).getPath())
 
-        assert expectedSeqrun.exists() : "It does not exist"
+        assert expectedSeqrun.exists()
 
         expectedSeqrun.eachDir
                 {
@@ -119,11 +109,8 @@ class GenSeqrunIntTest extends GroovyTestCase
                 }
     }
 
-    /**
-     *
-      TESTING
-     * static private int checkVcfs( def seqrun, def sample, List<File> vcfs, String rdb, File errFile, boolean ignore, boolean annotate )
-     */
+    //  Check VCF file matches Database for seqrun and sample
+    //
     void vcfDbCheckRegressionSample( String dbname, String seqrun, String sample )
     {
 
@@ -143,7 +130,8 @@ class GenSeqrunIntTest extends GroovyTestCase
 
         def nrow = vdc.checkVcfs( seqrun, sample, [expectVcf], dbname, new File('err'), true, false )
 
-        assert "rows=${nrow} vars=${vdc.totvar}"== "rows=140 vars=0" :"rows=140 vars=0 is not the output of ${nrow} and ${vdc.totvar}"
+        assert "rows=${nrow} vars=${vdc.totvar}"== "rows=140 vars=0"
 
+        //assert vdc.toterr == 0 : "Errors found between DB [${dbname}] and VCF [$expectVcf]"
     }
 }

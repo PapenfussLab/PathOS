@@ -12,9 +12,7 @@ import java.net.URLStreamHandler;
 class FileUtilTest  extends GroovyTestCase
 {
 
-    /**
-     * TESTING  static File copyUrl( String url )
-     */
+    // What do I need to provide?
     void testCpyUrl()
     {
         String resource = "Dummy"
@@ -27,13 +25,10 @@ class FileUtilTest  extends GroovyTestCase
 
         def fu = new FileUtil()
 
-        assert fu.copyUrl(furl, fname, dir).toString() == "${dir}/${fname}" : "[T E S T]: File Util names differ, ${fu.copyUrl(furl, fname, dir).toString() } and ${dir}/${fname}"
+        assert fu.copyUrl(furl, fname, dir).toString() == "${dir}/${fname}"
 
     }
 
-    /**
-     * TESTING static File copyUrl( String url )
-     */
     void testCopyUrlSingle()
     {
         String resource = "Dummy"
@@ -43,37 +38,28 @@ class FileUtilTest  extends GroovyTestCase
         def furl = "file:${PathGeneratorStr( resource,  file, extension)}"
 
         def fu = new FileUtil()
-        assert fu.copyUrl(furl).exists():"[T E S T]: File does not exist ${furl}"
+        assert fu.copyUrl(furl).exists()
 
     }
 
-    /**
-     * TESTING static File tmpFile( String prefix = 'mp_', String suffix = '.tmp' )
-     */
     void testTempfile()
     {
         def fu = new FileUtil()
-        assert fu.tmpFile( ).exists(): "[T E S T]: File does noe exist"
+        assert fu.tmpFile( ).exists()
     }
 
-    /**
-     * TESTING static File tmpFile( String prefix = 'mp_', String suffix = '.tmp' )
-     */
     void testTempfileDefined()
     {
         def fu = new FileUtil()
-        assert fu.tmpFile("mp-",".temp" ).exists(): "[T E S T]: File does not exist"
+        assert fu.tmpFile("mp-",".temp" ).exists()
     }
 
     void testTempFixedFile()
     {
         def fu = new FileUtil()
-        assert !fu.tmpFixedFile( ).exists(): "[T E S T]: File does not exist"
+        assert !fu.tmpFixedFile( ).exists()
     }
 
-    /**
-     * TRSTING static File tmpFixedFile( String path = '/tmp', String prefix = 'tmp_')
-     */
     void testTempFixedFileDefined()
     {
         String resource = "Dummy"
@@ -83,7 +69,7 @@ class FileUtilTest  extends GroovyTestCase
         String dir = new File(FileUtilTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath()).getParent()
 
         def fu = new FileUtil()
-        assert !fu.tmpFixedFile(dir, "temp_" ).exists() && fu.tmpFixedFile(dir, "temp_" ).getParent().toString() == dir :"[T E S T]: Dir does not exist"
+        assert !fu.tmpFixedFile(dir, "temp_" ).exists() && fu.tmpFixedFile(dir, "temp_" ).getParent().toString() == dir
     }
 
     String PathGeneratorStr(String resource, String file,String extension )

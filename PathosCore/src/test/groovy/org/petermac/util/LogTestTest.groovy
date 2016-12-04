@@ -5,14 +5,9 @@ package org.petermac.util
  */
 class LogTestTest extends GroovyTestCase
 {
-    /**
-     * TESTING def dosome()
-     */
     void testlogTest()
     {
         def lt = new LogTest()
-        assert lt instanceof LogTest :"[T E S T]: cannot create instance LogTests()"
         lt.dosome()
-
     }
 }
