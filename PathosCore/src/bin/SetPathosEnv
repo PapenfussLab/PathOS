@@ -39,7 +39,7 @@ fi
 
 #	Locate PathOS jar file
 
-cp=`ls -1 $PATHOS_HOME/lib/PathosCore-all-*.jar | tail -n 1`
+cp=`ls -1 $PATHOS_HOME/lib/PathosCore-all-*.jar | sort -r | head -n 1`
 if [ ! -r "$cp" ]
 then
 	echo "Couldn't find PathosCore jar file: $cp" 1>&2

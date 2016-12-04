@@ -91,7 +91,7 @@ class Vcf2Tsv
         //
         log.info("Vcf2Tsv " + args )
 
-        def nlines = vcf2Tsv( vcff, tsvf, opt.sample ?: '', opt.seqrun ?: '', opt.panel ?: '', colsf, true )
+        def nlines = vcf2Tsv( vcff, tsvf, opt.sample ?: '', opt.seqrun ?: '', opt.panel ?: '', colsf )
 
         log.info("Done, processed ${nlines} lines")
     }
@@ -102,7 +102,7 @@ class Vcf2Tsv
      * @param   opt     Parsed CLI options
      * @return          lines processed
      */
-    static Integer vcf2Tsv( File vcff, File tsvf, String sample, String seqrun, String panel, File colsf, Boolean header )
+    static Integer vcf2Tsv( File vcff, File tsvf, String sample = '', String seqrun = '', String panel = '', File colsf )
     {
         Vcf vcf = new Vcf( vcff )
         vcf.load()
@@ -116,55 +116,17 @@ class Vcf2Tsv
         //
         if ( colsf )
         {
-            //  Set column names - one per line - optionally with alias after a comma
+            //  File of column names - one per line Todo: add aliases to columns
             //
-            List    cols        = []
-            List    aliasCols   = []
-
-            setColumnNames( colsf, cols, aliasCols )
+            List cols = colsf.readLines()
 
             //  Output TSV using column list
             //
-            tsv.write( tsvf, cols, aliasCols, header )
+            tsv.write( tsvf, cols )
         }
         else
-            tsv.write( tsvf, header )       //  Output TSV
+            tsv.write( tsvf )       //  Output TSV
 
         return tsv.nrows()
-    }
-
-    /**
-     * Read in output column names with optional alias
-     *
-     * @param colsf     File of column names - one per line - with optional alias after a comma
-     * @param cols      List of column names to populate
-     * @param aliasCols List of aliases to use or column name otherwise
-     */
-    private static void setColumnNames( File colsf, List cols, List aliasCols )
-    {
-        List<String> names = colsf.readLines()
-
-        //  clean up columns and apply optional aliases
-        //
-        for ( col in names )
-        {
-            List<String> cc = col.split( /,/ )  // use comma as separator between column name and alias
-
-            //  simple column name
-            //
-            if ( cc.size() == 1)
-            {
-                cols        << col.trim()
-                aliasCols   << col.trim()
-            }
-
-            //  column has an alias
-            //
-            if ( cc.size() == 2)
-            {
-                cols        << cc[0].trim()
-                aliasCols   << cc[1].trim()
-            }
-        }
     }
 }

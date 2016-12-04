@@ -439,7 +439,7 @@ function drawAmpliconChart(data, i) {
     });
 }
 
-function changeHeatmapValues() {
+function changeHeatmapValues(heatmapTsvLoc) {
     var midval = Math.round($('#heatmapMax').val() / 2)
     var maxval = Math.round($('#heatmapMax').val())
     var minval = Math.round($('#heatmapMin').val())
@@ -450,7 +450,7 @@ function changeHeatmapValues() {
         $('#heatmap').heatmap(
                 {
                     data: {
-                        values: new jheatmap.readers.TableHeatmapReader({ url: '${heatmapTsvPath}' })
+                        values: new jheatmap.readers.TableHeatmapReader({ url: heatmapTsvLoc })
                     },
 
                     init: function(heatmap) {

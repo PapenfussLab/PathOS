@@ -10,7 +10,7 @@ create table mp_alignstats
   totreads		integer not null,
   unmapped		integer not null,
   goodamp		integer not null,
-  sample_stats          varchar(1000),
+  sample_stats          varchar(2000),
   id                    bigint(20) not null auto_increment,
   version               bigint(20) null,
   primary key (id)

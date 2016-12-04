@@ -27,15 +27,8 @@ class RelationTagLib
                     for ( rs in rel.samples )
                     {
                         if ( rs.id in shown ) continue // ignore repeat samples
-
-                        // dont display seqrun if seqrun is the same
-                        //
-                        String seqrun = ''
-                        if ( rs.seqrun.id != ss.seqrun.id )
-                        {
-                            seqrun = rs.seqrun.seqrun + ':'
-                            if ( seqrun =~ /\d{6}/ ) seqrun = rs.seqrun.seqrun.substring(0,6) + ':'  // display only date of seqrun
-                        }
+                        String seqrun = ''             // dont display if seqrun is the same
+                        if ( rs.seqrun.id != ss.seqrun.id ) seqrun = "${rs.seqrun.seqrun.substring(0,6)}:"
                         out <<  "<li>${rel.relation}: ${g.link( action: "svlist", controller: "seqVariant", id: rs.id, "${seqrun}${rs.sampleName}")} <a id='relationLink-${rs.id}' href='#none' onclick=\"addToIGV('${rs.sampleName}','${UrlLink.dataUrl(rs.seqrun.toString(),rs.sampleName)}', '${rs.id}')\">Load into IGV.js</a></li>"
                         shown << rs.id
                     }

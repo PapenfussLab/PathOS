@@ -14,8 +14,8 @@ import org.petermac.util.Locator
 
 println( "AutoLoad.etl Configuration Ver 1.2" )
 
-sqlTableDir = '/pathology/NGS/pa_prod/ETL/Tables'   //  SQL table definitions
-staticDir   = '/pathology/NGS/pa_prod/ETL/Manual'   //  Static data tables
+sqlTableDir = '@GRADLE_PATHOS_HOME@/ETL/Tables'   //  SQL table definitions
+staticDir   = '@GRADLE_PATHOS_HOME@/ETL/Manual'   //  Static data tables
 rawDir      = 'Raw'         //  Raw data from extract phase
 stagingDir  = 'Staging'     //  Staging area prior to database load
 

@@ -69,13 +69,15 @@ $(document).ready(function(){
         }
 
         if ($(window).scrollTop() > $("#results").offset().top - 40 && $('#legend').height() < $(window).height() - 50) {
-            d3.select("#legend")
-                .style("position", "fixed")
-                .style("top", "45px");
+            d3.select("#legend").style({
+                position: 'fixed',
+                top: '45px'
+            });
         } else {
-            d3.select("#legend")
-                .style("position", "absolute")
-                .style("top", "0px");
+            d3.select("#legend").style({
+                position: 'absolute',
+                top: '0px'
+            });
         }
     });
 });
@@ -108,7 +110,7 @@ var timestamp = Date.now();
 
 $.ajax('/PathOS/search/getAverageTime?'+$.param({q:PathOS.params().q}), {success: function(d){
     if(d > 0) {
-        var speed = d3.precisionRound(d/1000, 1);
+        var speed = d3.round(d/1000, 1);
         d3.select("#average_time").text("This search normally takes "+speed+" seconds. ");
     }
 }});
@@ -261,7 +263,7 @@ function buildLegend(data){
             .each(function(d){
 
                 var row = d3.select(this);
-                var showing = $(".resultbox."+d.key).length;
+                var showing = d3.selectAll(".resultbox."+d.key)[0].length;
                 row.select('.result-text .legend_showing').text(showing);
                 row.select('.result-text .legend_total').text(d.total);
 
@@ -342,11 +344,11 @@ function buildLegend(data){
                         }
                     });
 
-                right.append("span").append('a')
-                    .attr("id", "legend-show-"+d.key)
-                    .attr("href", "#none")
-                    .classed("hider", true)
-                    .text("[hide]").on('click',function(d){
+                right.append("span").append('a').attr({
+                        id: "legend-show-"+d.key,
+                        class: 'hider',
+                        href: "#none"
+                    }).text("[hide]").on('click',function(d){
                         $(".legend-box."+d.key).toggleClass("hide");
 
                         if (d3.select(".legend-box."+d.key).classed("hide")) {
@@ -379,7 +381,7 @@ function buildLegend(data){
 
 
 function updateCounts(){
-    var numberShowing = $(".resultbox:not(.hidden)").length,
+    var numberShowing = d3.selectAll(".resultbox:not(.hidden)")[0].length,
         numberOfResults = 0;
 
     d3.selectAll("#legend-boxes table tr").each(function(d){
@@ -413,9 +415,9 @@ function buildResults(data){
                 drawResultBox[d.type](div, d);
             }
 
-            var box = div.append('div')
-                    .classed("resultTagBox", true);
-
+            var box = div.append('div').attr({
+                class: "resultTagBox"
+            });
             if(d.type == "seqVariant") {
                 d.data.tags.forEach(function(tag) {
                     PathOS.tags.drawTagById(box, tag.id, false);
@@ -430,16 +432,17 @@ function buildResults(data){
 
             if($(this)[0].scrollHeight > 200) {
                 div.classed("expandable", true);
-                div.append("div")
-                    .attr("id", "expando-"+i)
-                    .classed("expando", true)
-                    .datum(d).on("click", expandResultBox)
-                .append("p")
-                    .style("color","#4478ac")
-                    .style("margin", "auto")
-                    .style("margin-top", "10px")
-                    .style("width", "1%")
-                .append("i").classed("fa fa-chevron-down fa-lg", true);
+                div.append("div").attr({
+                    class: "expando",
+                    id: "expando-"+i
+                }).datum(d).on("click", expandResultBox)
+                        .append("p").style({
+                            color: '#4478ac',
+                            margin: 'auto',
+                            'margin-top': '10px',
+                            width: '1%'
+                        })
+                        .append("i").classed("fa fa-chevron-down fa-lg", true);
             }
 
         });
@@ -471,9 +474,9 @@ drawResultBox = {
         block.append('p').text("Amplicon Count: "+ d.data.numamps);
 
         if(d.data.pubmed){
-            block.append('a')
-                .attr("href", "/PathOS/Pubmed?pmid="+d.data.pubmed)
-                .text("Pubmed: "+ d.data.pubmed);
+            block.append('a').attr({
+                href: "/PathOS/Pubmed?pmid="+d.data.pubmed
+            }).text("Pubmed: "+ d.data.pubmed);
         }
 
     },
@@ -551,14 +554,16 @@ drawResultBox = {
         });
 
         if(d.extra.seqVariants.length > 0) {
-            var box = div.append('div')
-                .style("padding", "10px")
-                .classed('block fb-box', true)
+            var box = div.append('div').style({
+                padding: '10px'
+            }).classed('block fb-box', true)
 
             box.append("h3").text("Curated Variants:")
 
             var table = box.append('table')
-                    .style("width", "600px");
+                    .style({
+                        width: '600px'
+                    });
 
             var head = table.append('thead');
             head.append('th').text('Gene');
@@ -579,15 +584,13 @@ drawResultBox = {
             }).forEach(function(d){
                 var row = body.append('tr').datum(d);
 
-                row.append('td')
-                .append('a')
-                    .attr("href", "http://www.ncbi.nlm.nih.gov/nuccore/"+ d.hgvsc.split(':')[0])
-                    .text(d.gene);
+                row.append('td').append('a').attr({
+                    href: "http://www.ncbi.nlm.nih.gov/nuccore/"+ d.hgvsc.split(':')[0]
+                }).text(d.gene)
 
-                row.append('td')
-                    .append('a')
-                    .attr("href", '/PathOS/curVariant/show/'+d.hgvsg)
-                    .text(d.hgvsg);
+                row.append('td').append('a').attr({
+                    href: '/PathOS/curVariant/show/'+d.hgvsg
+                }).text(d.hgvsg)
 
                 row.append('td').append('span').classed(d.curated.split(':')[0], true).text(d.curated);
             });
@@ -629,9 +632,10 @@ drawResultBox = {
             if(d.data.evidence[e]){
                 evidence.push(PathOS.evidence[e]);
             }
-        });
-        var link = row.append('a').attr("href", '/PathOS/evidence/edit/'+ d.result.id);
-
+        })
+        var link = row.append('a').attr({
+            href: '/PathOS/evidence/edit/'+ d.result.id
+        })
         if(evidence.length > 0) {
             link.append('h3').text("Evidence");
             link.append('p').text(evidence.join(", "));
@@ -649,22 +653,20 @@ drawResultBox = {
                 .append("div").classed("col-xs-12", true)
 
         if(d.data.reportDesc) {
-            row.append('a')
-                .attr("href", '/PathOS/curVariant/edit/'+ d.result.id)
-                .append('h3')
-                .text("Report");
+            row.append('a').attr({
+                href: '/PathOS/curVariant/edit/'+ d.result.id
+            }).append('h3').text("Report")
             row.append('p').datum(d.data.reportDesc).html(highlight);
         } else {
-            row.append('a')
-                .attr("href", '/PathOS/curVariant/edit/'+ d.result.id)
-            .append('h3')
-                .text("No report added yet");
+            row.append('a').attr({
+                href: '/PathOS/curVariant/edit/'+ d.result.id
+            }).append('h3').text("No report added yet")
         }
     },
     patSample: function(div, d){
-        var row = div.append("row").classed("row", true);
+        var row = div.append("row").classed("row", true)
         var block = row.append("div").classed("col-xs-6 block bold", true);
-        block.append("p");
+        block.append("p")
 
         <sec:ifAnyGranted roles="ROLE_DEV">
         block.append("p").text("Patient Name: ").append('a').attr("href", "/PathOS/patient/show/"+d.extra.patient.id).text("######");
@@ -714,15 +716,13 @@ drawResultBox = {
                 seqsam.forEach(function (d, i) {
                     var row = table.append('tr')
 
-                    row.append('td')
-                        .append('a')
-                        .attr("href", "/PathOS/seqVariant/svlist/" + d.id)
-                        .text(d.name);
+                    row.append('td').append('a').attr({
+                        href: "/PathOS/seqVariant/svlist/" + d.id
+                    }).text(d.name);
 
-                    row.append('td')
-                        .append('a')
-                        .attr("href", "/PathOS/seqrun/show?id=" + d.seqrun.id)
-                        .text(d.seqrun.seqrun);
+                    row.append('td').append('a').attr({
+                        href: "/PathOS/seqrun/show?id=" + d.seqrun.id
+                    }).text(d.seqrun.seqrun);
 
                     row.append('td').append('p').text(d.seqrun.runDate.split("T")[0])
 
@@ -745,9 +745,9 @@ drawResultBox = {
             var list = div.append('ul')
             d.extra.patAssays.forEach(function(d){
                 list.append('li')
-                    .append('a')
-                    .attr("href", "/PathOS/patAssay/show/"+d.id)
-                    .text(d.name);
+                        .append('a').attr({
+                    href: "/PathOS/patAssay/show/"+d.id
+                }).text(d.name)
             })
         } else {
             div.append('p').text("No Patient Assays found")
@@ -792,14 +792,16 @@ drawResultBox = {
 
         if(d.extra.seqSamples.length > 0) {
 
-            var box = div.append('div')
-                .style("padding", "10px")
-                .classed('block fb-box', true);
+            var box = div.append('div').style({
+                padding: '10px'
+            }).classed('block fb-box', true)
 
             box.append("h3").text(d.extra.seqSamples.length + " Sequenced Samples:")
 
             var table = box.append('table')
-                    .style("width", "600px");
+                    .style({
+                        width: '600px'
+                    });
 
             var head = table.append('thead');
             head.append('th').text('Sample');
@@ -817,10 +819,9 @@ drawResultBox = {
 
                 var row = body.append('tr').datum(entry);
 
-                row.append('td')
-                    .append('a')
-                    .attr("href", '/PathOS/seqVariant/svlist/'+ d.title +'/'+ entry.name)
-                    .text(entry.name);
+                row.append('td').append('a').attr({
+                    href: '/PathOS/seqVariant/svlist/'+ d.title +'/'+ entry.name
+                }).text(entry.name);
 
 
                 row.append('td').append('p').text(PathOS.date(entry.seqrun.runDate, 'full'));
@@ -862,10 +863,10 @@ function addLegendOption(option, flag, label, defaultState) {
                 flag: flag
             });
 
-    li.append("input")
-        .attr("id", "legendOption-" + flag)
-        .attr("type", "checkbox")
-    .on('change', function(){
+    li.append("input").attr({
+        id: "legendOption-" + flag,
+        type: "checkbox"
+    }).on('change', function(){
         var state = document.getElementById("legendOption-" + flag).checked;
         d3.selectAll("."+option).classed(flag, state);
         localStorage["lo-"+flag] = state ? 1 : 0;
@@ -875,9 +876,9 @@ function addLegendOption(option, flag, label, defaultState) {
     document.getElementById("legendOption-" + flag).checked = state;
 
 
-    li.append("label")
-        .attr("for", "legendOption-" + flag)
-        .text(label);
+    li.append("label").attr({
+        for: "legendOption-" + flag
+    }).text(label);
 }
 
 addLegendOption("expandable", "expanded", "Expand All", 0);
@@ -915,7 +916,7 @@ function applyOptions(){
 
             $.ajax('/PathOS/search/putTime?'+ $.param(params));
 
-            d3.select("#search_time").text("Search took " + d3.precisionRound(params.s / 1000, 1) + " seconds");
+            d3.select("#search_time").text("Search took " + d3.round(params.s / 1000, 1) + " seconds");
             $("#loading_box").remove();
         }
     }

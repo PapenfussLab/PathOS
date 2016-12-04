@@ -77,37 +77,6 @@ environments
         }
     }
 
-    pa_dev
-            {
-                dataSource
-                        {
-                            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-
-                            //  MySql parameters for DB
-                            //
-                            driverClassName = "com.mysql.jdbc.Driver"
-                            username = loc.prop.get('db.username')
-                            password = loc.prop.get('db.password')
-                            dbschema = loc.prop.get('db.schema')
-                            dbhost   = loc.prop.get('db.host')
-                            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-                            dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
-
-                            properties
-                                    {
-                                        maxActive = -1
-                                        minEvictableIdleTimeMillis=1800000
-                                        timeBetweenEvictionRunsMillis=1800000
-                                        numTestsPerEvictionRun=3
-                                        testOnBorrow=true
-                                        testWhileIdle=true
-                                        testOnReturn=true
-                                        validationQuery="SELECT 1"
-                                    }
-                        }
-            }
-
     pa_stage
     {
         dataSource

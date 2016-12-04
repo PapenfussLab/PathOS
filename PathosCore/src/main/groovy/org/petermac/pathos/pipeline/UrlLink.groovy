@@ -150,12 +150,38 @@ class UrlLink
         return dbsnpURL
     }
 
+    /**
+     * Link to PNG for CNV viewer Todo: deprecated
+     * @param seqrun
+     * @param sample
+     * @return
+     */
     static String cnvUrl( String seqrun, String sample)
     {
         def baseURL = dataUrl( seqrun, sample, "${sample}.cnv.png" )
 
         return baseURL
     }
+
+    /**
+     * Create URL for Gaffa Copy Number Browser
+     *
+     * @param version   Gaffa version cnb or gaffa
+     * @param seqrun    Seqrun
+     * @param sample    SeqSample
+     * @param panel     Capture panel
+     * @return          Formatted URL
+     */
+    static String gaffaUrl( String version, String seqrun, String sample, String panel )
+    {
+        def baseURL = loc.cnvViewerUrl
+
+        baseURL += "/${version}/?collection=${loc.samBase}&panel=${panel}&run=${seqrun}&sample=${sample}"
+
+        return baseURL
+    }
+
+
     /**
      * Link to Cosmic reference page
      *

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016 PathOS Variant Curation System. All rights reserved.
+ * Copyright (c) 2015. PathOS Variant Curation System. All rights reserved.
  *
- * Organisation:    Peter MacCallum Cancer Centre
- * Author:          Kenneth Doig
+ * Organisation: Peter MacCallum Cancer Centre
+ * Author: doig ken
  */
 
 /**
@@ -221,10 +221,12 @@ mp_mergeVcfPM =
 
         //  Loop through VCF paths and extract variant caller
         //
+        def varcalls = []
         def vcfp = vcfs.find{ it =~ /Primal/ }
         def vcfc = vcfs.find{ it =~ /Canary/ }
+//        if ( ! vcfp || ! vcfc ) succeed( "Need 2 Variant callers for mp_mergeVcfPM" )
 
-        //  Merge VCFs using VcfMerge
+        //  Marge VCFs using VcfMerge
         //
         produce( "${SAMPLE}.merge.vcf" )
         {
@@ -238,11 +240,7 @@ mp_mergeVcfPM =
             }
             else
             {
-                exec    """
-                        canLabel=`Canary --version`;
-                        prmLabel='Primal 1.0';
-                        ${MP_PATHOS_HOME}/bin/VcfMerge --output $output --labels '\${prmLabel},\${canLabel}' ${vcfp} ${vcfc}
-                        """
+                exec "${MP_PATHOS_HOME}/bin/VcfMerge --output $output --labels Primal,Canary ${vcfp} ${vcfc}"
             }
         }
     }

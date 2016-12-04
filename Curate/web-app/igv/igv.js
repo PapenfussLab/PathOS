@@ -979,7 +979,7 @@ var igv = (function (igv) {
                 }
             });
 
-            // Use the linear index to find the lowest chunk that could contain alignments in the region
+            // Use the linear index to find the lowest block that could contain alignments in the region
             nintv = ba.linearIndex.length;
             lowest = null;
             minLin = Math.min(min >> 14, nintv - 1), maxLin = Math.min(max >> 14, nintv - 1);
@@ -993,12 +993,12 @@ var igv = (function (igv) {
                 }
             }
 
-            // Prune chunks that end before the lowest chunk
+            // Prune chunks that end before the lowest block
             prunedOtherChunks = [];
             if (lowest != null) {
                 for (i = 0; i < otherChunks.length; ++i) {
                     chnk = otherChunks[i];
-                    if (chnk.maxv.block > lowest.block || (chnk.maxv.block == lowest.block && chnk.maxv.offset >= lowest.offset)) {
+                    if (chnk.maxv.block >= lowest.block && chnk.maxv.offset >= lowest.offset) {
                         prunedOtherChunks.push(chnk);
                     }
                 }
@@ -1161,7 +1161,7 @@ var igv = (function (igv) {
                             promises.push(new Promise(function (fulfill, reject) {
 
                                 var fetchMin = c.minv.block,
-                                    fetchMax = c.maxv.block + MAX_GZIP_BLOCK_SIZE,   // Make sure we get the whole block.
+                                    fetchMax = c.maxv.block + 65000,   // Make sure we get the whole block.
                                     range = {start: fetchMin, size: fetchMax - fetchMin + 1};
 
                                 igvxhr.loadArrayBuffer(self.bamPath,
@@ -4323,11 +4323,11 @@ var igv = (function (igv) {
             block = byte6 + byte5 + byte4 + byte3 + byte2;
         this.position += 8;
 
- //       if (block == 0 && offset == 0) {
- //           return null;
- //       } else {
+        if (block == 0 && offset == 0) {
+            return null;
+        } else {
             return new VPointer(block, offset);
- //       }
+        }
     }
 
 
@@ -4737,10 +4737,6 @@ var igv = (function (igv) {
 
         this.updateLocusSearch(this.referenceFrame);
 
-        if (this.centerGuide) {
-            this.centerGuide.repaint();
-        }
-
         if (this.ideoPanel) {
             this.ideoPanel.repaint();
         }
@@ -4815,12 +4811,12 @@ var igv = (function (igv) {
 
     };
 
-    igv.Browser.prototype.trackViewportWidthBP = function () {
-        return this.referenceFrame.bpPerPixel * this.trackViewportWidth();
+    igv.Browser.prototype.pixelPerBasepairThreshold = function () {
+        return 14.0;
     };
 
-    igv.Browser.prototype.minimumBasesExtent = function () {
-        return 40;
+    igv.Browser.prototype.trackViewportWidthBP = function () {
+        return this.referenceFrame.bpPerPixel * this.trackViewportWidth();
     };
 
     igv.Browser.prototype.removeAllTracks = function () {
@@ -4838,54 +4834,45 @@ var igv = (function (igv) {
 
     igv.Browser.prototype.goto = function (chr, start, end) {
 
+        var chromosome,
+            viewportWidthPixel = this.trackViewportWidth(),
+            maxBpPerPixel;
+
         if (typeof this.gotocallback != "undefined") {
             //console.log("Got chr="+chr+", start="+start+", end="+end+", also using callback "+this.gotocallback);
             this.gotocallback(chr, start, end);
         }
 
-        var w,
-            chromosome,
-            viewportWidth = this.trackViewportWidth();
-
         if (igv.popover) {
             igv.popover.hide();
         }
 
-        // Translate chr to official name
         if (this.genome) {
             chr = this.genome.getChromosomeName(chr);
         }
 
         this.referenceFrame.chr = chr;
-
-        // If end is undefined,  interpret start as the new center, otherwise compute scale.
-        if (!end) {
-            w = Math.round(viewportWidth * this.referenceFrame.bpPerPixel / 2);
-            start = Math.max(0, start - w);
-        }
-        else {
-            this.referenceFrame.bpPerPixel = (end - start) / (viewportWidth);
-        }
+        this.referenceFrame.bpPerPixel = (end - start) / (viewportWidthPixel);
 
         if (this.genome) {
+
             chromosome = this.genome.getChromosome(this.referenceFrame.chr);
             if (!chromosome) {
-                if (console && console.log) console.log("Could not find chromsome " + this.referenceFrame.chr);
-            }
-            else {
-                if (!chromosome.bpLength) chromosome.bpLength = 1;
+                console.log("Could not find chromsome " + this.referenceFrame.chr);
+            } else {
 
-                var maxBpPerPixel = chromosome.bpLength / viewportWidth;
-                if (this.referenceFrame.bpPerPixel > maxBpPerPixel) this.referenceFrame.bpPerPixel = maxBpPerPixel;
-
-                if (!end) {
-                    end = start + viewportWidth * this.referenceFrame.bpPerPixel;
+                if (!chromosome.bpLength) {
+                    chromosome.bpLength = 1;
                 }
 
-                if (chromosome && end > chromosome.bpLength) {
-                    start -= (end - chromosome.bpLength);
+                maxBpPerPixel = chromosome.bpLength / viewportWidthPixel;
+                if (this.referenceFrame.bpPerPixel > maxBpPerPixel) {
+                    this.referenceFrame.bpPerPixel = maxBpPerPixel;
                 }
             }
+
+        } else {
+            console.log('browser. no genome.');
         }
 
         this.referenceFrame.start = start;
@@ -4894,7 +4881,7 @@ var igv = (function (igv) {
 
     };
 
-    // Zoom in by a factor of 2, keeping the same center location
+// Zoom in by a factor of 2, keeping the same center location
     igv.Browser.prototype.zoomIn = function () {
 
         if (this.loadInProgress()) {
@@ -4902,36 +4889,25 @@ var igv = (function (igv) {
             return;
         }
 
-        var centerBP;
+        var newScale,
+            center,
+            viewportWidth;
 
-        console.log('browser.zoomIn - src extent ' + basesExtent(this.trackViewportWidth(), this.referenceFrame.bpPerPixel));
+        viewportWidth = this.trackViewportWidth();
 
-        // Have we reached the zoom-in threshold yet? If so, bail.
-        if (this.minimumBasesExtent() > basesExtent(this.trackViewportWidth(), this.referenceFrame.bpPerPixel/2.0)) {
-            console.log('browser.zoomIn - dst extent ' + basesExtent(this.trackViewportWidth(), this.referenceFrame.bpPerPixel/2.0) + ' bailing ...');
+        newScale = Math.max(1.0 / this.pixelPerBasepairThreshold(), this.referenceFrame.bpPerPixel / 2);
+        if (newScale === this.referenceFrame.bpPerPixel) {
+            //console.log("zoom in bail bpp " + newScale + " width " + (viewportWidth/14.0));
             return;
-        } else {
-            console.log('browser.zoomIn - dst extent ' + basesExtent(this.trackViewportWidth(), this.referenceFrame.bpPerPixel/2.0));
         }
 
-        // window center (base-pair units)
-        centerBP = this.referenceFrame.start + this.referenceFrame.bpPerPixel * (this.trackViewportWidth()/2);
-
-        // derive scaled (zoomed in) start location (base-pair units) by multiplying half-width by halve'd bases-per-pixel
-        // which results in base-pair units
-        this.referenceFrame.start = centerBP - (this.trackViewportWidth()/2) * (this.referenceFrame.bpPerPixel/2.0);
-
-        // halve the bases-per-pixel
-        this.referenceFrame.bpPerPixel /= 2.0;
-
+        center = this.referenceFrame.start + this.referenceFrame.bpPerPixel * viewportWidth / 2;
+        this.referenceFrame.start = center - newScale * viewportWidth / 2;
+        this.referenceFrame.bpPerPixel = newScale;
         this.update();
-
-        function basesExtent(width, bpp) {
-            return Math.floor(width * bpp);
-        }
     };
 
-    // Zoom out by a factor of 2, keeping the same center location if possible
+// Zoom out by a factor of 2, keeping the same center location if possible
     igv.Browser.prototype.zoomOut = function () {
 
         if (this.loadInProgress()) {
@@ -5066,95 +5042,89 @@ var igv = (function (igv) {
 
     function gotoLocusFeature(locusFeature, genome, browser) {
 
+
+        // the mimimum extent of a chromosome locus
+        const bpMinimumWindow = 40;
+
         var type,
             tokens,
-            chr,
+            chrom,
             start,
             end,
-            chrName,
+            chr,
             startEnd,
-            center,
-            obj;
-
+            center;
 
         type = 'locus';
         tokens = locusFeature.split(":");
-        chrName = genome.getChromosomeName(tokens[ 0 ]);
-        if (chrName) {
-            chr = genome.getChromosome(chrName);
-        }
+        chr = genome.getChromosomeName(tokens[ 0 ]);
+        chrom = genome.getChromosome(1 === tokens.length ? locusFeature : chr);
 
-        if (chr) {
+        if (chrom) {
 
             // returning undefined indicates locus is a chromosome name.
-            start = end = undefined;
-            if (1 === tokens.length) {
-                start = 0;
-                end = chr.bpLength;
-            } else {
-                startEnd = tokens[ 1 ].split("-");
-                start = Math.max(0, parseInt(startEnd[ 0 ].replace(/,/g, "")) - 1);
-                if (2 === startEnd.length) {
-                    end = Math.min(chr.bpLength, parseInt(startEnd[ 1 ].replace(/,/g, "")));
-                    if (end < 0) {
-                        // This can happen from integer overflow
-                        end = chr.bpLength;
-                    }
+            startEnd = (tokens.length > 1) ? tokens[ 1 ].split("-") : undefined;
+
+            // if we have a chromosome name start is 0. Otherwise parse it out.
+            start = (undefined === startEnd) ? 0 : Math.max(0, parseInt(startEnd[ 0 ].replace(/,/g, "")) - 1);
+
+            if (startEnd && 2 === startEnd.length) {
+
+                // if we have a start AND end value
+                end = Math.min(chrom.bpLength, parseInt(startEnd[ 1 ].replace(/,/g, "")));
+
+                if (end < 0) {
+                    // This can happen from integer overflow
+                    end = chrom.bpLength;
                 }
+
+            } else if (startEnd && 1 === startEnd.length) {
+                // if we have only a start value set end to undefined and deal with it later
+                end = undefined;
+            } else {
+
+                // we have a chromosome name
+                end = chrom.bpLength
             }
 
-            obj = { start: start, end: end };
-            validateLocusExtent(igv.browser, chr, obj);
-            start = obj.start;
-            end = obj.end;
+            if (undefined === end) {
 
+                // set start and end and clamp for the case when locusFeature includes
+                // only a start value.
+                start -= bpMinimumWindow/2;
+                end = start + bpMinimumWindow;
+
+                if (end > chrom.bpLength) {
+                    end = chrom.bpLength;
+                    start = end - bpMinimumWindow;
+                }
+
+            } else if (end - start < bpMinimumWindow) {
+
+                // if the featurelocus range falls below the acceptable threshold (bpMinimumWindow) inflate an clamp
+                // appropriately
+                center = (end + start)/2;
+                if (center - bpMinimumWindow/2 < 0) {
+                    start = 0;
+                    end = start + bpMinimumWindow;
+                } else if (center + bpMinimumWindow/2 > chrom.bpLength) {
+                    end = chrom.bpLength;
+                    start = end - bpMinimumWindow;
+                } else {
+                    start = center - bpMinimumWindow/2;
+                    end = start + bpMinimumWindow;
+                }
+            }
         }
 
-        if (undefined === chr || isNaN(start) || (start > end)) {
+        if (undefined === chrom || isNaN(start) || (start > end)) {
             igv.presentAlert("Unrecognized feature or locus: " + locusFeature);
             return false;
+            // browser.updateLocusSearch(browser.referenceFrame);
         }
 
-        browser.goto(chrName, start, end);
+        browser.goto(chr, start, end);
         fireOnsearch.call(igv.browser, locusFeature, type);
-
-        function validateLocusExtent(browser, chromosome, extent) {
-
-            var ss = extent.start,
-                ee = extent.end,
-                locusExtent = ee - ss;
-
-            if (undefined === ee) {
-
-                ss -= igv.browser.minimumBasesExtent()/2;
-                ee = ss + igv.browser.minimumBasesExtent();
-
-                if (ee > chromosome.bpLength) {
-                    ee = chromosome.bpLength;
-                    ss = ee - igv.browser.minimumBasesExtent();
-                } else if (ss < 0) {
-                    ss = 0;
-                    ee = igv.browser.minimumBasesExtent();
-                }
-
-            } else if (ee - ss < igv.browser.minimumBasesExtent()) {
-
-                center = (ee + ss)/2;
-                if (center - igv.browser.minimumBasesExtent()/2 < 0) {
-                    ss = 0;
-                    ee = ss + igv.browser.minimumBasesExtent();
-                } else if (center + igv.browser.minimumBasesExtent()/2 > chromosome.bpLength) {
-                    ee = chromosome.bpLength;
-                    ss = ee - igv.browser.minimumBasesExtent();
-                } else {
-                    ss = center - igv.browser.minimumBasesExtent()/2;
-                    ee = ss + igv.browser.minimumBasesExtent();
-                }
-            }
-
-            extent.start = Math.ceil(ss);
-            extent.end = Math.floor(ee);
-        }
 
         return true;
     }
@@ -5270,6 +5240,7 @@ var igv = (function (igv) {
         var isRulerTrack = false,
             isMouseDown = false,
             isDragging = false,
+            anchorVerticalLine = igv.browser.config.showGuideLine === 'center',
             lastMouseX = undefined,
             mouseDownX = undefined;
 
@@ -5292,18 +5263,16 @@ var igv = (function (igv) {
             mouseDownX = lastMouseX;
         });
 
-        // Guide line is bound within track area, and offset by 5 pixels so as not to interfere mouse clicks.
-        $(trackContainerDiv).mousemove(function (e) {
-            var xy,
-                _left,
-                $element = igv.browser.$cursorTrackingGuide;
-
-            xy = igv.translateMouseCoordinates(e, trackContainerDiv);
-            _left = Math.max(50, xy.x - 5);
-
-            _left = Math.min(igv.browser.trackContainerDiv.clientWidth - 65, _left);
-            $element.css({ left: _left + 'px' });
-        });
+        // Guide line should follow the mouse unless anchored to center, be bound within the track area, and offset
+        // by 5 pixels so as not to interfere with mouse clicks.
+        if (!anchorVerticalLine) {
+            $(trackContainerDiv).mousemove(function (e) {
+                var coords = igv.translateMouseCoordinates(e, trackContainerDiv),
+                    lineX = Math.max(50, coords.x - 5);
+                lineX = Math.min(igv.browser.trackContainerDiv.clientWidth - 65, lineX);
+                $(igv.browser.guideLineDiv).css({left: lineX + 'px'});
+            });
+        }
 
 
         $(trackContainerDiv).mousemove(igv.throttle(function (e) {
@@ -5364,14 +5333,14 @@ var igv = (function (igv) {
 
         function mouseUpOrOut(e) {
 
-            var element = igv.browser.$cursorTrackingGuide.get(0);
-
             if (isRulerTrack) {
                 return;
             }
 
             // Don't let vertical line interfere with dragging
-            if (igv.browser.$cursorTrackingGuide && e.toElement === igv.browser.$cursorTrackingGuide.get(0) && e.type === 'mouseleave') {
+            if (igv.browser.guideLineDiv
+                && e.toElement === igv.browser.guideLineDiv
+                && e.type === 'mouseleave') {
                 return;
             }
 
@@ -7459,7 +7428,7 @@ var igv = (function (igv) {
 
                         var startPos = block.minv.block,
                             startOffset = block.minv.offset,
-                            endPos = block.maxv.block + (index.tabix ? MAX_GZIP_BLOCK_SIZE : 0),
+                            endPos = block.maxv.block + (index.tabix ? MAX_GZIP_BLOCK_SIZE + 100 : 0),
                             options = {
                                 headers: self.config.headers,           // http headers, not file header
                                 range: {start: startPos, size: endPos - startPos + 1},
@@ -8508,8 +8477,7 @@ var igv = (function (igv) {
                 if (self.sourceType === 'file' && (self.visibilityWindow === undefined || self.visibilityWindow <= 0)) {
                     // Expand genomic interval to grab entire chromosome
                     genomicInterval.start = 0;
-                    var chromosome = igv.browser.genome.getChromosome(chr);
-                    genomicInterval.end = (chromosome === undefined ?  Number.MAX_VALUE : chromosome.bpLength);
+                    genomicInterval.end = Number.MAX_VALUE;
                 }
 
                 self.reader.readFeatures(chr, genomicInterval.start, genomicInterval.end).then(
@@ -14255,7 +14223,7 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
     var igvjs_version = "beta";
-    igv.version = "Peter Mac build: 9-September-2016, igv.js v1.0.3";
+    igv.version = "Peter Mac build: 31-August-2016, igv.js v1.0.2";
 
     /**
      * Create an igv.browser instance.  This object defines the public API for interacting with the genome browser.
@@ -14355,7 +14323,9 @@ var igv = (function (igv) {
         // controls
 
         if (config.showCommandBar !== false && config.showControls !== false) {
-            controlDiv = config.createControls ? config.createControls(browser, config) : createStandardControls(browser, config);
+            controlDiv = config.createControls ?
+                config.createControls(browser, config) :
+                createStandardControls(browser, config);
             $(rootDiv).append($(controlDiv));
         }
 
@@ -14366,6 +14336,13 @@ var igv = (function (igv) {
         $(contentDiv).append(headerDiv);
 
         $(contentDiv).append(trackContainerDiv);
+
+        igv.browser.guideLineDiv = $('<div class="igv-guide-line-div">')[0];
+        $(trackContainerDiv).append(igv.browser.guideLineDiv);
+        if (config.showGuideLine || config.showVerticalLine) {
+            $(igv.browser.guideLineDiv).css("display", "block");
+        }
+
 
         // user feedback
         browser.userFeedback = new igv.UserFeedback($(contentDiv));
@@ -14396,12 +14373,8 @@ var igv = (function (igv) {
         }
 
         // ideogram
-        if (config.hideIdeogram && true === config.hideIdeogram) {
-            // do nothing
-        } else {
-            browser.ideoPanel = new igv.IdeoPanel(headerDiv);
-            browser.ideoPanel.resize();
-        }
+        browser.ideoPanel = new igv.IdeoPanel(headerDiv);
+        browser.ideoPanel.resize();
 
         // phone home -- counts launches.  Count is anonymous, needed for our continued funding.  Please don't delete
         phoneHome();
@@ -14483,12 +14456,10 @@ var igv = (function (igv) {
             $searchContainer,
             $faZoom,
             $trackLabelToggle,
-            $cursorTrackingGuideToggle,
+            $guideLineToggle,
             $zoomContainer,
             $faZoomIn,
-            $faZoomOut,
-            $karyoPanelToggle,
-            display;
+            $faZoomOut;
 
         $controls = $('<div id="igvControlDiv">');
 
@@ -14551,45 +14522,35 @@ var igv = (function (igv) {
             $zoomContainer.append($faZoomIn[0]);
             $navigation.append($zoomContainer[0]);
 
-            // toggle track labels
+            // hide/show track labels
             $trackLabelToggle = $('<div class="igv-toggle-track-labels">');
             $trackLabelToggle.text("hide labels");
+
             $trackLabelToggle.click(function () {
                 browser.trackLabelsVisible = !browser.trackLabelsVisible;
                 $(this).text(true === browser.trackLabelsVisible ? "hide labels" : "show labels");
                 $(browser.trackContainerDiv).find('.igv-track-label').toggle();
             });
 
-            // one base wide center guide
-            browser.centerGuide = new igv.CenterGuide($(browser.trackContainerDiv), config);
+            $guideLineToggle = $('<div class="igv-toggle-track-labels">');
+            var display = $(igv.browser.guideLineDiv).css("display");
+            $guideLineToggle.text(display==="none" ? "hide guide" : "show guide");
 
-            // cursor tracking guide
-            browser.$cursorTrackingGuide = $('<div class="igv-cursor-tracking-guide">');
-            $(browser.trackContainerDiv).append(browser.$cursorTrackingGuide);
-            browser.$cursorTrackingGuide.css("display", (config.showCursorTrackingGuide && true == config.showCursorTrackingGuide) ? "block" : "none");
-
-            $cursorTrackingGuideToggle = $('<div class="igv-toggle-track-labels">');
-            display = browser.$cursorTrackingGuide.css("display");
-            $cursorTrackingGuideToggle.text("none" === display ? "show cursor guide" : "hide cursor guide");
-
-            $cursorTrackingGuideToggle.click(function () {
-                display = browser.$cursorTrackingGuide.css("display");
-                if ("none" === display) {
-                    browser.$cursorTrackingGuide.css("display", "block");
-                    $cursorTrackingGuideToggle.text("hide cursor guide");
-                } else {
-                    browser.$cursorTrackingGuide.css("display", "none");
-                    $cursorTrackingGuideToggle.text("show cursor guide");
-                }
+            $guideLineToggle.click(function () {
+                var display = $(igv.browser.guideLineDiv).css("display");
+                $(igv.browser.guideLineDiv).css("display", display==="none" ? "block" : "none");
+                $guideLineToggle.text(display==="none" ? "hide guide" : "show guide");
             });
 
-            if(undefined === config.showCursorTrackingGuide || false == config.showCursorTrackingGuide) {
-                $cursorTrackingGuideToggle.css("display", "none");
+            // Hide toggle unless property is set (for now, prior to official release)
+            if(config.showGuideLine === undefined && config.showVerticalLine === undefined) {
+                $guideLineToggle.css("display", "none");
             }
 
-            $navigation.append($cursorTrackingGuideToggle);
-            $navigation.append(browser.centerGuide.$centerGuideToggle);
-            $navigation.append($trackLabelToggle);
+
+
+            $navigation.append($guideLineToggle[0]);
+            $navigation.append($trackLabelToggle[0]);
 
         }
 
@@ -14605,22 +14566,22 @@ var igv = (function (igv) {
 
             $karyoPanelToggle = $('<div class="igv-toggle-track-labels">');
 
-            if (config.showKaryo === "hide") {
-                $karyoPanelToggle.text("Show Karyotype");
-                $(contentKaryo).addClass("igv-karyo-hide");
-            } else {
-                $karyoPanelToggle.text("Hide Karyotype");
-            }
+						if (config.showKaryo === "hide") {
+              $karyoPanelToggle.text("Show Karyotype");
+						  $(contentKaryo).addClass("igv-karyo-hide");
+						} else {
+						  $karyoPanelToggle.text("Hide Karyotype");
+						}
 
             $karyoPanelToggle.click(function () {
-                var hidden = $(".igv-karyo-div").hasClass("igv-karyo-hide");
-                if (hidden) {
-                    $karyoPanelToggle.text("Hide Karyotype");
-                    $(".igv-karyo-div").removeClass("igv-karyo-hide");
-                } else {
-                    $karyoPanelToggle.text("Show Karyotype");
-                    $(".igv-karyo-div").addClass("igv-karyo-hide");
-                }
+              var hidden = $(".igv-karyo-div").hasClass("igv-karyo-hide");
+              if (hidden) {
+	              $karyoPanelToggle.text("Hide Karyotype");
+								$(".igv-karyo-div").removeClass("igv-karyo-hide");
+              } else {
+              	$karyoPanelToggle.text("Show Karyotype");
+								$(".igv-karyo-div").addClass("igv-karyo-hide");
+              }
             });
 
             $navigation.append($karyoPanelToggle[0]);
@@ -16425,12 +16386,9 @@ var igv = (function (igv) {
             var g = igv.guichromosomes[i];
             if (g.x < mouseX && g.right > mouseX && g.y < mouseY && g.bottom > mouseY) {
                 var dy = mouseY - g.y;
-                var center = Math.round(g.size * dy / g.h);
-                log("Going to position " + center);
-
-                // the goto() signature is chr, start, end. We leave end undefined changing
-                // the interpretation of start to the center of the locus extent.
-                igv.browser.goto(g.name, center, undefined);
+                var bp = Math.round(g.size * dy / g.h);
+                log("Going to position " + bp);
+                igv.browser.goto(g.name, bp);
                 break;
             }
         }
@@ -19197,106 +19155,6 @@ var igv = (function (igv) {
     return igv;
 
 })(igv || {});
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2016 University of California San Diego
- * Author: Jim Robinson
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
- * Created by dat on 9/1/16.
- */
-var igv = (function (igv) {
-
-    igv.CenterGuide = function ($parent, config) {
-        var self = this,
-            cssDisplay;
-        
-        this.$container = $('<div class="igv-center-guide igv-center-guide-thin">');
-        $parent.append(this.$container);
-        this.$container.css("display", (config.showCenterGuide && true == config.showCenterGuide) ? "block" : "none");
-
-        cssDisplay = this.$container.css("display");
-        this.$centerGuideToggle = $('<div class="igv-toggle-track-labels">');
-        this.$centerGuideToggle.text(("none" === cssDisplay) ? "show center guide" : "hide center guide");
-
-        this.$centerGuideToggle.click(function () {
-            cssDisplay = self.$container.css("display");
-            if ("none" === cssDisplay) {
-                self.$container.css("display", "block");
-                self.$centerGuideToggle.text("hide center guide");
-            } else {
-                self.$container.css("display", "none");
-                self.$centerGuideToggle.text("show center guide");
-            }
-        });
-
-        // Hide toggle unless property is set (for now, prior to official release)
-        if(undefined === config.showCenterGuide || false == config.showCenterGuide) {
-            this.$centerGuideToggle.css("display", "none");
-        }
-
-
-    };
-
-    igv.CenterGuide.prototype.repaint = function () {
-
-        var left,
-            ls,
-            ws,
-            center,
-            ppb = Math.floor(1.0/igv.browser.referenceFrame.bpPerPixel),
-            x = this.$container.position.x;
-
-        center = x + this.$container.outerWidth()/2;
-
-        if (ppb > 1) {
-
-            left = center - ppb/2;
-            ls = left.toString() + 'px';
-            ws = ppb.toString() + 'px';
-            this.$container.css({ left:ls, width:ws });
-
-            this.$container.removeClass('igv-center-guide-thin');
-            this.$container.addClass('igv-center-guide-wide');
-        } else {
-
-            // ls = center.toString() + 'px';
-            ls = '50%';
-            ws = '1px';
-            this.$container.css({ left:ls, width:ws });
-
-            this.$container.removeClass('igv-center-guide-wide');
-            this.$container.addClass('igv-center-guide-thin');
-        }
-
-        // console.log('CenterGuide - repaint. PPB ' + ppb);
-    };
-
-    return igv;
-
-}) (igv || {});
 
 /*
  * The MIT License (MIT)

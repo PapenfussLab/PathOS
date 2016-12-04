@@ -72,7 +72,7 @@ class FileUtil
     }
 
     /**
-     * Create a persistent 'temporary' file in /tmp by default
+     * Create a peristent 'temporary' file in /tmp by default
      *
      * @param path      Optional path to file [/tmp]
      * @param prefix    Optional file prefix [tmp_]

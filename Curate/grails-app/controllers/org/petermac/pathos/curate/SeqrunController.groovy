@@ -238,9 +238,7 @@ class SeqrunController
             redirect(action: "list")
             return
         }
-
-        String seqrunTsvLoc =   '/PathOS/payload/seqrun_qc_heatmap/' +  seqrunInstance.seqrun + '.tsv'
-        [seqrunInstance: seqrunInstance,heatmapTsvPath: seqrunTsvLoc]
+        [seqrunInstance: seqrunInstance]
     }
 
     def getHeatmap(Long id){
@@ -322,7 +320,84 @@ class SeqrunController
         render results as JSON;
     }
 
+    def oldshow() {
 
+        def thisSeqrun
+        def seqrunparam
+        if (params.id) {
+            def id = params.id
+            thisSeqrun = Seqrun.get(id)
+            seqrunparam = id
+        } else if (params.seqrunName ) {
+            thisSeqrun = Seqrun.findBySeqrun(params.seqrunName)
+            seqrunparam = params.seqrunName
+        } else { seqrunparam = null }
+
+        if (!thisSeqrun) {
+            flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqrun.label', default: 'seqrun'), seqrunparam])
+            redirect(action: "list")
+            return
+        }
+
+        //check if we have a .tsv file for this - for the JS heatmap
+        //generate it if we don't
+        def webroot = servletContext.getRealPath('/')
+        String seqrunQCFileLoc = webroot+"/payload/seqrun_qc_heatmap/" + thisSeqrun.seqrun + '.tsv'
+        
+        //check if exists
+        def allreadsout = []
+        File heatmapTsv = new File(seqrunQCFileLoc)
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -1);
+        Date lastMonth = cal.getTime();
+        def statsFound = false
+
+        if (!heatmapTsv.exists() || (heatmapTsv.lastModified() < lastMonth.time) ) { //if it doesnt exist or if it was made over a week ago
+            heatmapTsv.write("")    //blank it
+            def seqsamps = SeqSample.findAllBySeqrun(thisSeqrun )
+            heatmapTsv.append("sample_name" + '\t' + "amplicon" + '\t' + "readsout" + '\n')
+            for (ss in seqsamps) {
+                //readouts amplicon samplename seqrun from alignstats
+
+                def astats = AlignStats.findAllBySeqrunAndSampleName(thisSeqrun,ss.sampleName)
+
+                if (astats) {
+
+                    for (astat in astats) {
+
+                        String ampName
+                        String amp = astat.amplicon
+                        if(amp.contains('.')) {
+                                ampName = amp.split("\\.")[0]
+                        } else { ampName = amp }
+
+                        if (astat.amplicon != "SUMMARY") {
+                            statsFound = true
+                            String newtsvline = ss.sampleName + '\t' + ampName + '\t' + astat.readsout + '\n'
+                            //println newtsvline
+                            allreadsout.add(astat.readsout)
+                            heatmapTsv.append(newtsvline)
+                        }
+                    }
+                }
+
+            }
+
+        } else {
+            statsFound = true
+        }
+
+
+        String heatmapTsvLoc = '/PathOS/payload/seqrun_qc_heatmap/' +  thisSeqrun.seqrun + '.tsv'
+        if (!statsFound) {
+            heatmapTsvLoc = ""  //if he have no align stats - set this to empty and then the view will not show heatmap
+            heatmapTsv.delete()     //clean up, it might exist with a blank ehader
+        }
+
+
+        [seqrunInstance: thisSeqrun, heatmapTsvLoc: heatmapTsvLoc ]
+    }
 
     def latestRuns() {
         ArrayList<Seqrun> seqruns = Seqrun.list().take(10)

@@ -37,18 +37,7 @@
 
             </li>
         </g:if>
-    <%--AS TODO replace with varlinks
-        <li class="fieldcontain">
-            <span id="variant-label" class="property-label">Linked CurVar</span>
-            <g:if test="${seqVariantInstance.curVariants}">
-                <g:each in="${seqVariantInstance.curVariants} ">
-                    <span class="property-value" aria-labelledby="variant-label"><b>${it}</b></span>
-                </g:each>
-            </g:if><g:else>
-            <span class="property-value" aria-labelledby="variant-label"><b>none</b></span>
-        </g:else>
-        </li>
-    <%-- --%>
+
         <g:if test="${seqVariantInstance?.ens_variant}">
             <li class="fieldcontain">
                 <span id="ens_variant-label" class="property-label"><g:message code="seqVariant.ens_variant.label"

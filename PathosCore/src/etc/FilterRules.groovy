@@ -21,7 +21,7 @@
 */
 
 
-println( "Filter Configuration Ver 1.2.2")
+println( "Filter Configuration Ver 1.2.3")
 
 
 //
@@ -726,8 +726,8 @@ rules
                         ]
         }
 
-        //	R e s e a r c h     P a n e l s
-        //	===============================
+        //	D a w s o n   L a b o r a t o r y    P a n e l s
+        //	================================================
 
         'RD DL'
         {
@@ -743,42 +743,6 @@ rules
             //	Pattern match for wildcard matching manifests
             //
             manifestPattern = 'DL_.*'
-
-            //	Miniumum variant read depth
-            //
-            varDepth  = 10
-
-            //	Minimum read depth
-            //
-            readDepth = 40
-
-            //	Minimum allele frequency (percent)
-            //
-            allelePct    = 20
-
-            //	Maximum percent of a variant within a panel
-            //
-            varPanelPct  = 35
-
-            //	Black list of variants
-            //
-            blackList =	[
-                        ]
-        }
-
-        'Research'
-        {
-            description = 'Research Panel'
-
-            //	Specific manifests in Filter group - Todo: deprecated
-            //
-            manifests =	[
-                        'NoPanel'
-                        ]
-
-            //	Pattern match for wildcard matching manifests
-            //
-            manifestPattern = 'RD_.*'
 
             //	Miniumum variant read depth
             //

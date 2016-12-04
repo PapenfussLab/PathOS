@@ -6,7 +6,7 @@
 
   --}%
 
-<%@ page import="grails.converters.JSON; org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
+<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -251,7 +251,10 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
         <li class="fieldcontain">
             <span id="vep-label" class="property-label">CNV</span>
-            <span class="property-value"><a href='${cnvViewerUrl}/?file=${seqSample?.seqrun}.txt&sample=${seqSample}' target="_blank">CNV Browser</a></span> 
+            <span class="property-value">
+                <a href='${UrlLink.gaffaUrl("cnb",seqSample?.seqrun?.seqrun,seqSample?.sampleName,seqSample.panel.manifest)}' target="_blank">Gaffa 1</a>
+                <a href='${UrlLink.gaffaUrl("gaffa",seqSample?.seqrun?.seqrun,seqSample?.sampleName,seqSample.panel.manifest)}' target="_blank">Gaffa 2</a>
+            </span>
         </li>
 
         %{--Authorised QC --}%
@@ -446,7 +449,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathologist}">
         <li class="fieldcontain">
-            <span class="property-label">Pathologist Review</span>
+            <span id="seqrun-label" class="property-label">Pathologist Review</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathologist}
             </span>
@@ -455,7 +458,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span class="property-label"> </span>
+        <span id="seqrun-label" class="property-label"> </span>
         <span class="property-value" aria-labelledby="sampleName-label">
             <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                 <g:submitButton id="updateHolly" name="first" value="Update Patient Data"/>
@@ -472,7 +475,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathComments}">
         <li class="fieldcontain">
-            <span class="property-label">Pathologist Comments</span>
+            <span id="seqrun-label" class="property-label">Pathologist Comments</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathComments}
             </span>
@@ -483,7 +486,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     <g:if test="${seqSample?.patSample?.repMorphology}">
 
         <li class="fieldcontain">
-            <span class="property-label">Report Morphology</span>
+            <span id="seqrun-label" class="property-label">Report Morphology</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.repMorphology}
             </span>
@@ -492,7 +495,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathMorphology}">
         <li class="fieldcontain">
-            <span class="property-label">Notes</span>
+            <span id="seqrun-label" class="property-label">Notes</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathMorphology}
             </span>
@@ -502,7 +505,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.retSite}">
         <li class="fieldcontain">
-            <span class="property-label">Tissue Site</span>
+            <span id="seqrun-label" class="property-label">Tissue Site</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.retSite}
             </span>
@@ -512,18 +515,30 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.tumourPct}">
         <li class="fieldcontain">
-            <span class="property-label">Tumour %</span>
+            <span id="seqrun-label" class="property-label">Tumour %</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.tumourPct}
             </span>
         </li>
     </g:if>
 
+   <%-- <g:if test="${seqSample?.sample?.hollyLastUpdated}">
+        <li class="fieldcontain">
+            <span id="seqrun-label" class="property-label">Last Update Details</span>
+            <span class="property-value" aria-labelledby="sampleName-label">
+                ${seqSample.sample.hollyLastUpdated}
+            </span>
+        </li>
+    </g:if>--%>
+
+
+
+
 
 </g:if>
 <g:else>
         <li class="fieldcontain">
-            <span class="property-label">Patient Details</span>
+            <span id="seqrun-label" class="property-label">Patient Details</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                     <g:submitButton id="updateHolly" name="first" value="Check Patient Details"/>
@@ -537,7 +552,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span class="property-label"> </span>
+        <span id="seqrun-label" class="property-label"> </span>
         <span class="property-value" aria-labelledby="sampleName-label">
             <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                 <g:submitButton id="updateHolly" name="first" value="Update Patient Data"/>
@@ -551,15 +566,17 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="clinContext-label" class="property-label">Clinical Context</span>
+        <span id="seqrun-label" class="property-label">Clinical Context</span>
         <span class="property-value" aria-labelledby="sampleName-label">
-            <g:form action="updateClinContext" id="${seqSample?.id}" name="updateClinContextForm">
+            <g:form action="updateClinContext" id="${seqSample?.id}" name="refreshHollyForm">
+
 
                 <g:select id="clinContext" name="clinContext" from="${clinContextList}"  noSelection="${['None':'None']}" optionKey="code"  value="${seqSample.clinContext? seqSample.clinContext.code : 'None'}" />
-                <g:submitButton id="updateClinContext" name="updateClinContext" disabled="true" value="Save Change" style="margin-top:4px;"/>
+                <g:submitButton id="updateClinContext" name="updateClinClontext" disabled="true" value="Change" style="margin-top:4px;"/>
+                <g:hiddenField name="patsampleid" id="patsampleid" value="${seqSample?.patSample?.id}"/>
                 <g:hiddenField name="seqsampleid" id="seqsampleid" value="${seqSample?.id}"/>
+                <g:hiddenField name="hollylastupdate" id="hollylastupdate" value="${seqSample?.patSample?.hollyLastUpdated}"/>
             </g:form>
-            <span id="get-a-curator">To change the Clinical Context, please contact a Curator.</span>
         </span>
 
     </li>
@@ -591,8 +608,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <grid:grid  name="curation">
         <grid:set caption='${seqSample.seqVariants.size()} Total Sequenced Variants'/>
-        <grid:set col='matchingCurVariant'         formatter="f:matchingCVFormatter" cellattr='f:matchingCVcellattr' width="130" editable='false'/>
-        <grid:set col='allCuratedVariants'          formatter="f:allCVFormatter" cellattr="f:allCVcellattr" width="45" editable='false'/>
+        <grid:set col='curated'         width="130" formatter='f:variantFormatter' editable='false'/>
         <grid:set col='gene'            width="70"  formatter='f:geneFormatter' editable='false'/>
         <grid:set col='siftCat'         width="45"  formatter='f:classFormatter' editable='false'/>
         <grid:set col='mutTasteCat'     width="45"  formatter='f:classFormatter' editable='false'/>
@@ -605,7 +621,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='variant'         width="130" editable='false'/>
         <grid:set col='sampleName'      width="65"  hidden='f:true' editable='false' />
         <grid:set col='clin_sig'        width="70"  editable='false'/>
-        <grid:set col='filterFlag'      width="100" editable='false' cellattr='f:filterFlagTooltip'/>
+        <grid:set col='filterFlag'      width="100" editable='false'/>
         <grid:set col='hgvsc'           width="170" editable='false'/>
         <grid:set col='hgvsp'           width="150" editable='false'/>
         <grid:set col='consequence'     width="150" editable='false'/>
@@ -622,7 +638,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='readDepth'       width="55"  editable='false' formatter='integer'/>
         <grid:set col='cosmicOccurs'    width="150" hidden='f:true'  editable='false'/>
         <grid:set col='pubmed'          width="70"  hidden='f:true'  editable='false'/>
-        <grid:set col='varPanelPct'     width="80"  hidden='f:false'  editable='false' />
+        <grid:set col='varPanelPct'     width="70"  hidden='f:false'  editable='false' formatter='number'/>
         <grid:set col='ens_transcript'  width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='ens_gene'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='ens_protein'     width="70"  hidden='f:true'  editable='false'/>
@@ -634,6 +650,8 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='genedesc'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='omim_ids'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='biotype'         width="70"  hidden='f:true'  editable='false'/>
+        <grid:set col='curated'         cellattr='f:curatedTooltip' editable='false'/>
+        <grid:set col='filterFlag'      cellattr='f:filterFlagTooltip' editable='false'/>
         <grid:set col='cosmic'          cellattr='f:cosmicTooltip' editable='false'/>
         <grid:set col='siftVal'         width="45"  hidden='f:true' editable='false'/>
         <grid:set col='mutTasteVal'     width="45"  hidden='f:true' editable='false'/>
@@ -717,6 +735,27 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
 
 
+
+<%--<g:if test="${viewReports.size() > 0}"> Disabled as reports are not saving properly on Rpod--%>
+<g:if test="${false}">
+    <span id="hideshowreports" class="hideshowbutton reportsection" onclick="hideshowreports('reports');">Show previously generated reports</span>
+    <div id="reports" class="reportsection" style="display:none;">
+        <p>Generated Reports:</p>
+    <g:each in="${viewReports}" var="aReport">
+        <p>
+         Created ${aReport.dateCreated} by ${aReport.user?.displayName}
+            <%-- get path for link: everything past payload directory --%>
+            <%-- cut everything off before payload --%>k
+            <g:if test="${aReport.reportFilePath.split('/payload/').size() > 1}">
+                <a href="${basepath}/payload/${aReport.reportFilePath.split('/payload/')[1]}" target="_blank">Download</a>
+            </g:if>
+
+
+        </p>
+    </g:each>
+    </div>
+    <br/>
+</g:if>
 
 </div>
 </body>
@@ -813,6 +852,26 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     return 'title="' + ttl + '"';
 }
 
+/**
+* Add evidence tooltip for curated variant
+*
+* @param rowId      the id of the row
+* @param val        the value which will be added in the cell
+* @param rawObject  the raw object of the data row
+* @param cm         all the properties of this column listed in the colModel
+* @param rdata      the data row which will be inserted in the row
+*
+* @returns {string} Cell title attribute title="tooltip description"
+*/
+function curatedTooltip(rowId, val, rawObject, cm, rdata)
+{
+//    console.log("Testing: "+JSON.stringify(rdata))
+
+    if ( val == '' ) return '';
+    var ttl = rdata['curated_evd'];
+
+    return 'title="' + ttl + '"';
+}
 
 /**
 * Add cosmic details tooltip for curated variant
@@ -833,7 +892,6 @@ function cosmicTooltip(rowId, val, rawObject, cm, rdata)
     return 'title="' + ttl + '"';
 }
 
-
 /**
 * Formatter for colouring and linking to a curated CurVariant
 *
@@ -842,142 +900,16 @@ function cosmicTooltip(rowId, val, rawObject, cm, rdata)
 * @param rowObject      Array of cell values: expecting the first value to be the ID of the linked CurVariant
 * @returns {string}     Link to curated CurVariant nicely coloured by pathogenicity
 */
-function matchingCVFormatter( cellvalue, options, rowObject )
+function variantFormatter( cellvalue, options, rowObject )
 {
-    var allContexts = JSON.parse(rowObject[8]); //AES please avoid magic numbers
-    var current_cc_match = null;
+    if ( cellvalue == null || cellvalue.length == 0 ) return '';
 
-    allContexts.forEach(function(d){
-        if(PathOS.svlist.ccc(d.clinContext, seqSample.clinContext)) {
-            current_cc_match = d;
-        }
-    });
+    var fld = classFormatter( cellvalue, options, rowObject );
 
-    if( current_cc_match && PathOS.svlist.ccc(current_cc_match.clinContext, seqSample.clinContext) ) {
-        return drawCV(current_cc_match, options.rowId);
-    } else {
-        return "";
-    }
-}
-function matchingCVcellattr(rowId, val, rawObject, cm, rdata)
-{
-}
+    //  Todo: this is a maintenance risk - hard wired link and positional parameter to pass an object linkage through to Javascript
+    //
 
-var seqSample = ${seqSample as JSON}
-
-function allCVFormatter( cellvalue, options, rowObject )
-{
-    var data = JSON.parse(cellvalue),
-        result = "",
-        worstClass = 0,
-        pmClasses = ['Unclassified', 'C1', 'C2', 'C3', 'C4', 'C5'],
-        number = 1,
-        title = [];
-    if(data.length >= 1) {
-        data.forEach(function(cv){
-            var pmClass = cv.pmClass.split(":")[0];
-            var code = cv.clinContext ? cv.clinContext.code : "Generic";
-            title.push(pmClass+":"+code);
-            if(pmClasses.indexOf(pmClass) > worstClass) {
-                worstClass = pmClasses.indexOf(pmClass);
-            }
-        });
-        result = "<a href='#none' class='cv-"+pmClasses[worstClass]+"' title='"+title.join("\n")+"' onclick='PathOS.svlist.showCVs("+options.rowId+")'>"+data.length+"</a> "
-    }
-    return result;
-}
-
-
-function allCVcellattr(rowId, val, rawObject, cm, rdata)
-{
-    if (val === "null"){
-        console.log("val is a string that says null");
-    } else {
-
-    }
-    return "";
-}
-
-function drawCV(cv, sv) {
-    var name = "Generic",
-        id = cv.id,
-        pmClass = "Unclassified",
-        ssClassText = "";
-
-    if ( seqSample.clinContext === null ) {
-        if( cv.clinContext === null ) {
-            ssClassText = "ssClass ";
-        }
-    } else {
-        if( cv.clinContext !== null ) {
-            if ( seqSample.clinContext.id === cv.clinContext.id ) {
-                ssClassText = "ssClass ";
-            }
-        }
-    }
-
-    if(cv.pmClass.indexOf(":") > -1) {
-        pmClass = cv.pmClass.split(":")[0];
-    } else {
-        pmClass = cv.pmClass;
-    }
-    if(cv.clinContext) {
-        name = cv.clinContext.code;
-    }
-    // This commented version points at the old CurVariant show page, which we are replacing with a dialog box:
-     return "<a href='/PathOS/curVariant/show?id="+id+"' class='"+ssClassText+"cvlabel cv-"+pmClass+"'>"+name+":"+pmClass+"</a> "
-    //return "<a href='#none' onclick='PathOS.svlist.showCVs("+sv+")' class='"+ssClassText+"cvlabel cv-"+pmClass+"'>"+name+":"+pmClass+"</a> "
-}
-
-
-
-
-
-/**
-* Add evidence tooltip for curated variant
-*
-* @param rowId      the id of the row
-* @param val        the value which will be added in the cell
-* @param rawObject  the raw object of the data row
-* @param cm         all the properties of this column listed in the colModel
-* @param rdata      the data row which will be inserted in the row
-*
-* @returns {string} Cell title attribute title="tooltip description"
-*/
-function curatedTooltip(rowId, val, rawObject, cm, rdata)
-{
-    //console.log("Testing: "+JSON.stringify(rdata))
-
-    //var curated_cell = d3.select('#'+rowId+" [aria-describedby='curation_table_curated']").html('');
-    //console.log(d3.select(this));
-
-
-    if ( val == '' ) return '';
-    var ttl = rdata['curated_evd'];
-
-    return 'title="' + ttl + '"';
-}
-
-
-
-
-/**
-*
-* @param cellvalue
-* @param options
-* @param rowObject
-* @returns {string}     HTML that gets written in the cell
-*
-*/
-
-function curVariantsFormatter ( cellvalue, options, rowObject )
-{
-    //console.log(rowObject);
-    return cellvalue;
-}
-function curVarAttrs ( rowId, val, rawObject, cm, rdata )
-{
-    return '';
+    return "<a href='/PathOS/curVariant/sampleLink?id=" + rowObject[0] + "'>" + fld + '</a>';
 }
 
 /**
@@ -1256,11 +1188,213 @@ var actionableCnvs =
         { "field": "lr_median", "op": "ge", "data": "1.5"}
       ]
 };
-<%-- this sets filter templates as : "var myTemolateName = thetemplate" --%>
-<g:each in="${filterTemplates}">
-    var ${it.key} =  ${it.value}
-</g:each>
 
+//  Top Somatic Variants Search
+//
+var topSom =
+{ "groupOp": "AND",
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "filterFlag", "op": "nc", "data": "sin" },
+        { "field": "varFreq", "op": "ge", "data": "3"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  Haem Variants Search
+//
+var topHaem =
+{ "groupOp": "AND",
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "varFreq", "op": "ge", "data": "3"},
+      ]
+};
+
+//  Top Somatic CRC Search
+//
+var topCrc =
+{ "groupOp": "AND",
+    "groups": [
+    {"groupOp": "OR",
+      "rules": [
+        { "field": "gene", "op": "eq", "data": "BRAF" },
+        { "field": "gene", "op": "eq", "data": "KRAS" },
+        { "field": "gene", "op": "eq", "data": "RNF43" },
+        { "field": "gene", "op": "eq", "data": "NRAS" }
+      ]
+    }],
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "filterFlag", "op": "nc", "data": "sin" },
+        { "field": "varFreq", "op": "ge", "data": "3"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  BRCA1/2 Only
+//
+var brcaOnly =
+{ "groupOp": "AND",
+    "groups": [
+    {"groupOp": "OR",
+      "rules": [
+        { "field": "gene", "op": "eq", "data": "BRCA1" },
+        { "field": "gene", "op": "eq", "data": "BRCA2" }
+      ]
+    }],
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "varFreq", "op": "ge", "data": "15"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  MPN Simple Search
+//
+var mpnSimple =
+{ "groupOp": "AND",
+    "groups": [
+    {"groupOp": "OR",
+      "rules": [
+        { "field": "gene", "op": "eq", "data": "JAK2"  },
+        { "field": "gene", "op": "eq", "data": "MPL"   },
+        { "field": "gene", "op": "eq", "data": "CALR"  },
+        { "field": "gene", "op": "eq", "data": "KIT"  },
+        { "field": "gene", "op": "eq", "data": "SF3B1"  },
+        { "field": "gene", "op": "eq", "data": "CSF3R"  },
+        { "field": "gene", "op": "eq", "data": "ASXL1" }
+      ]
+    }],
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" }
+       ]
+};
+
+
+//  Top Somatic Melanoma Search
+//
+var topMel =
+{ "groupOp": "AND",
+    "groups": [
+    {"groupOp": "OR",
+      "rules": [
+        { "field": "gene", "op": "eq", "data": "BRAF" },
+        { "field": "gene", "op": "eq", "data": "NRAS" },
+        { "field": "gene", "op": "eq", "data": "RAC1" },
+        { "field": "gene", "op": "eq", "data": "KIT" }
+      ]
+    }],
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "filterFlag", "op": "nc", "data": "sin" },
+        { "field": "varFreq", "op": "ge", "data": "3"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  Top Somatic Lung Search
+//
+var topLung =
+{ "groupOp": "AND",
+    "groups": [
+    {"groupOp": "OR",
+      "rules": [
+        { "field": "gene", "op": "eq", "data": "BRAF" },
+        { "field": "gene", "op": "eq", "data": "KRAS" },
+        { "field": "gene", "op": "eq", "data": "MET" },
+        { "field": "gene", "op": "eq", "data": "EGFR" }
+      ]
+    }],
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "filterFlag", "op": "nc", "data": "sin" },
+        { "field": "varFreq", "op": "ge", "data": "3"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  Top Somatic GIST Search
+//
+var topGist =
+{ "groupOp": "AND",
+    "groups": [
+    {"groupOp": "OR",
+      "rules": [
+        { "field": "gene", "op": "eq", "data": "PDGFRA" },
+        { "field": "gene", "op": "eq", "data": "KIT" }
+      ]
+    }],
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "filterFlag", "op": "nc", "data": "sin" },
+        { "field": "varFreq", "op": "ge", "data": "3"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  Top Germline Variants Search
+//
+var topGerm =
+{ "groupOp": "AND",
+      "rules": [
+        { "field": "filterFlag", "op": "nc", "data": "blk" },
+        { "field": "filterFlag", "op": "nc", "data": "pnl" },
+        { "field": "filterFlag", "op": "nc", "data": "gaf" },
+        { "field": "filterFlag", "op": "nc", "data": "con" },
+        { "field": "varFreq", "op": "ge", "data": "15"},
+        { "field": "varcaller", "op": "ne", "data": "Canary" }
+      ]
+};
+
+//  Reportable variants
+//
+var reportableVars =
+{ "groupOp": "AND",
+      "rules": [
+        { "field": "reportable", "op": "eq", "data": "1"}
+      ]
+} ;
+
+//  Rahman Gene List Filter
+//
+var rahmanGenes =
+    {"groupOp": "AND",
+      "rules": [
+        { "field": "gene", "op": "in", "data": "ABCB11,ALK,APC,ATM,AXIN2,BAP1,BLM,BMPR1A,BRCA1,BRCA2,BRIP1,BUB1B,CBL,CDC73,CDH1,CDK4,CDKN1B,CDKN2A,CEBPA,CHEK2,COL7A1,CYLD,DDB2,DICER1,DIS3L2,DKC1,DOCK8,EGFR,ELANE,ERCC2,ERCC3,ERCC4,ERCC5,EXT1,EXT2,FAH,FANCA,FANCC,FANCG,FH,FLCN,GATA2,GBA,GJB2,GPC3,HFE,HMBS,HRAS,ITK,KIT,MAX,MEN1,MET,MLH1,MSH2,MSH6,MTAP,MUTYH,NBN,NF1,NF2,PALB2,PDGFRA,PHOX2B,PMS2,POLD1,POLE,POLH,PRKAR1A,PRSS1,PTCH1,PTEN,PTPN11,RAD51C,RAD51D,RB1,RECQL4,RET,RHBDF2,RMRP,RUNX1,SBDS,SDHA,SDHAF2,SDHB,SDHC,SDHD,SERPINA1,SH2D1A,SLC25A13,SMAD4,SMARCA4,SMARCB1,SMARCE1,SOS1,SRY,STAT3,STK11,SUFU,TERT,TGFBR1,TMEM127,TNFRSF6,TP53,TRIM37 ,TSC1,TSC2,UROD,VHL,WAS,WRN,WT1,XPA,XPC"
+        }
+    ]
+};
+
+//  TARGET Gene List Filter
+//
+var targetGenes =
+    {"groupOp": "AND",
+      "rules": [
+        { "field": "gene", "op": "in", "data": "ABL1,AKT1,AKT2,AKT3,ALK,APC,AR,ARAF,ASXL1,ATM,ATR,AURKA,BAP1,BCL2,BRAF,BRCA1,BRCA2,BRD2,BRD3,BRD4,NUTM1,CCND1,CCND2,CCND3,CCNE1,CDH1,CDK12,CDK4,CDK6,CDKN1A,CDKN1B,CDKN2A,CDKN2B,CEBPA,CREBBP,CRKL,CTNNB1,DDR2,DNMT3A,EGFR,EPHA3,ERBB2,ERBB3,ERBB4,ERCC2,ERG,ERRFI1,ESR1,ETV1,ETV4,ETV5,ETV6,EWSR1,EZH2,FBXW7,FGFR1,FGFR2,FGFR3,FLCN,FLT3,GNA11,GNAQ,GNAS,HRAS,IDH1,IDH2,IGF1R,JAK2,JAK3,KDR,KIT,KRAS,MAP2K1,MAP2K2,MAP2K4,MAP3K1,MAPK1,MAPK3,MCL1,MDM2,MDM4,MED12,MEN1,MET,MITF,MLH1,KMT2A,MPL,MSH2,MSH6,MTOR,MYC,MYD88,NF1,NF2,NFKBIA,NKX2-1,NOTCH1,NOTCH2,NPM1,NRAS,NTRK3,PDGFRA,PDGFRB,PIK3CA,PIK3CB,PIK3R1,PTCH1,PTEN,RAB35,RAF1,RARA,RB1,RET,RHEB,RNF43,ROS1,RSPO2,RUNX1,SMAD2,SMAD4,SMARCA4,SMARCB1,SMO,STK11,SYK,TET2,TMPRSS2,TP53,TSC1,TSC2,VHL,WT1,XPO1,ZNRF3,PALB2,CSF1R,HNF1A,PTPN11,SRC"
+        }
+    ]
+};
 
 //$('#curation_table').jqGridAfterGridComplete = loadSavedUserGrid();
 
@@ -1289,52 +1423,12 @@ $( document ).ready(function() {
         };
 
 
-<sec:ifAnyGranted roles="ROLE_ADMIN, ROLE_DEV, ROLE_CURATOR">
-    original_context = $("#clinContext").val();
-    $('#get-a-curator')
-        .css('display', 'none');
-    $('#updateClinContext')
-        .prop('disabled',false);
 
-    $('#updateClinContextForm').submit(function(e){
-            var self = this;
-            e.preventDefault();
-            if(original_context == $("#clinContext").val()) {
-                alert("You haven't changed the Clinical Context");
-            } else {
-
-                %{--/*
-                * DKGM 24-November-2016
-                * Adding some logic here to check if the reportable column has been ticked.
-                * Easygrid is really weird, and there are 4 possible values for that checkbox:
-                * "true", "false", "Yes", "on"
-                * "true" means true
-                * "false" means false
-                * "Yes" means true, but the user has clicked that row in this session
-                * "on" means false, but the user has clicked that row in this session
-                *
-                * If any of the checkboxes are true:
-                * we should give the user a warning before allowing them to change contexts
-                */--}%
-
-                var giveWarning = false;
-                $('td[aria-describedby="curation_table_reportable"] input').each(function(i, d){
-                    var value = $(d).val();
-                    console.log(value);
-                    if(value == "Yes" || value == "true") {
-                        giveWarning = true;
-                    }
-                });
-                if(giveWarning) {
-                    if(confirm("Some 'Sequenced Variants' from this 'Sequenced Sample' have already been marked as reportable in this 'Clinical Context', are you sure you want to change context? The new context might not have 'Curated Variant' entries yet, please remember to create them if needed for reports.")) {
-                        this.submit();
-                    }
-                } else {
-                    this.submit();
-                }
-            }
+       $('#clinContext').change(function(){  //enable change mut context button
+                 $('#updateClinContext').prop('disabled',false);
         });
-</sec:ifAnyGranted>
+
+
 
 
      $("#finalReviewForm").submit(function() {
@@ -1543,8 +1637,7 @@ function addToIGV(sample, dataUrl, id){
     var downsample = null;
     $("#curation_table").on('click', function(){
         setTimeout(function(){
-            if ($(".ui-row-ltr.ui-state-highlight").length > 0 &&
-            current_id != $(".ui-row-ltr.ui-state-highlight").attr('id')) {
+            if (current_id != $(".ui-row-ltr.ui-state-highlight").attr('id')) {
                 current_id = $(".ui-row-ltr.ui-state-highlight").attr('id');
                 PathOS.tags.update_object(current_id);
                 $("#footer-message").remove();

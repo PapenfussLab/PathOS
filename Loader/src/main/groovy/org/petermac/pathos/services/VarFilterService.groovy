@@ -10,7 +10,6 @@ package org.petermac.pathos.curate
 import groovy.time.TimeCategory
 import groovy.time.TimeDuration
 import org.codehaus.groovy.grails.plugins.DomainClassGrailsPlugin
-import org.hibernate.Hibernate
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import groovy.util.logging.Log4j
@@ -55,18 +54,8 @@ class VarFilterService
      */
     public int applyFilter( Session session, boolean force )
     {
-      int mod   = 0
-
-        //  Get variants that have a ROI
-        //
-        Map haveregions = getHasRoiVariants(force)
-
-
-        // Get singleton vars (ones that occur only once in a replicate r/ship)
-        //
-        Map singletons = getSingletons()
-
-
+        int mod   = 0
+        Map haveregions = getHasRoiVariants()
         // Re read filter rules from config file
         //
         rules = getRules()
@@ -75,9 +64,13 @@ class VarFilterService
         //
         def varfreqMap = variantSamples()
 
-        //  Get variants that are in their ROI
+        //  Find all singleton variants for duplicate samples
         //
+
+
         Map inregions = getInRegionSeqVariants()
+
+        Map singletons = duplicateSampleSingletons()
 
 
 
@@ -168,15 +161,11 @@ class VarFilterService
     {
         def    panelGroup   = variant.seqSample.panel.panelGroup        // panel group of the variant
         def    varfreq      = varfreqMap[ panelGroup ]                  // get the map of variant freq.
-        //Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
+        Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
 
-        //set panel freq calculations
-        def panfreq = calcPanelFrequency(variant)
-        if (panfreq.size() == 2) {
-            variant.varSamplesSeenInPanel = panfreq[0]
-            variant.varSamplesTotalInPanel = panfreq[1]
-        }
-
+        //  Save frequency of variant in the panel by sample for display
+        //
+        variant.varPanelPct = varPanelPct
 
         List flag = applyRules( variant.properties, panelGroup, rules, initFlagList )
         if ( flag )
@@ -246,7 +235,7 @@ class VarFilterService
 
         //  CurVariant panel frequency
         //
-        if (  filterRules.varPanelPct && (var.panelFreq() > ( filterRules.varPanelPct as double))) flagList << "pnl"
+        if (  filterRules.varPanelPct && (var.varPanelPct > ( filterRules.varPanelPct as double))) flagList << "pnl"
 
         //  Amplicon read distribution
         //
@@ -565,66 +554,123 @@ class VarFilterService
     }
 
     /**
-     * get singleton variant ids (that is, variants that are in a replicate sample, and are not present in all replicates
+     * Find all runs with duplicate sample prefixes (PM sample names) - that is, replicates
+     *
      * @return  List of ids of singleton variants for samples that are replicates
      */
-    private static Map getSingletons()
+    private static Map duplicateSampleSingletons()
     {
-        //grab all seqsamples w replicate relationships (do check if they have more than 1 rep? not sure)
-
-        SeqRelation.withTransaction {
-
-            def qry = """
-                      SELECT sr.id FROM org.petermac.pathos.curate.SeqRelation as sr
-                      WHERE
-                         relation='Replicate'
-                      """
-            def srids = SeqSample.executeQuery( qry )
-
-
-            log.info( "Found ${srids.size()} Replicate SeqRelations")
-
-            List vars = []
-
-            for (srid in srids) {
-               def thisSr = SeqRelation.read(srid)
-               vars = vars + getSingletonsForRelation(thisSr)
-
-            }
-
-            def varmap = [:]
-            for (var in vars) {
-                varmap[var] = true
-            }
-            return varmap
+        //  HQL query to find all Seqruns with duplicate PM sample prefixes
+        //  returns a List of arrays [ Seqrun, <sample prefix>, <no of Samples>]
+        //
+        //build a nice long string for our LIKE clause
+        def likestring = "sa.sampleName LIKE '%-1'"
+        for (def i = 2; i < 10; i++) {
+            likestring = likestring + " OR sa.sampleName LIKE '%-${i}'"
         }
+
+
+
+        def qry =   """select  sa.seqrun,
+                           substring(sa.sampleName,1,char_length(sa.sampleName) - 2) as prefix,
+                           (count(*)) as noReps
+                           from    org.petermac.pathos.curate.SeqSample as sa
+                           where  ( ${likestring} )
+                           group by sa.seqrun,  sa.patSample,
+                           substring(sa.sampleName,1,char_length(sa.sampleName) - 2) """
+
+
+
+        def runs = SeqSample.executeQuery( qry )
+        log.info( "Found ${runs.size()} duplicate samples")
+
+
+
+        //  Find all singleton variants in duplicate samples
+        //
+        List vars = []
+        for( run in runs )
+        {
+            def isRep = true
+
+            //have a check that the non-prefix verison exists, if there's only one. e.g. if 14K123-1 exists
+            //but 14K123 does not, it's not really a rep, somebody just messed up.
+            //we could disable this check to speed things up.
+            if (run[2] == 1) {
+
+                def check = "SELECT sa.seqrun FROM org.petermac.pathos.curate.SeqSample as sa WHERE sa.sampleName='"+ run[1] +"'"
+                def checkruns = SeqSample.executeQuery( check )
+                if (!checkruns) {
+                    isRep = false
+                } else {
+                    run[2] = run[2] + 1 // run[2] was number of replicates after the FIRST. here we make it the TOTAL number of replicates
+
+                }
+
+            }
+            if (isRep) {
+
+                vars = vars + (singletonVars(run.toList()))
+
+            }
+
+
+        }
+
+        vars = vars.flatten()
+
+        def varmap = [:]
+        for (var in vars) {
+            varmap[var] = true
+        }
+
+        log.info( "Found ${vars.size()} singleton vars")
+
+        return varmap
 
 
     }
 
     /**
-     * get all singleton samples in a seqrelation
-     * @param ssid - seqsample id
-     * @param srid - seqrelation id
-     * @return
+     * Find all variants occurring once only in the same run in the same sample
+     *
+     * @param   run     Array of replicate samples to search [ Seqrun, <sample prefix>, <no of Samples>]
+     * @return          List of SeqVariant ids that are singletons for replicate samples
      */
-    private static List getSingletonsForRelation( SeqRelation sr  )
+    private static List singletonVars( List run )
     {
+        def seqrun = run[0]
+        def prefix = run[1]
+        def samcnt = run[2]
 
-        def qry2 = """
-                   select sv.id FROM org.petermac.pathos.curate.SeqVariant as sv
-                   join sv.seqSample as ss
-                   WHERE :thisSeqRelation in elements(ss.relations)
-                   GROUP BY
-                         sv.variant
-                        HAVING count(*) < 2
-                   """
+        //
+        def likestring = "sv.sampleName='${prefix}'"
+        for (def i = 1; i < 10; i++) {
+            likestring = likestring + " OR sv.sampleName='${prefix}-${i}'"
 
-        def theseSvs = SeqVariant.executeQuery(qry2,[thisSeqRelation:sr])
+        }
 
-        return theseSvs
+        //  get all seqvars that only occur once in a set of replicate seqruns
+        //
+
+
+        def qry =
+                """select	sv.id
+                        from	org.petermac.pathos.curate.SeqVariant as sv
+                        join	sv.seqSample  as sa
+                         where	sa.seqrun.seqrun = '${seqrun.seqrun}'
+                        and		( ${likestring} )
+                        group
+                        by 		sv.variant
+                        having  count(*) < 2"""
+
+
+
+
+        def vars = SeqVariant.executeQuery( qry )
+
+        return vars
     }
-
 
     /**
      * Get rules from known file config location Todo: move into grails config framework
@@ -838,81 +884,6 @@ class VarFilterService
         return outList
     }
 
-
-
-
-    /**
-     * calc panel frequency for a given seqvariant
-     * returns a list of 2 ints: nominator and denominator
-     * @param sv
-     * @return
-     */
-    List<Integer> calcPanelFrequency (SeqVariant sv) {
-
-        def qry = """
-                SELECT sv.hgvsg, ss.id, ss.sampleType FROM org.petermac.pathos.curate.SeqVariant as sv
-                join sv.seqSample as ss
-                WHERE ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType !=' Synthetic') OR ss.sampleType IS NULL)
-                AND ss.panel=:thisPanel
-                """
-        def res = SeqVariant.executeQuery(qry,[thisPanel:sv.seqSample.panel])
-        def updated = 0
-
-        def nall =  res.groupBy { it[1] }.size()
-
-
-        def nvar
-        try {
-            nvar = res.findAll { it[0] == sv.hgvsg }.groupBy { it[1] }.size()
-        } catch (all) { //we might not find anything because eg the sv is only in a control sample
-           nvar = null
-        }
-
-        return  [nvar,nall]
-    }
-
-
-    /**
-     * mass update function
-     * sets panel freqs for all supplied variants that are in supplied panel
-     * if an sv in the list is not in panel p, it will be ingored
-     * @param svs list of svs
-     * @param p panel
-     * @return int num of svs updated
-     */
-    int setPanelFrequenciesForVariantsInPanel (Panel p) {
-        def sSamples = SeqSample.findAllByPanel(p)
-        def svs = SeqVariant.findAllBySeqSampleInList(sSamples)
-
-        def qry = """
-                SELECT sv.hgvsg, ss.id, ss.sampleType FROM org.petermac.pathos.curate.SeqVariant as sv
-                join sv.seqSample as ss
-                WHERE ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType !=' Synthetic') OR ss.sampleType IS NULL)
-                AND ss.panel=:thisPanel
-                """
-        def res = SeqVariant.executeQuery(qry,[thisPanel:p])
-        def updated = 0
-
-        def nall =  res.groupBy { it[1] }.size()
-
-        for (sv in svs) {
-            def nvar
-            try {
-                nvar = res.findAll { it[0] == sv.hgvsg }.groupBy{ it[1] }.size()
-            } catch (all) { //we might not find anything because eg the sv is only in a control sample
-                nvar = null
-            }
-            if (nvar) {
-                sv.varSamplesSeenInPanel = nvar
-                sv.varSamplesTotalInPanel = nall
-                sv.save(flush:true,failOnError:true)
-                updated++
-            }
-
-        }
-
-        return updated
-    }
 
 
 }

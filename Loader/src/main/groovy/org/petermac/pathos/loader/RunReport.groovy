@@ -29,6 +29,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext
 @Log4j
 class RunReport
 {
+    //  RDB connection object
+    //
+    def sql
+    def dbl = new DbLoader()
+
     static void main( args )
     {
         //
@@ -36,7 +41,7 @@ class RunReport
         //
         def cli = new CliBuilder(   usage: "RunReport [options] report.ext",
                                     header: '\nAvailable options (use -h for help):\n',
-                                    footer: '\nRun a stand-alone PathOS report\n')
+                                    footer: '\nRun a stand-alone Path-OS report\n')
 
         //	Options to LoadPathOS
         //
@@ -63,8 +68,8 @@ class RunReport
 
         //  Set RDB to load from
         //
-        String    rdb = opt.rdb
-        DbConnect db  = new DbConnect(rdb)
+        def rdb = opt.rdb
+        def db = new DbConnect(rdb)
         if ( ! db.valid())
         {
             log.fatal( "Unknown RDB schema [${rdb}]")
@@ -75,7 +80,7 @@ class RunReport
         //
         log.info("RunReport " + args )
 
-        //  Extract file name
+        //  Extract file names
         //
         List<String> extra = opt.arguments()
         if ( extra.size() != 1 )
@@ -85,35 +90,30 @@ class RunReport
             return
         }
         def repname  = extra[0]
-        File repfile = new File(repname)
-        if ( repfile.exists())
-        {
-            log.warn( "File already exists, overwriting ${repfile}")
-        }
 
-        //  Perform report generation
+        //  Perform data load
         //
-        def res = report( rdb, opt.seqrun as String, opt.sample as String, repfile )
+        new RunReport().report( rdb, opt.seqrun, opt.sample, repname )
 
-        log.info( "Done: RunReport ${res ? "Success !" : "Failed !"}" )
+        log.info( "Done: RunReport" )
     }
 
     /**
-     * Sample report method
+     * Main DB migrator
      *
-     * @param rdb       RDB schema to use for report
-     * @param seqrun    Seqrun of sample
-     * @param sample    Sample to report
-     * @param report    Report file name
-     * @return          Success of reporting
+     * @param rdb       RDB schema to load RDB tables
+     * @param tables    Table list to migrate
      */
-    static Boolean report( String rdb, String seqrun, String sample, File report )
+    boolean report( String rdb, String seqrun, String sample, String report )
     {
+        def cnt
+
         log.info( "Reporting on ${seqrun}:${sample} from RDM ${rdb}")
 
         //  Load stand-alone Hibernate context - Database JDBC is embedded in <schema>_loaderContext.xml
         //
         def db  = new DbConnect( rdb )
+        sql = db.sql()
         ApplicationContext context = new ClassPathXmlApplicationContext( db.hibernateXml )
 
         SeqSample.withTransaction
@@ -126,7 +126,7 @@ class RunReport
             if ( ! sr )
             {
                 log.fatal( "Couldn't find seqrun ${seqrun}")
-                return Boolean.FALSE
+                return false
             }
 
             //  Find SeqSample object to report
@@ -135,7 +135,7 @@ class RunReport
             if ( ! ss )
             {
                 log.fatal( "Couldn't find seqrun ${seqrun} sample ${sample}")
-                return Boolean.FALSE
+                return false
             }
 
             //  Find templates for sample
@@ -145,28 +145,17 @@ class RunReport
             if ( ! templates )
             {
                 log.error( "No templates found for sample ${ss}")
-                return Boolean.FALSE
+                return false
             }
 
             //  Run report
             //
-            log.info( "Starting report for sample ${ss} into ${report.absolutePath}" )
-            def output
-            try
-            {
-                def rrs = new ReportRenderService()
-                output = rrs.runReport( ss, false, db.sql(), templates, report )
-            }
-            catch( Exception e )
-            {
-                org.codehaus.groovy.runtime.StackTraceUtils.sanitize(e).printStackTrace()
-                log.fatal( "Exiting: Couldn't report on ${sample} " + e.toString())
-                return( Boolean.FALSE )
-            }
+            log.info( "Starting report for sample ${ss}")
+            def output = rs.runReport( ss, sql, templates, new File(report))
             log.info( "Finished report in ${output}")
         }
 
-        return Boolean.TRUE
+        return true
     }
 }
 

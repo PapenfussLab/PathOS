@@ -82,7 +82,7 @@ class VcfMerge
             File vcf = new File( ivf as String )
             if ( ! vcf.exists())
             {
-                log.fatal( "File ${vcf} doesn't exist: Exiting")
+                log.fatal( "File ${vcf} doesn't exists: Exiting")
                 System.exit(1)
             }
             vcfs << vcf

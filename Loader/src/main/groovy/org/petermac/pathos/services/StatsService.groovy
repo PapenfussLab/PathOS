@@ -321,7 +321,7 @@ class StatsService
             tot += sample[1] as int
         }
 
-        Double avg   = tot / samples.size()
+        Double avg   = samples.size() ? tot / samples.size() : 0.0
         Map  average = [:]
         Map  upper   = [:]
         Map  lower   = [:]

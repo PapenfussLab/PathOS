@@ -160,7 +160,7 @@ class SeqrunLims
     /**
      * Parsing routine for both HiSeq and Miseq Run parameters
      *
-     * @param limsPath  Path to XML files - usually in /pipeline/(Runs|Archive)/(MiSeq|HiSeq|NextSeq)/<seqrun>/LIMS_<seqrun>.xml
+     * @param limsPath  Path to XML files - usually in /pipeline/RunFolder/(MiSeq|HiSeq2000)/<seqrun>/LIMS_<seqrun>.xml
      * @return          Map of parameters in the form
      *                      seqrun      Illumina run ID
      *                      platform    MiSeq or HiSeq

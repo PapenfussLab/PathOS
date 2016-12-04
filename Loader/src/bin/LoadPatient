@@ -45,10 +45,6 @@ fi
 #
 #	Start of script
 #
-CMDPATH=`which $0`
-BINDIR=`dirname $CMDPATH`
-export PATH=${BINDIR}:$PATH
-
 . SetLoaderEnv
 
 export config=${PATHOS_HOME}/etc/PatientFile.etl

@@ -271,7 +271,10 @@ class DbLoader
         def qry = 	'''
                     select	distinct
                             md.sample,
+                            ifnull(mba.isca2015,'N')   as ca2015,
                             ifnull(md.location,'none') as pathlab,
+                            ifnull(mba.tumour,'T')     as tumour,
+                            if(mba.tumour = 'N', 'germline', 'tumour') as type,
                             md.urn,
                             md.requester,
                             md.collect_date,
@@ -281,6 +284,9 @@ class DbLoader
                             tt.formalstage,
                             tt.tumourstage
                     from	mp_detente as md
+                    left
+                    join	mp_batch as mba
+                    on		md.sample = mba.sample
                     left
                     join	mp_tumourtype as tt
                     on		md.sample = tt.sample
@@ -331,6 +337,8 @@ class DbLoader
             //
             sam = new PatSample(sample:         row.sample,
                                 patient:        pat,
+                                ca2015:         (row.ca2015 == 'Y'),
+                                tumour:         row.tumour,
                                 owner:	        user,
                                 collectDate:    collect_date,
                                 rcvdDate:       rcvd_date,
@@ -454,10 +462,7 @@ class DbLoader
             //	Convert date to American format
             //
             def sdf = new SimpleDateFormat("yyMMdd")
-            String seqrun = row.seqrun
-            Date runDate = new Date()
-            if ( seqrun =~ /\d{6}/ )
-                runDate = DateUtil.dateParse( sdf, seqrun[0..5] )
+            Date runDate = DateUtil.dateParse( sdf, (row.seqrun as String)[0..5] )
 
             //	Create Seqrun as domain class
             //
@@ -630,11 +635,16 @@ class DbLoader
                     		sr.seqrun,
                     		sr.sample,
                     		sr.panel,
+                    		ifnull(mba.dnaconc,0) as dnaconc,
                     		sr.analysis,
                             sr.username,
                             sr.useremail,
                             sr.laneno
                     from	mp_seqrun as sr
+                    left
+                    join	mp_batch as mba
+                    on		mba.seqrun = sr.seqrun
+                    and		mba.sample = sr.sample
     		        '''
 
         def rows  = sql.rows(qry)
@@ -691,6 +701,7 @@ class DbLoader
             def ss = new SeqSample(	seqrun:		seqrun,
                                     patSample:	patSample,
                                     panel:		panel,
+                                    dnaconc:	row.dnaconc,
                                     sampleName:	row.sample,
                                     analysis:	row.analysis,
                                     userName:	row.username,
@@ -1084,7 +1095,7 @@ class DbLoader
                 //  Set link to CurVariant table if this variant has been curated
                 //  Todo: find curVariant by hgvsg and mutContext as well
                 //
-                //row.curated = CurVariant.findByHgvsg( row.hgvsg )
+                row.curated = CurVariant.findByHgvsg( row.hgvsg )
 
                 //  Add 1 letter AA format
                 //
@@ -1098,22 +1109,6 @@ class DbLoader
                 //  Create new SeqVariant and bind properties via enriched map of properties from SQL
                 //
                 def sv = new SeqVariant( row as Map )
-
-                //  Add all mappable CurVariants to the new SeqVariant
-                //
-                List<CurVariant> cvs = CurVariantService.findCurVariantsByGenomic( sv )
-                for ( cv in cvs )
-                {
-                    sv.addToCurVariants( cv )
-
-                    //  Set default curated property (preferred curated variant)
-                    //  Choose the CurVariant without a ClinContext
-                    //
-                    if ( ! cv.clinContext )
-                    {
-                        sv.curated = cv
-                    }
-                }
 
                 //  Save the new SeqVariant instance
                 //

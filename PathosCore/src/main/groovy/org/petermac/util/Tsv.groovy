@@ -355,7 +355,7 @@ class Tsv
      * @param   fileName    File name to create
      * @return              true if successful
      */
-    boolean write( String fileName, Boolean header = true )
+    boolean write( String fileName )
     {
         if ( ! this.tsvMap )
         {
@@ -378,7 +378,7 @@ class Tsv
             return false
         }
 
-        return write( fn, header )
+        return write( fn )
     }
 
     /**
@@ -387,7 +387,7 @@ class Tsv
      * @param   fn          File to write to
      * @return              true if successful
      */
-    boolean write( File fn, Boolean header = true )
+    boolean write( File fn )
     {
         if ( ! this.tsvMap )
         {
@@ -395,17 +395,14 @@ class Tsv
             return false
         }
 
-        if ( header )
-        {
-            //  Write out meta data preamble if any
-            //
-            for ( pre in tsvMap.preamble )
-                fn << pre + "\n"
+        //  Write out meta data preamble if any
+        //
+        for ( pre in tsvMap.preamble )
+            fn << pre + "\n"
 
-            //  Header
-            //
-            fn << "#" + getCols().join("\t") + "\n"
-        }
+        //  Header
+        //
+        fn << "#" + getCols().join("\t") + "\n"
 
         //  Rows
         //
@@ -421,26 +418,22 @@ class Tsv
      * if there is no matching column an empty '' field is output
      *
      * @param   fn          File to write to
-     * @param   oldCols     List of original columns to output
-     * @param   newCols     List of renamed columns to output - must be same size as oldCols
-     * @param   header      Output column name header flag
+     * @param   cols        List of columns to output
      * @return              true if successful
      */
-    boolean write( File fn, List oldCols, List newCols, Boolean header = true )
+    boolean write( File fn, List cols )
     {
-        assert oldCols.size() == newCols.size(), "Mismatched column list sizes old=${oldCols.size()} new=${newCols.size()}"
-
         //  Rebuild Rows
         //
         List newRows = []
         List<List> rows = tsvMap.rows
-        List origCols   = getCols()
+        List oldcols    = getCols()
         for ( List row in rows )
         {
             List newRow = []
-            for ( col in oldCols )
+            for ( col in cols )
             {
-                int cidx = origCols.indexOf(col)             // look for column name
+                int cidx = oldcols.indexOf(col)             // look for column name
                 newRow << (cidx != -1 ? row[cidx] : '')     // copy across its value
             }
             newRows << newRow
@@ -450,23 +443,9 @@ class Tsv
 
         //  Set new column headers
         //
-        setCols( newCols )
+        setCols(cols)
 
-        return write( fn, header )
-    }
-
-    /**
-     * Write out contents of TSV to file for the supplied columns
-     * if there is no matching column an empty '' field is output
-     *
-     * @param   fn          File to write to
-     * @param   cols        List of columns to output
-     * @param   header      Output column name header flag
-     * @return              true if successful
-     */
-    boolean write( File fn, List cols, Boolean header = true )
-    {
-        return write( fn, cols, cols, header )
+        return write( fn )
     }
 
     /**

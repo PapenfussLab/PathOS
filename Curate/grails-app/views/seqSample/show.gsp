@@ -47,10 +47,6 @@
             </li>
         </g:if>
 
-
-
-
-
         <g:if test="${seqSampleInstance?.sampleName}">
             <li class="fieldcontain">
                 <span id="sampleName-label" class="property-label"><g:message code="seqSample.sampleName.label"
@@ -82,16 +78,7 @@
                         bean="${seqSampleInstance}" field="sampleType"/></span>
 
             </li>
-        </g:if><g:else>
-        <li class="fieldcontain">
-            <span id="sampleName-label" class="property-label"><g:message code="seqSample.sampleType.label"
-                                                                          default="Sample Type"/></span>
-
-            <span class="property-value" aria-labelledby="sampleName-label">No sample type</span>
-
-        </li>
-
-    </g:else>
+        </g:if>
 
         <g:if test="${seqSampleInstance?.dnaconc}">
             <li class="fieldcontain">

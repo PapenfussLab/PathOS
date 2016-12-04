@@ -24,18 +24,15 @@ def index =
 }
 
 def quickSearch = {
-    HashMap results = getResults(params.q as String, 1, 0)
-    render results as JSON
+    render getResults(params.q as String, 1, 0) as JSON
 }
 
 def search = {
-    HashMap results = getResults(params.q as String, 10, 0)
-    render results as JSON
+    render getResults(params.q as String, 10, 0) as JSON
 }
 
 def deepSearch = {
-    HashMap results = getResults(params.q as String, 10, params.o as Integer)
-    render results as JSON
+    render getResults(params.q as String, 10, params.o as Integer) as JSON
 }
 
 def putTime = {
@@ -106,8 +103,8 @@ def svExact = {
     render SeqVariant.executeQuery(query, [query: q]) as JSON
 }
 
-    HashMap getResults( String q, Integer n, Integer o) {
-        HashMap searchResults = [:]
+    def getResults( String q, Integer n, Integer o) {
+        def searchResults = [:]
         if ( !n ) {
             n = 10;
         }
@@ -186,13 +183,11 @@ def svExact = {
         return searchResults
     }
 
-    HashMap convertObjectToMap( def object ) {
-        HashMap result = [:]
+    Map convertObjectToMap( def object ) {
+        Map result = [:]
         object.properties.each { prop, val ->
             switch(prop) {
-                case "varLinkService":
-                    break;
-                case ["seqVariants", "seqSamples", "patAssays", "varLinks"]:
+                case ["seqVariants", "seqSamples", "patAssays"]:
                     result[prop] = val.size()
                     break;
                 default:
@@ -213,7 +208,7 @@ def svExact = {
      * String link      The URI to the table, after which the id of the element is appended
      * @return          Searchable Map of hits
      */
-    HashMap trySearch( HashMap config )
+    Map trySearch( Map config )
     {
         try
         {
@@ -223,7 +218,8 @@ def svExact = {
 
             def luceneQuery = "(${q}) OR (*${q}*)"
 
-            def m = config.table.search(luceneQuery, [ max: config.n, offset: config.o ])
+            Map m = config.table.search(luceneQuery, [ max: config.n, offset: config.o ])
+
 
             m.link          = config.link
             m.name          = config.name
@@ -266,7 +262,7 @@ def svExact = {
                         case 'Sequenced Sample':
                                 def seqVariants = []
                                 obj.seqVariants.each { sv ->
-                                        HashMap data = [
+                                        Map data = [
                                                 id: sv.id,
                                                 name: sv.toString(),
                                                 hgvsc: sv.hgvsc,
@@ -317,7 +313,7 @@ def svExact = {
                                 extra.seqSamples = seqSamples
                             break
                         case 'Curated Variant':
-                                def seqVariants = VarLink.findAllByCurVariant( obj );
+                                def seqVariants = SeqVariant.findAllByCurated(obj)
                                 extra.seqVariants = seqVariants
                             break
                         default:
@@ -341,7 +337,7 @@ def svExact = {
 
             return m
         }
-        catch( Exception exp )
+        catch( Exception exp)
         {
             log.debug( "Search Error: ${exp.message}", exp )
             return [error: "Search Error: ${exp.message}"]

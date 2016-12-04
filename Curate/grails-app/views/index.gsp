@@ -1,4 +1,4 @@
-<%@ page import="grails.util.Environment; org.petermac.util.Locator; org.petermac.pathos.curate.*" %>
+<%@ page import="grails.util.Environment; org.petermac.pathos.curate.*" %>
 
 <!DOCTYPE html>
 <html>
@@ -52,7 +52,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-8 col-md-offset-2">
-<h1 class="text-center" style="text-align: center; padding:20%;">Your PeterMac login was successfully verified, however we could not find your PathOS account.<br><br>Please <a href="mailto:Christopher.Welsh@petermac.org?subject=New PathOS User <Your name here>&body=<Please CC your manager for approval>%0A%0AHi Ken and team,%0A%0AI need a PathOS user account%0AMy PeterMac username is: <Your username here>%0AI am from <Your department here> and I am a <Curator, Lab Tech, Clinician, Other>%0AThe Environment is: ${Locator.pathosEnv}%0A%0AThanks,%0A<Your real name here>">email us</a> to enable your account.</h1>
+<h1 class="text-center" style="text-align: center; padding:20%;">Your PeterMac login was successfully verified, however we could not find your PathOS account.<br><br>Please <a href="mailto:Christopher.Welsh@petermac.org?subject=New PathOS User <Your name here>&body=<Please CC your manager for approval>%0A%0AHi Ken and team,%0A%0AI need a PathOS user account%0AMy PeterMac username is: <Your username here>%0AI am from <Your department here> and I am a <Curator, Lab Tech, Clinician, Other>%0AThe Environment is: ${Environment.getCurrentEnvironment().name}%0A%0AThanks,%0A<Your real name here>">email us</a> to enable your account.</h1>
                     </div>
                 </div>
             </div>
@@ -60,7 +60,7 @@
     </sec:ifLoggedIn>
 </div>
 <script>
-    <g:set var="env" value="${Locator.pathosEnv}"/>
+    <g:set var="env" value="${Environment.getCurrentEnvironment().name}"/>
 
 // Since search is the main point of this page, hide the search bar in the header.
 //d3.select("#searchHeader").style("display", "none");
@@ -85,7 +85,7 @@
         hide: true,
         title: "PathOS v1.2 (Jon Snow) feature list:",
         data: features
-    });
+    })
 
     var status = new PathOS.module({
         name: 'status',
@@ -94,10 +94,8 @@
         title: "Application Status",
         data: {
             "PathOS version":"<g:meta name="app.version"/>",
+            "Environment":"${Environment.getCurrentEnvironment().name}",
             "Build version":"${grailsApplication.metadata['app.buildNumber']}",
-            "Environment":"${Locator.pathosEnv}",
-            "Database Host": "${Locator.dbHost}",
-            "Database Schema": "${Locator.dbSchema}",
             "Grails version":"<g:meta name="app.grails.version"/>",
             "Groovy version":"${GroovySystem.getVersion()}",
             "JVM version":"${System.getProperty('java.version')}",
@@ -108,7 +106,7 @@
             "Tag Libraries":"${grailsApplication.tagLibClasses.size()}",
             "git rev-parse HEAD":"<g:render template='/git'/>"
         }
-    });
+    })
 
 
 

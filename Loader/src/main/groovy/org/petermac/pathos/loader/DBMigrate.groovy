@@ -19,9 +19,6 @@
 
 package org.petermac.pathos.loader
 
-import groovy.time.TimeCategory
-
-import groovy.time.*
 import groovy.util.logging.Log4j
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -72,8 +69,7 @@ class DBMigrate
             afnf( longOpt:  'applyfiltersnoforce',  'Set filter flags for all seqvariants where filter flags are null (apply-filters no-force)' )
             afoor( longOpt: 'applyoorfilters', 	    'Set OOR filter flags for all seqvariants explicitly' )
             d( longOpt:     'debug',                'Turn on debug logging')
-            p(longOpt: 'panelfreqs',             '(re)calculate panel frequencies for all seqvariants in given panel')
-            vl( longOpt:     'varlinks',                'v1.3 make varlinks for all cur variants')
+            l(longOpt: 'ldapUsernames',             'Change authUser usernames to LDAP format (reverse of display name)')
         }
 
         def opt = cli.parse( args )
@@ -182,14 +178,9 @@ class DBMigrate
             tables = 'SetSampleTypes'
         }
 
-        if ( opt.panelfreqs )
+        if ( opt.ldapUsernames )
         {
-            tables = 'CalculatePanelFrequencies'
-        }
-
-        if  ( opt.varlinks )
-        {
-            tables = 'ClinContextGrpVariant'
+            tables = 'ldapUsernames'
         }
         //  Perform data load
         //
@@ -213,8 +204,6 @@ class DBMigrate
 
         //  Load stand-alone Hibernate context - Database JDBC is embedded in <schema>_loaderContext.xml
         //
-
-
         def db  = new DbConnect( orm )
         ApplicationContext context = new ClassPathXmlApplicationContext( db.hibernateXml)
 
@@ -279,14 +268,20 @@ class DBMigrate
         if ( tables.contains('SeqRelation'))
             setSampleRelations( orm  )
 
-
+        if (tables.contains('ldapUsernames'))
+            usernamesToLDAP(orm)
         //  Variant copying
         //
         if ( tables.contains('CurVariant'))
             copyCurVariants( rdb )
 
-        if ( tables.contains('ClinContextGrpVariant'))
-            migrateToClinContextModel( orm  )
+        if ( tables.contains('PatSamplePatAssay')) {
+            if (orm != rdb) {
+                println "We only support migration from and to the same DB for now. RBD and ORM should be the same."
+                System.exit(0)
+            }
+            migrateToMargaery(rdb)
+        }
 
 
         //  SeqVariant filtering
@@ -295,13 +290,355 @@ class DBMigrate
             setSampleTypes( orm  )
 
 
-        if ( tables.contains('CalculatePanelFrequencies'))
-            calcPanelFrequencies( orm  )
-
 
         log.info( "Finished migrate")
     }
 
+    /**
+     * make usernames the reversed displaynames (for LDAP)
+     * @param orm
+     */
+    void usernamesToLDAP(String orm) {
+        AuthUser.withTransaction {
+            def allUsers = AuthUser.findAll()
+            for(u in allUsers) {
+                def newusername = u.getUsername()
+
+                if (u.getDisplayName().split(' ').size() == 2) {
+                    def s = u.getDisplayName().split(' ')
+                    newusername = s[1] + " " + s[0]
+
+                }
+                if (newusername == 'Ma David') { newusername = "MaDavid" } //DM has no space
+                if ( u.getUsername() == 'pathosadmin') { newusername = "Seleznev Andrei" } //i am admin!
+                if ( u.getUsername() == '') { newusername = "Seleznev Andrei" } //i am admin!
+
+                if (!AuthUser.findByUsername(newusername)) {
+                   u.setUsername(newusername)
+                    println "Setting " + u.getUsername() + " to ${newusername}"
+                    u.save(flush: true, failOnError: false)
+                } else {
+                   println "Could not pull over user " + u.getUsername() + " with new username ${newusername}"
+                }
+
+            }
+
+            //  make guest user
+            //
+            def guestuser = 'pathosguest'
+            if (!AuthUser.findByUsername(guestuser)) {
+                def guest = new AuthUser(username: guestuser, password: guestuser, displayName: "Pathos Guest", email: 'no.such.user@petermac.org').save(flush: true)
+                println "Created guest user " + guestuser
+            }
+
+        }
+    }
+    /**
+     * Migrate to Margaery v1.1 where Samples and PatSamples have been renamed.
+     * Assumes we have blank tables PatSample PatAssay made by grails first.
+     *
+     * @param rdb
+     * @return
+     */
+    void migrateToMargaery(String rdb) {
+        def rowcnt = 0
+        def modcnt = 0
+
+        log.info( "Migration of Sample to PatSample ${rdb}")
+
+        File pathmount = new File('/pathology/')
+
+        if (pathmount.exists() && pathmount.isDirectory()) {
+            log.info("Pathology mount found. Commencing migration.")
+        } else {
+            log.info("Cannot access /pathology mount. Please check if it is indeed mounted. Cannot continue.")
+            log.fatal("Exiting")
+            System.exit(0)
+        }
+
+        //need to change:
+        //PatSample (renamed cols)
+        //PatAssay (from Sample Test)
+
+        //PubMed
+        //todo this is yr load query. have proper table def first.
+        /*LOAD DATA INFILE '/pathology/NGS/DataSource/Pubmed/pubmed.tsv'
+        INTO TABLE pubmed
+        IGNORE 1 LINES
+        (pmid, doi, date, journal, volume, issue, page, title, authors, affiliations, abstrct)
+        */
+
+        //our DB migration script can handle all neccessary schema changes - we simply need to lift data over
+
+
+        //1. dump sample
+        //2. sed the dump
+        //3. load it
+
+        //TODO dont hardcode this maybe?
+        def outfile_dump = "/pathology/tmp/pathos_margaery_migrate_sample.sql"  //where the dumps will be temporarily stores
+        def import_dump  = "/pathology/tmp/pathos_margaery_migrate_sample_to_patsample.sql"
+        def host
+
+        if (rdb == 'pa_local') {
+            host = 'localhost'
+        } else if (rdb == 'pa_uat') {
+            host = 'bioinf-pathos-test'
+        } else if (rdb == 'pa_prod') {
+            host = 'bioinf-pathos'
+        }  else if (rdb == 'pa_research') {
+            host = 'empr-pathos-res'
+        }
+
+        //def dumpcmd = "ExportDb -d ${host} -s dblive -t sample -o ${outfile_dump}"
+        def dumpcmd = "mysqldump --complete-insert -h $host -uxxx -pxxx dblive sample > '${outfile_dump}'"
+        println "Running command: ${dumpcmd}"
+        def sout  = new RunCommand( dumpcmd ).run()
+
+        def outforimport = new File(import_dump)
+
+        //read in dump line by line
+        //only grab lines that start w INSERT and sed them
+        def samplesDump = new File(outfile_dump)
+        println "Appending fixed SQL import to file: ${import_dump}"
+        outforimport.write("")
+
+        outforimport.append('SET FOREIGN_KEY_CHECKS=0;')    //use grails db migration tool to fix db after data migration anyway
+        outforimport.append('\n')
+
+        samplesDump.eachLine{ it, i ->
+            if (it.startsWith('INSERT INTO')) {
+                def line = it.replaceAll('INTO `sample`','INTO `pat_sample`')
+                outforimport.append(line)
+                outforimport.append('\n')
+            }
+        }
+
+        outforimport.append('SET FOREIGN_KEY_CHECKS=1;')
+        outforimport.append('\n')
+        //check if  table exists and if not create it
+        def qry = "SHOW TABLES LIKE 'pubmed'"
+        def rows = sql.rows( qry.toString())
+        if(!rows) {
+            def pmqry = """CREATE TABLE `pubmed` (
+              `id` bigint(20) NOT NULL AUTO_INCREMENT,
+              `version` bigint(20) NOT NULL,
+              `abstrct` varchar(9999) DEFAULT NULL,
+              `affiliations` varchar(255) DEFAULT NULL,
+              `authors` varchar(255) DEFAULT NULL,
+              `date` datetime DEFAULT NULL,
+              `doi` varchar(255) DEFAULT NULL,
+              `issue` varchar(255) DEFAULT NULL,
+              `journal` varchar(255) DEFAULT NULL,
+              `pages` varchar(255) DEFAULT NULL,
+              `pdf` varchar(255) DEFAULT NULL,
+              `pmid` varchar(255) NOT NULL,
+              `title` varchar(255) DEFAULT NULL,
+              `volume` varchar(255) DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `pmid` (`pmid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+             """
+
+            sql.executeUpdate(pmqry.toString())
+            log.info("Created pubmed table.")
+        }
+
+        //load it
+        qry =   """
+                    select  id
+                    from    pubmed
+                    """
+
+        rows = sql.rows( qry.toString())
+
+        if (rows) {
+            log.info("Pubmed already has entries. Dump made but not loaded.")
+        } else { 
+            //load data
+            def loadqry = """
+            LOAD DATA LOCAL INFILE '/pathology/NGS/DataSource/Pubmed/pubmed.tsv'
+            INTO TABLE pubmed
+            IGNORE 1 LINES
+            (pmid, doi, date, journal, volume, issue, pages, title, authors, affiliations, abstrct)
+            """
+            sql.executeUpdate(loadqry.toString())
+            log.info("Migration of Pubmed completed. Data loaded")
+        }
+
+
+
+        //check if  table exists and if not create it
+        qry = "SHOW TABLES LIKE 'pat_sample'"
+        rows = sql.rows( qry.toString())
+        if(!rows) {
+            qry = """
+                CREATE TABLE `pat_sample` (
+                  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                  `version` bigint(20) NOT NULL,
+                  `ca2015` bit(1) NOT NULL,
+                  `collect_date` datetime DEFAULT NULL,
+                  `formal_stage` varchar(255) DEFAULT NULL,
+                  `h_ande` int(11) NOT NULL,
+                  `holly_last_updated` varchar(255) DEFAULT NULL,
+                  `methyl_green` int(11) NOT NULL,
+                  `mut_context` varchar(255) DEFAULT NULL,
+                  `owner_id` bigint(20) NOT NULL,
+                  `path_comments` longtext,
+                  `path_morphology` longtext,
+                  `pathlab` varchar(255) DEFAULT NULL,
+                  `pathologist` varchar(255) DEFAULT NULL,
+                  `patient_id` bigint(20) NOT NULL,
+                  `rcvd_date` datetime DEFAULT NULL,
+                  `rep_morphology` longtext,
+                  `request_date` datetime DEFAULT NULL,
+                  `requester` varchar(255) DEFAULT NULL,
+                  `ret_site` varchar(255) DEFAULT NULL,
+                  `sample` varchar(255) NOT NULL,
+                  `slide_comments` longtext,
+                  `slide_tech` varchar(255) DEFAULT NULL,
+                  `stage` varchar(255) NOT NULL,
+                  `tumour` varchar(1) DEFAULT NULL,
+                  `tumour_pct` decimal(19,2) DEFAULT NULL,
+                  `tumour_type` varchar(255) DEFAULT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `sample` (`sample`),
+                  KEY `FK8B4F54C66EA60A02` (`patient_id`),
+                  KEY `FK8B4F54C6B598E252` (`owner_id`),
+                  CONSTRAINT `FK8B4F54C6B598E252` FOREIGN KEY (`owner_id`) REFERENCES `auth_user` (`id`),
+                  CONSTRAINT `FK8B4F54C66EA60A02` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                /*!40101 SET character_set_client = @saved_cs_client */;
+            """
+            sql.query(qry)
+        }
+
+        //check here if we have any patsamples already
+        //if not - do it!
+
+        qry =   """
+                    select  id
+                    from    pat_sample
+                    """
+
+        rows = sql.rows( qry.toString())
+
+        if (rows) {
+            log.info("PatSample already has entries. Dump made but not loaded.")
+        } else {
+            //load data
+            //load it!
+            def loadcmd = "mysql -h $host -uxxx -pxxx -D dblive < ${import_dump}"
+            sout  = new RunCommand( loadcmd ).run()
+            log.info("Migration of Sample to PatSample completed. Data loaded")
+        }
+
+        def outfile_patassay_dump = "/pathology/tmp/pathos_margaery_migrate_sampletest.sql"  //where the dumps will be temporarily stores
+        def import_patassay_dump  = "/pathology/tmp/pathos_margaery_migrate_sampletest_to_patassay.sql"
+        //now sampletes to patassay
+        dumpcmd = "mysqldump --complete-insert -h $host -uxxx -pxxx dblive sample_test > '${outfile_patassay_dump}'"
+        println "Running command: ${dumpcmd}"
+        sout  = new RunCommand( dumpcmd ).run()
+
+        outforimport = new File(import_patassay_dump)
+
+        //read in dump line by line
+        //only grab lines that start w INSERT and sed them
+        def patAssayDump = new File(outfile_patassay_dump)
+        println "Appending fixed SQL import to file: ${import_patassay_dump}"
+        outforimport.write("")
+
+        outforimport.append('SET FOREIGN_KEY_CHECKS=0;')    //use grails db migration tool to fix db after data migration anyway
+        outforimport.append('\n')
+
+        patAssayDump.eachLine{ it, i ->
+            if (it.startsWith('INSERT INTO')) {
+                def line = it.replaceAll('`sample_test`','`pat_assay`')
+                line = line.replaceAll  ('`sample_id`','`pat_sample_id`')
+                outforimport.append(line)
+                outforimport.append('\n')
+            }
+        }
+
+        outforimport.append('SET FOREIGN_KEY_CHECKS=1;')
+        outforimport.append('\n')
+
+        //check if  table exists and if not create it
+        qry = "SHOW TABLES LIKE 'pat_assay'"
+        rows = sql.rows( qry.toString())
+        if(!rows) {
+            qry = """
+                          CREATE TABLE `pat_assay` (
+                  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+                  `version` bigint(20) NOT NULL,
+                  `auth_date` datetime DEFAULT NULL,
+                  `genes` varchar(255) DEFAULT NULL,
+                  `panel_id` bigint(20) DEFAULT NULL,
+                  `pat_sample_id` bigint(20) NOT NULL,
+                  `sample_id` bigint(20) NOT NULL,
+                  `test_name` varchar(255) NOT NULL,
+                  `test_set` varchar(255) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  KEY `FKDA3EB7DDB976AFA2` (`panel_id`),
+                  KEY `FKDA3EB7DDAE042865` (`sample_id`),
+                  KEY `FKDA3EB7DD1088A3C9` (`pat_sample_id`),
+                  CONSTRAINT `FKDA3EB7DD1088A3C9` FOREIGN KEY (`pat_sample_id`) REFERENCES `pat_sample` (`id`),
+                  CONSTRAINT `FKDA3EB7DDAE042865` FOREIGN KEY (`sample_id`) REFERENCES `pat_sample` (`id`),
+                  CONSTRAINT `FKDA3EB7DDB976AFA2` FOREIGN KEY (`panel_id`) REFERENCES `panel` (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                /*!40101 SET character_set_client = @saved_cs_client */;
+            """
+            sql.query(qry)
+        }
+
+
+        //check here if we have any patsamples already
+        //if not - do it!
+
+        qry =   """
+                    select  id
+                    from    pat_assay
+                    """
+
+        rows = sql.rows( qry.toString())
+
+        if (rows) {
+            log.info("PatSample already has entries. Dump made but not loaded.")
+        } else {
+            //load data
+            def loadcmd = "mysql -h $host -uxxx -pxxx -D dblive < ${import_patassay_dump}"
+            sout  = new RunCommand( loadcmd ).run()
+            log.info("Migration of SampleTest to PatAssay completed. Data loaded")
+        }
+
+        qry = "SHOW TABLES LIKE 'icdo'"
+        rows = sql.rows( qry.toString())
+
+        if(rows) {
+            log.info("icdo already exists. Not loaded.")
+        } else {
+            def icdo_dump = "/pathology/tmp/icdo.sql"
+            def loadcmd = "mysql -h $host -uxxx -pxxx -D dblive < ${icdo_dump}"
+            sout  = new RunCommand( loadcmd ).run()
+            log.info("Loaded icdo dump from pathology temp")
+        }
+
+        //run audit
+        qry = 'UPDATE audit SET pat_sample=sample;'
+        rows = sql.executeUpdate( qry.toString())
+        log.info("Executed: ${qry}")
+
+        qry = 'UPDATE seq_sample SET pat_sample_id=sample_id;'
+        rows = sql.executeUpdate( qry.toString())
+        log.info("Executed: ${qry}")
+
+
+        qry = 'UPDATE align_stats SET version=0 WHERE version IS NULL;'
+        rows = sql.executeUpdate( qry.toString())
+        log.info("Executed: ${qry}")
+
+        log.info("Margaery Data Copyover Completed on ${host} dblive")
+    }
 
     /**
      * Migrate all Users
@@ -1100,38 +1437,6 @@ class DBMigrate
     }
 
     /**
-     * mass update function
-     * set panel frequencies for all seqvariants
-     * @param orm
-     */
-    static void calcPanelFrequencies( String orm ) {
-        //check if the panel freq updated table exists: if not , run the setup from scratch function
-
-        def db  = new DbConnect( orm )
-        def sql = db.sql()
-
-
-        SeqVariant.withTransaction {
-            def timeStart
-            def timeStop
-            def v
-            def allPanels = Panel.findAll()
-            def updated = 0
-            def vf = new VarFilterService()
-            timeStart = new Date()
-            for (p in allPanels) {
-               updated += vf.setPanelFrequenciesForVariantsInPanel(p)
-            }
-            timeStop = new Date()
-            println "Did " + updated + " in " + TimeCategory.minus(timeStop, timeStart)
-        }
-
-
-    }
-
-
-
-    /**
      * Set CTL or NTC sample types
      *
      * @param orm   DBname eg pa_local
@@ -1306,49 +1611,5 @@ class DBMigrate
 
         return true
     }
-
-     boolean migrateToClinContextModel( String orm ) {
-        //populate var links
-
-
-         def timeStart = new Date()
-        //some code you want to time
-        if (! VarLink.findAll() ) { //only if we have no varlinks..
-            def insQry = """
-                INSERT INTO var_link (seq_variant_id,cur_variant_id,preferred,originating,version)
-                SELECT sv.id, cv.id, true, false, 0 FROM seq_variant AS sv INNER JOIN cur_variant AS cv ON cv.id=sv.curated_id
-                WHERE sv.curated_id IS NOT NULL
-                """
-
-            def res = sql.execute(insQry)
-        } else {
-            println "VarLinks exist in database. Refusing."
-            return false
-        }
-         def timeStop = new Date()
-         TimeDuration duration = TimeCategory.minus(timeStop, timeStart)
-         println "Created VarLinks in: " + duration
-
-         timeStart = new Date()
-        //populate GrpVariants
-        CurVariant.withTransaction {
-
-            def allCv = CurVariant.findAll()
-            for(cv in allCv) {
-                cv.grpVariant =  new GrpVariant(accession:cv.hgvsg,muttyp:'SNV')
-                cv.save()
-            }
-        }
-
-         timeStop = new Date()
-         duration = TimeCategory.minus(timeStop, timeStart)
-         println "Crated GrpVariants for all CurVariants in " + duration
-
-
-        return true
-
-    }
-
-
 }
 

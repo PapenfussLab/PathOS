@@ -46,7 +46,7 @@
 					<span id="samples-label" class="property-label"><g:message code="seqRelation.samples.label" default="Samples" /></span>
 					
 						<g:each in="${seqRelationInstance.samples}" var="s">
-						<span class="property-value" aria-labelledby="samples-label"><g:link controller="seqSample" action="show" id="${s.id}">${s?.encodeAsHTML()} ${s.sampleType?"("+s.sampleType+")":"(No sample type)"}</g:link></span>
+						<span class="property-value" aria-labelledby="samples-label"><g:link controller="seqSample" action="show" id="${s.id}">${s?.encodeAsHTML()}</g:link></span>
 						</g:each>
 					
 				</li>

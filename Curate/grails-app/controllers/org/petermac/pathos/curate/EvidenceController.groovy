@@ -18,6 +18,7 @@ class EvidenceController
     def SpringSecurityService
     static allowedMethods = [ update: "POST" ]
 
+
     def edit(Long id)
     {
         def variantInstance = CurVariant.get(id)
@@ -76,7 +77,7 @@ class EvidenceController
                     basepath = 'http://bioinf-pathos:8080/PathOS'
                     isTest = false
                     break;
-                case ['pa_uat','pa_stage','pa_dev']:
+                case ['pa_uat','pa_stage']:
                     basepath = 'http://bioinf-pathos-test:8080/PathOS'
                     break;
                 default:
@@ -128,7 +129,7 @@ class EvidenceController
 
 
 
-            def response = jnotifier.createJiraIssue("${issueSummary}", "${valout.replaceAll(':p','\\:p')}", "Task","molpath")
+            def response = jnotifier.createJiraIssue("${issueSummary}", "${valout}", "Task","molpath")
 
             if (response) {
                 if (response.containsKey('errors')) {
@@ -167,9 +168,9 @@ class EvidenceController
 
         //  Create audit message
         //
-        def audit_msg = "Set classification for ${variantInstance.toString()} to ${variantInstance.pmClass} from ${prevClass}"
+        def audit_msg = "Set classification for ${variantInstance.variant} to ${variantInstance.pmClass} from ${prevClass}"
         def audit     = new Audit(  category:    'curation',
-                                    variant:     variantInstance.toString(),
+                                    variant:     variantInstance.variant,
                                     complete:    new Date(),
                                     elapsed:     0,
                                     software:    'Path-OS',

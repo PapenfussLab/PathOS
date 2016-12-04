@@ -127,6 +127,30 @@
         </g:if>
 
         <li class="fieldcontain">
+        <li class="fieldcontain">
+            <span id="geneTsv-label" class="property-label"><g:message code="seqSample.geneTsv.label" default="Gene Coverage"/></span>
+            <span class="property-value" aria-labelledby="pipelog-label">
+                <g:link url="${UrlLink.dataUrl( seqSampleInstance?.seqrun?.seqrun, seqSampleInstance.sampleName, 'QC/'+seqSampleInstance.sampleName+'_gene_coverage.tsv' )}" target="_blank">TSV File</g:link>
+            </span>
+        </li>
+
+        <li class="fieldcontain">
+        <li class="fieldcontain">
+            <span id="intervalTsv-label" class="property-label"><g:message code="seqSample.intervalTsv.label" default="Interval Coverage"/></span>
+            <span class="property-value" aria-labelledby="pipelog-label">
+                <g:link url="${UrlLink.dataUrl( seqSampleInstance?.seqrun?.seqrun, seqSampleInstance.sampleName, 'QC/'+seqSampleInstance.sampleName+'_depthofcoverage_interval_summary.tsv' )}" target="_blank">TSV File</g:link>
+            </span>
+        </li>
+
+        <li class="fieldcontain">
+        <li class="fieldcontain">
+            <span id="regionTsv-label" class="property-label"><g:message code="seqSample.regionTsv.label" default="Region Coverage"/></span>
+            <span class="property-value" aria-labelledby="pipelog-label">
+                <g:link url="${UrlLink.dataUrl( seqSampleInstance?.seqrun?.seqrun, seqSampleInstance.sampleName, 'QC/'+seqSampleInstance.sampleName+'_region_coverage.tsv' )}" target="_blank">TSV File</g:link>
+            </span>
+        </li>
+
+        <li class="fieldcontain">
             <span id="passfail-label" class="property-label"><g:message code="seqSample.passfail.label" default="Pass/Fail"/></span>
             <span class="property-value" aria-labelledby="passfail-label">
                 <g:if test="${ ! seqSampleInstance?.authorisedQcFlag}">
@@ -204,7 +228,7 @@
                 </span>
 
                 <span class="property-value" aria-labelledby="stats-label" style="width: 400pt">
-                    <roi:roiList sample="${seqSampleInstance}" testset="${thisPatAssay.testName}"/>
+                    <roi:roiList sample="${seqSampleInstance}" template="${thisPatAssay.testName}"/>
                 </span>
 
             </g:each>

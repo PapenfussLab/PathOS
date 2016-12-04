@@ -28,7 +28,7 @@ class Audit
         {
             category( inList: [ 'pipeline', 'lims', 'record', 'curation', 'database' ])
             seqrun( nullable: true )
-            variant( nullable: true, variant: 9999 )
+            variant( nullable: true )
             patSample( nullable: true )
             task( blank: false, nullable: false)
             complete( nullable: false)

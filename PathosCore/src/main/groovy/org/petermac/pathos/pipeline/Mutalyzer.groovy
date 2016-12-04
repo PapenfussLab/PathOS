@@ -30,11 +30,11 @@ class Mutalyzer
 {
     static JsonSlurper slurper = new JsonSlurper()
 
-    private static final    def         baseURL = 'https://mutalyzer.nl'
-    private static final    def         mutURL  = baseURL + '/json/'
-    private static          String      proxyHost = null // '127.0.0.1'
-    private static          Integer     proxyPort = null // 3128
-    private static          Integer     waitTime = 60000    //  1 Minute default wait time for batch
+    private static final    def         baseURL   = 'https://mutalyzer.nl'
+    private static final    def         mutURL    = baseURL + '/json/'
+    private static          String      proxyHost = null
+    private static          Integer     proxyPort = null
+    private static          Integer     waitTime  = 180000    //  3 Minute default wait time for batch
 
     /**
      * Constructor:
@@ -47,7 +47,7 @@ class Mutalyzer
      * the System properties for the proxy configuration. If non of the exist the
      * proxy will be set as default.
      *
-     * For testing Mutalyzer, 2 environment variables must be set
+     * For testing Mutalyzer, 2 environment variables can be set
      * 1) PATHOS_MUTALYZER_PROXY
      * 2) PATHOS_MUTALYZER_WAITTIME
      *
@@ -93,11 +93,10 @@ class Mutalyzer
 
         //  Set wait time for Mutalyzer batch() call to prevent early http call
         //
-        String waitTimeStr = System.getenv('PATHOS_MUTALYZER_WAITTIME')
-        if ( waitTimeStr )
+        def waitTimeStr = System.getenv('PATHOS_MUTALYZER_WAITTIME')
+        if ( waitTimeStr != null )
         {
             waitTime = waitTimeStr as Integer
-            log.info( "Mutalyzer wait time changed to (${waitTime/1000.0} s.)")
         }
 
         //  Look for explicit environment variable PATHOS_MUTALYZER_PROXY for proxy info
@@ -400,6 +399,24 @@ class Mutalyzer
         return res.join('\n')
     }
 
+//
+//    /**
+//     * Get batch results for a job
+//     * To test use % curl 'https://mutalyzer.nl/batch-job-result/batch-job-80faf83d-7bb0-463f-bbb7-404049e395a8.txt'
+//     *
+//     * @param job
+//     * @return
+//     */
+//    static String getBatch( String job )
+//    {
+//        def url = baseURL + "/batch-job-result/batch-job-${job}.txt"
+//        log.debug( "About to retrieve ${url}")
+//        def ret = url.toURL()
+//        log.debug( "Got ${url}")
+//
+//        return ret.getText( connectTimeout: urlTime, readTimeout: urlTime, useCaches: false, allowUserInteraction: false )
+//    }
+
     /**
      * Parse a typical variant string
      *
@@ -482,12 +499,7 @@ class Mutalyzer
         //  Check we're really finished
         //
         sleep 1000                 // 1 sec.
-        remain = monitorBatch( job )
-        if ( remain )
-        {
-            log.fatal( "Exceeded wait time (${waitTime/1000.0} s.) to process variants, remaining/total: ${remain}/${muts.size()}")
-            System.exit(1)
-        }
+        assert 0 == monitorBatch( job )
 
         //  Download results file: format depends on batch task
         //

@@ -10,7 +10,7 @@ CMDPATH=`which $0`
 BINDIR=`dirname $CMDPATH`
 export PATHOS_HOME=`dirname $BINDIR`
 
-ld=`ls -1 $PATHOS_HOME/lib/Loader-all-*.jar | tail -n 1`
+ld=`ls -1tr $PATHOS_HOME/lib/Loader-all-*.jar | tail -n 1`
 if [ ! -r "$ld" ]
 then
 	echo "Couldn't find Loader file: $ld" 1>&2
