@@ -34,6 +34,7 @@ The PathOS search engine is implemented in Apache Lucene. This is a powerful sea
 
 ## Installation
 PathOS has been deployed in a number of clinical environments. The simplest way to use PathOS is by accessing a cloud instance which can be customsied (see below).
+Build artefacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
 If you'd like to build the system from scratch, this repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be adapted for Windows environments.
 There are a number of dependencies including the following
 - Java JDK 1.7 from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
