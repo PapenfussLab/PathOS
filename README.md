@@ -2,7 +2,7 @@
 PathOS is a decision support tool to manage, analyse and report on high througput DNA sequencing variants.
 PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
 
-Authors: Ken Doig, Andre Sleznev, David Ma Date: October 2016 
+Authors: Ken Doig, Andre Sleznev, David Ma, Tom Conway Date: February 2017 
 
 ## Introduction
 Clinical diagnostics is being transformed by the technology capable of analysing patient DNA at the nucleotide level.
@@ -33,13 +33,16 @@ Build management uses Gradle to build system modules and create shared artefacts
 The PathOS search engine is implemented in Apache Lucene. This is a powerful search framework allowing customised search capabilities over any text field in the PathOS domain model.
 
 ## Installation
-PathOS has been deployed in a number of clinical environments. The simplest way to use PathOS is by accessing a cloud instance which can be customsied (see below).
-Build artefacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
-If you'd like to build the system from scratch, this repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be adapted for Windows environments.
+PathOS has been deployed in a number of clinical environments. The simplest way to experiment with PathOS is by accessing a [cloud instance]() set up on the Nectar research cloud.
+
+A demonstration virtual machine has been implemented as an easy we to access and experiment with an operational PathOS instance. See [here](http://VirtualMachine).	
+
+I building PathOS from scratch, build artefacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
+This repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be adapted for Windows environments.
 There are a number of dependencies including the following
-- Java JDK 1.7 from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
+- Java JDK 1.7 from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html)
 - Grails (we use 2.3.7 at time of writing) from https://github.com/grails/grails-core/releases/download/v2.3.7/grails-2.3.7.zip
-- Gradle (we use 1.10 at time of writing)
+- Gradle (we use 1.10 at time of writing) [Gradle 1.10](https://services.gradle.org/distributions/gradle-1.10-bin.zip)
 - Git & a git ssh key with access to PathOS git repository
 - MySql or MariaDB (currently 5.5.50 MariaDB)
 - Tomcat (currently version 7.0)
@@ -69,6 +72,8 @@ Peter MacCallum Cancer Centre, Victorian Comprehensive Cancer Centre Building
 305 Grattan Street, Melbourne Victoria 3000 Australia
 Ph: +61 411 225 178 Mail: ken.doig@petermac.org
 
-## Demonstration Platform
+## Demonstration Instances
 A cloud instance of PathOS is maintained on the University of Melbourne Nectar cloud at http://115.146.87.30:8746/PathOS
+A virtual machine instance of PathOS is available at http:///VirtualMachine
+
 Please get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
