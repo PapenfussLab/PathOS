@@ -35,7 +35,7 @@ The PathOS search engine is implemented in Apache Lucene. This is a powerful sea
 ## Installation
 PathOS has been deployed in a number of clinical environments. The simplest way to experiment with PathOS is by accessing a [cloud instance]() set up on the Nectar research cloud.
 
-A demonstration virtual machine has been implemented as an easy we to access and experiment with an operational PathOS instance. See [here](http://VirtualMachine).	
+A demonstration virtual machine has been implemented as an easy we to access and experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
 
 I building PathOS from scratch, build artefacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
 This repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be adapted for Windows environments.
@@ -74,6 +74,6 @@ Ph: +61 411 225 178 Mail: ken.doig@petermac.org
 
 ## Demonstration Instances
 A cloud instance of PathOS is maintained on the University of Melbourne Nectar cloud at http://115.146.87.30:8746/PathOS
-A virtual machine instance of PathOS is available at [VirtualMachine](tree/master/VirtualMachine)
+A virtual machine instance of PathOS is available at [VirtualMachine](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine)
 
 Please get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
