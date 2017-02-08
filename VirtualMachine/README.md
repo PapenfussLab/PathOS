@@ -17,7 +17,7 @@ We have built and tested the installation with Virtual Box
 platforms.
 
 The archive VM file is available at this URL:
-    http://something/here
+    https://drive.google.com/file/d/0B4rorv9sUHqUcmtGQl9oZUh1Q3M/view?usp=sharing
 
 ## Setup
 
