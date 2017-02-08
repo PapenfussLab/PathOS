@@ -16,8 +16,7 @@ We have built and tested the installation with Virtual Box
 (.ova) file, and it should run without problems on other virtualisation
 platforms.
 
-The archive VM file is available at this URL:
-    https://drive.google.com/file/d/0B4rorv9sUHqUcmtGQl9oZUh1Q3M/view?usp=sharing
+The archive VM file is available from this URL [Download VM 4GB](https://drive.google.com/file/d/0B4rorv9sUHqUcmtGQl9oZUh1Q3M/view?usp=sharing)
 
 ## Setup
 
