@@ -2,20 +2,20 @@
 PathOS is a decision support tool to manage, analyse and report on high throughput DNA sequencing variants.
 PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
 
-Authors: Ken Doig, Andre Seleznev, David Ma, Tom Conway, Chris Love Date: February 2017 
+Authors: Ken Doig, Andre Seleznev, David Ma, Luis Lara, Tom Conway, Chris Love Date: February 2017 
 
 ## Introduction
-Clinical diagnostics is being transformed by the technology capable of analysing patient DNA at the nucleotide level.
+Clinical diagnostics is being transformed by DNA sequencing technology capable of analysing patient samples at the nucleotide level.
 
-Translating the data from this technology into clinically useful information requires decision support software that can analyse the data from sequencers and allow clinical scientists to interpret the DNA variations.
-High throughput sequencing generates many technical artifacts from the chemical processing in the sequencing, these artifacts must be identified and filtered out of the data before further analysis.
+Translating the data from this technology into clinically useful information requires decision support software that can analyse  data from sequencers and allow clinical scientists to interpret the DNA variations.
+High throughput sequencing generates many technical artefacts from the chemical processing in the sequencing, these artefacts must be identified and filtered out of the data before further analysis.
 
 The curation process requires identifying and annotating DNA changes, SNPs (single nucleotide polymorphisms), indels (insertions and deletions), CNVs (copy number variants) and SVs (structural variants) within a sample of patient DNA (either blood or tumour).
 
 Once annotated, mutations are matched with internal and external databases to identify known pathogenic (disease causing) or actionable mutations (variants with an appropriate drug).
 The resulting few variants are then rendered into a clinical diagnostic report suitable for the treating clinician incorporating clinical evidence and relevant publications.
 
-PathOS carries out these tasks within a hospital laboratory setting where many patients must be reported on in a reliable, consistent and efficient manner.
+PathOS carries out these tasks within a clinical laboratory setting where many patients must be reported on in a reliable, consistent and efficient manner.
 
 ## Technology Platform
 PathOS takes advantage of many open-source and public Java libraries to implement an enterprise-grade application suitable for hospital use and secure storage of patient medical data. It interfaces to laboratory LIMS systems for input of patient demographic details and sample and assay registration data. An HL7 interface is currently being developed to interface with other hospital records systems.
@@ -28,7 +28,7 @@ Web traffic is uses by Google Analytics to monitor user activity for workflow an
 
 The backend database is implemented with MariaDB, a MySQL compatible relational database, which stores the variant annotation cache and persistent java objects via Spring and Hibernate. The code base is managed in Atlassian Bitbucket and Git.
 
-Build management uses Gradle to build system modules and create shared artifacts such as JARs, WARs and TAR files. Internally, Atlassian Bamboo is used to perform builds of system modules triggered by developer commits to the code repository.
+Build management uses Gradle to build system modules and create shared artifacts such as JARs, WARs and TAR files. Internally, Atlassian Bamboo is used for continuous integration to perform builds of system modules triggered by developer commits to the code repository.
 
 The PathOS search engine is implemented in Apache Lucene. This is a powerful search framework allowing customised search capabilities over any text field in the PathOS domain model.
 

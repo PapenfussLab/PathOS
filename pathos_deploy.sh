@@ -130,12 +130,13 @@ if [ $IN_BAMBOO -eq 0 ] ; then
         git init
         git remote add origin ${PATHOS_GIT}
         git pull origin master
-        git fetch
+        git fetch --all
 
-        if ! [ "git branch --list $GIT_BRANCH " ]
-        then
-            echo "ERROR: Branch name $GIT_BRANCH does not exist. Exiting."
-            exit 1
+        git rev-parse --verify $GIT_BRANCH
+        if ! [ $? = 0 ]
+         then
+         echo "ERROR: Branch name $GIT_BRANCH does not exist. Exiting."
+         exit 1
         fi
 
         git checkout $GIT_BRANCH
@@ -144,7 +145,7 @@ if [ $IN_BAMBOO -eq 0 ] ; then
 fi
 
 #
-#   Check if GRAILS_ENV matches glob/if exists
+#   Check if we have a customised properties file
 #
 PATHOSCONFIG="$BUILD_HOME/PathosCore/src/etc/pa_example.properties"
 if [ -d /pathology/NGS ];then
