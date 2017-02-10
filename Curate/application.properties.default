@@ -5,6 +5,6 @@ app.context=/PathOS
 app.grails.version=2.3.7
 app.name=Curate
 app.servlet.version=2.5
-app.version=1.2.3
+app.version=1.2.5
 plugins.easygrid=1.6.3
 plugins.filterpane=2.4.2

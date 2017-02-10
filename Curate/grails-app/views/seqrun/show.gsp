@@ -159,17 +159,17 @@
 <a id="toggleQC" href="#showQC" class="disabled" onclick="showQC()"><span id="toggleQClabel">Show Run QC</span> <span id="loadingCharts">(Loading Charts...)</span> <span id="loadingHeatmap">(Loading Heatmap...)</span></a>
 
 <div id="qualityControlCharts">
-    <div id="seqrunSummary">
+    <div id="seqrunSummary" class="chartBox">
         <h3>Sequenced Run Summary</h3>
         <g:seqrunQC seqrun="${seqrunInstance}"/>
     </div>
 
-    <div id="googleCharts">
+    <div id="googleCharts" class="chartBox">
         <h3>Charts</h3>
         <img class="loading_logo" src="/PathOS/dist/img/pathos_logo_animated.svg">
     </div>
 
-    <div id="heatmapContainer">
+    <div id="heatmapContainer" class="chartBox">
         <h3>Heatmap</h3>
         <img class="loading_logo" src="/PathOS/dist/img/pathos_logo_animated.svg">
         <div id="heatmap"></div>
@@ -182,7 +182,7 @@
         <div id="errorDiv" style="color:red"></div>
     </div>
 
-    <div id="ntcReads">
+    <div id="ntcReads" class="chartBox">
         <h3>NTC Reads</h3>
 
         <g:if test="${StatsService.ntcAmplicons(seqrunInstance,20)}">
@@ -212,6 +212,45 @@
             </g:else>
         </g:else>
     </div>
+
+    <div id="contamination" class="chartBox">
+        <h3>Contamination Heatmap</h3>
+
+        <g:if test="${seqrunInstance.panelList.contains('Pathology_hyb')}">
+            <script>
+                var contaminationUrl = "${ UrlLink.contaminationUrl(seqrunInstance.seqrun) }",
+                    contaminationDiv = d3.select("#contamination");
+
+                try {
+                    $.ajax({
+                        url: contaminationUrl,
+                        success: function(d){
+                            contaminationDiv.append("p")
+                                .text("Click the image to open in a new window.");
+
+                            contaminationDiv.append("a")
+                                .attr("href", contaminationUrl)
+                                .attr("target", "_blank")
+                            .append("img")
+                                .attr("id", "contaminationHeatmap")
+                                .attr("src", contaminationUrl);
+
+                        },
+                        error: function(xhr, ajaxOptions, thrownError){
+                            contaminationDiv
+                                    .append("p").text("404 - contamination.png not found in sample folder, has the run finished yet?");
+                        }
+                    })
+                } catch(e){
+                    console.log(e);
+                }
+            </script>
+        </g:if>
+        <g:else>
+            <p>Contamination heatmaps are only generated for Hybrid Capture panels.</p>
+        </g:else>
+    </div>
+
 </div>
 
 

@@ -11,7 +11,6 @@ package org.petermac.pathos.loader
 
 import groovy.util.logging.Log4j
 import org.hibernate.Session
-import org.petermac.annotate.AnoVarDataSource
 import org.petermac.annotate.VarDataSource
 import org.petermac.pathos.curate.*
 import org.petermac.pathos.pipeline.MakePanel
@@ -21,7 +20,6 @@ import org.petermac.util.DateUtil
 import org.petermac.util.DbConnect
 import org.petermac.pathos.pipeline.HGVS
 import java.text.MessageFormat
-import java.text.ParseException
 import java.text.SimpleDateFormat
 
 /**
@@ -45,8 +43,8 @@ import java.text.SimpleDateFormat
 @Log4j
 class DbLoader
 {
-    def  sql
     List newvars = []
+    def  sql
 
     //  Number of records added before a flush is called
     //
@@ -836,6 +834,11 @@ class DbLoader
         int cnt    = 0              // number of rows added
         int rowcnt = 0              // row number
 
+        //  Gene filtering values
+        //
+        List<String>   filterGenes       = []
+        String         filterAssay       = 'noAssay'
+
         //  Count the total number of records to retrieve
         //
         def qry  = 'select count(*) as norows from mp_vcf'
@@ -929,20 +932,61 @@ class DbLoader
                 {
                     //	Lookup Seqrun
                     //
-                    def seqr = Seqrun.findBySeqrun( row.seqrun )
-                    if ( ! seqr )
+                    def seqr = Seqrun.findBySeqrun(row.seqrun)
+                    if (!seqr)
                     {
-                        log.warn( "Row: ${rowcnt} Couldn't find Seqrun [${row.seqrun}] Couldn't add SeqVariant [${row.hgvsg}:${row.hgvsc}]")
+                        log.warn("Row: ${rowcnt} Couldn't find Seqrun [${row.seqrun}] Couldn't add SeqVariant [${row.hgvsg}:${row.hgvsc}]")
                         continue
                     }
 
                     //	Lookup SeqSample
                     //
-                    runs = SeqSample.findBySeqrunAndSampleName( seqr, row.sampleName )
-                    if ( ! runs )
+                    runs = SeqSample.findBySeqrunAndSampleName(seqr, row.sampleName)
+                    if (!runs)
                     {
-                        log.warn( "Row: ${rowcnt} Couldn't find SeqSample [${row.seqrun}:${row.sampleName}] Couldn't add SeqVariant [${row.hgvsg}:${row.hgvsc}]")
+                        log.warn("Row: ${rowcnt} Couldn't find SeqSample [${row.seqrun}:${row.sampleName}] Couldn't add SeqVariant [${row.hgvsg}:${row.hgvsc}]")
                         continue
+                    }
+
+                    //  Reset filtering values with a change in SeqSample
+                    //
+                    filterGenes = []
+                    filterAssay = 'noAssay'
+
+                    //  Look at all assays for this sample (may be more than one)
+                    //
+                    SeqSample ss = SeqSample.findById(runs.id, [fetch: [patSample: 'eager']])
+
+                    //  If we have a Patient, find the PasAssays
+                    //
+                    if ( ss.patSample )
+                    {
+                        //  Get the patient Sample (eagerly so we can get its patAssays
+                        //
+                        PatSample ps = PatSample.findById(ss.patSample.id, [fetch: [patAssays: 'eager']])
+
+                        //  Get the patAssay names
+                        //
+                        List<String> patAssays = ps.patAssays.collect { it.testName }
+                        log.info("Found ${patAssays} in ${ps}")
+
+                        //  For each patAssay, find the genes in the assay
+                        //
+                        for ( pa in patAssays )
+                        {
+                            List genes = ReportService.sampleTestGenes(pa)
+
+                            //  Filtering only applies if we have an Assay that needs filtering
+                            //
+                            if (genes)
+                            {
+                                //  Save the genes used by the assay - make a union of all genes
+                                //
+                                log.debug( "filt ${filterGenes} genes ${genes}")
+                                filterGenes = (filterGenes + genes).unique()
+                                filterAssay = pa   //  Save the assay name
+                            }
+                        }
                     }
                 }
 
@@ -1000,8 +1044,14 @@ class DbLoader
                 row.cadd				= vep.CADD_RAW
                 row.cadd_phred			= vep.CADD_PHRED
                 row.exac				= vep.ExAC_AF
-                row.vepHgvsc            = vep.HGVSc
-                row.vepHgvsp            = vep.HGVSp
+
+                //  Filter out genes not in PatAssay before loading
+                //
+                if ( filterGenes && ! (row.gene in filterGenes))
+                {
+                    log.warn( "Filtered variant ${row.vepHgvsc} by gene ${row.gene} for PatAssay ${filterAssay} with ${filterGenes.size()} genes")
+                    continue
+                }
 
                 //  Add transcripts to VEP HGVS
                 //

@@ -21,7 +21,7 @@
 */
 
 
-println( "Filter Configuration Ver 1.2.3")
+println( "Filter Configuration Ver 1.2.5")
 
 
 //
@@ -696,13 +696,120 @@ rules
             //
             manifests =	[
                         'CCP_NSC_v0.1',            // Nimblegen SeqCap
-                        'CCP_SSL_v0.1',            // Agilent SureSelect
-                        'Pathology_hyb_CCP_1'      // Hybridisation Capture Panel
+                        'CCP_SSL_v0.1'             // Agilent SureSelect
                         ]
 
             //	Pattern match for wildcard matching manifests
             //
-            manifestPattern = 'Pathology_hyb_.*'
+            manifestPattern = 'Pathology_hyb_CCP.*'
+
+            //	Miniumum variant read depth
+            //
+            varDepth  = 10
+
+            //	Minimum read depth
+            //
+            readDepth = 100
+
+            //	Minimum allele frequency (percent)
+            //
+            allelePct    = 3
+
+            //	Maximum percent of a variant within a panel
+            //
+            varPanelPct  = 35
+
+            //	Black list of variants
+            //
+            blackList =	[
+                        ]
+        }
+
+        //	H y b r i d    C a p t u r e    P a n e l s
+        //	===========================================
+
+        'MP Germline Capture Assay'
+        {
+            description = 'Hybrid Germline Panel for multi-gene capture'
+
+            //	Specific manifests in Filter group - Todo: deprecated
+            //
+            manifests =	[
+                        ]
+
+            //	Pattern match for wildcard matching manifests
+            //
+            manifestPattern = 'Pathology_hyb_FRCP.*'
+
+            //	Miniumum variant read depth
+            //
+            varDepth  = 10
+
+            //	Minimum read depth
+            //
+            readDepth = 100
+
+            //	Minimum allele frequency (percent)
+            //
+            allelePct    = 3
+
+            //	Maximum percent of a variant within a panel
+            //
+            varPanelPct  = 35
+
+            //	Black list of variants
+            //
+            blackList =	[
+                        ]
+        }
+
+        'MP DNA Repair Capture Assay'
+        {
+            description = 'Hybrid DNA Repair Panel for multi-gene capture'
+
+            //	Specific manifests in Filter group - Todo: deprecated
+            //
+            manifests =	[
+                        ]
+
+            //	Pattern match for wildcard matching manifests
+            //
+            manifestPattern = 'Pathology_hyb_DRCP.*'
+
+            //	Miniumum variant read depth
+            //
+            varDepth  = 10
+
+            //	Minimum read depth
+            //
+            readDepth = 100
+
+            //	Minimum allele frequency (percent)
+            //
+            allelePct    = 3
+
+            //	Maximum percent of a variant within a panel
+            //
+            varPanelPct  = 35
+
+            //	Black list of variants
+            //
+            blackList =	[
+                        ]
+        }
+
+        'MP Pan Haem Capture Assay'
+        {
+            description = 'Hybrid Pan Haem Panel for multi-gene capture'
+
+            //	Specific manifests in Filter group - Todo: deprecated
+            //
+            manifests =	[
+                        ]
+
+            //	Pattern match for wildcard matching manifests
+            //
+            manifestPattern = 'Pathology_hyb_PHCP.*'
 
             //	Miniumum variant read depth
             //

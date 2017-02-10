@@ -148,7 +148,7 @@ class GenSeqrun
             limsfile = new File( limsxml )
             if ( limsfile.exists()) return limsfile
 
-            log.fatal( "LIMS XML file doesn't exist: ${limsxml}")
+            log.warn( "LIMS XML file doesn't exist: ${limsxml}")
             return null
         }
 

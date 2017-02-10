@@ -11,7 +11,7 @@ class PatAssay
     Date    authDate
     PatSample  patSample
     String  genes               //  Comma separated list of genes to filter on for this test
-                                //  Should really be in an Assay object not a Test instance
+                                //  Todo: Should really be in an Assay object not a Test instance
 
     static belongsTo = [ patSample: PatSample ]
 
@@ -22,7 +22,7 @@ class PatAssay
             patSample()
             panel( nullable: true )
             authDate( nullable: true)
-            genes( nullable: true )
+            genes( maxSize: 2000, nullable: true )
         }
 
     String	toString()

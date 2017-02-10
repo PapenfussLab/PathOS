@@ -40,7 +40,7 @@
                               title="${message(code: 'patAssay.testName.label', default: 'Test Name')}"
                               params="${filterParams}"/>
 
-            <th><g:message code="patAssay.sample.label" default="Sample"/></th>
+            <th><g:message code="patAssay.patSample.label" default="Sample"/></th>
 
             <th><g:message code="patAssay.panel.label" default="Panel"/></th>
 
@@ -59,7 +59,7 @@
 
                 <td>${fieldValue(bean: patAssayInstance, field: "testName")}</td>
 
-                <td>${fieldValue(bean: patAssayInstance, field: "sample")}</td>
+                <td>${fieldValue(bean: patAssayInstance, field: "patSample")}</td>
 
                 <td>${fieldValue(bean: patAssayInstance, field: "panel")}</td>
 

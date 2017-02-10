@@ -42,15 +42,9 @@ public class curateLoginListener implements ApplicationListener<InteractiveAuthe
         if (currentUser) {
 
             def thisusername = currentUser.getUsername()
-
-            if(! currentUser.accountLocked ) {
-                session.setAttribute('userName', thisusername)
-                springSecurityService.reauthenticate(currentUser.username)
-                log.info("${thisusername} logged in successfully")
-            } else {
-                log.info("${thisusername} account is locked, and login is barred")
-                SecurityContextHolder.clearContext()
-    }
+            session.setAttribute('userName', thisusername)
+            springSecurityService.reauthenticate(currentUser.username)
+            log.info( "${thisusername} logged in successfully" )
 
         }
         else {

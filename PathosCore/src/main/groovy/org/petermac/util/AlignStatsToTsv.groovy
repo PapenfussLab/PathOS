@@ -309,6 +309,19 @@ class AlignStatsToTsv
         tsvFile << out.join('\t') + '\n'
         ++nlines
 
+        //  Output dummy amplicon line: flagged with 'allroi' in Amplicon column
+        //
+        out = [ seqrun, sample, panel, '', 'allroi', '-' ]
+
+        out << tsvData['Total reads']       // readsout
+        out << tsvData['Total reads']       // totreads
+        out << "${Integer.parseInt(tsvData['Total reads']) - Integer.parseInt(tsvData['Mapped reads'])}"  // unmapped
+        out << '1'                          // goodamp
+        out << ''                           // sample_stats
+
+        tsvFile << out.join('\t') + '\n'
+        ++nlines
+
         return nlines
     }
 }

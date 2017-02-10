@@ -138,7 +138,8 @@ class StatsService
         if ( ! attr ) return null
 
         def ar = attr['No. Amplicons > 0.2 x ReadsOut']
-        assert ar : 'expecting stats attribute'
+        if ( ! ar ) return null
+
         def match = (ar =~ /\d ([\d\.]+)%/)
         if ( ! match ) return null
 
@@ -157,7 +158,7 @@ class StatsService
         if ( ! attr ) return null
 
         def ar = attr['Min Mean Max ReadsOut']
-        assert ar : 'expecting stats attribute'
+        if ( ! ar ) return null
         def match = (ar =~ /\d+ (\d+) \d+/)
         if ( ! match ) return null
 

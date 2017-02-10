@@ -17,8 +17,15 @@
  */
 
 PipelineType    = 'mp_vcfAmplicon'     //  Pipeline type
-SHOW_STAGE_FAIL = 1                     //  Set to 1 for stage failure emails
-MailList        = [ 'ken.doig@petermac.org', 'andrei.seleznev@petermac.org', 'christopher.welsh@petermac.org', 'andrew.fellowes@petermac.org' ]
+SHOW_STAGE_FAIL = 1                    //  Set to 1 for stage failure emails
+MailList        = [ 'ken.doig@petermac.org',
+                    'andrei.seleznev@petermac.org',
+                    'christopher.welsh@petermac.org',
+                    'andrew.fellowes@petermac.org',
+                    'jason.ellul@petermac.org',
+                    'thomas.conway@petermac.org',
+                    'chris.love@petermac.org'
+                  ]
 HollyHost       = 'bioinf-pathos-test.petermac.org.au'
 
 Bpipe.run

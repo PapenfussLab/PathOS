@@ -5,7 +5,6 @@
   "author": "",
   "dependencies": {
     "browser-sync": "^2.11.1",
-    "d3-selection-multi": "^1.0.0",
     "dotenv": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.0",

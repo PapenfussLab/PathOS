@@ -67,6 +67,19 @@ class UrlLink
     }
 
     /**
+     * Return a link to the contamination.png heatmap for a seqrun in the data repository
+     * @param   seqrun    Seqrun to access
+     * @return  String    URL to the heatmap file "Contamination.png"
+     *
+     * 13-Jan-2017 DKGM
+     */
+    static String contaminationUrl( String seqrun )
+    {
+        def baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/QC/Contamination.png"
+        return baseURL
+    }
+
+    /**
      * Return a link to pipeline report in the data repository
      *
      * @param   seqrun    Seqrun to access

@@ -40,7 +40,7 @@ The simplest way to experiment with PathOS is by accessing the [cloud instance](
 To trial the system locally, a demonstration virtual machine has been implemented as an easy way to experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
 
 If building PathOS from scratch, build artifacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
-This repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be adapted for Windows environments. We are in the process of [Dockerising](https://www.docker.com/) the deployment to simplify this task.
+This repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be customised for local requirements and adapted for Windows environments. We are in the process of [Dockerising](https://www.docker.com/) the deployment to simplify this task.
 
 
 

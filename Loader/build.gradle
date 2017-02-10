@@ -12,7 +12,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 
 //  Release version
 //
-version = '1.2.3'
+version = '1.2.5'
 
 //  Get install root from PATHOS_HOME environment variable
 //

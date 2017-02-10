@@ -4,5 +4,5 @@ CREATE TABLE mp_detente_tests
   name          VARCHAR(50)  NOT NULL,
   project       VARCHAR(50)  NOT NULL,
   workflow      VARCHAR(50)  NULL,
-  genes         VARCHAR(150) NULL
+  genes         VARCHAR(2000) NULL
 );

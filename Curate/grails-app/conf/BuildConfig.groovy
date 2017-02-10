@@ -82,7 +82,9 @@ grails.project.dependency.resolution =
 
                         runtime 'mysql:mysql-connector-java:5.1.25'
 
-                        compile ':PathosCore-all:1.2.3'
+                        compile(':PathosCore-all:1.2.5') {
+                            changing = true
+                        }
 
 
                         //test    "org.gebish:geb-spock:$gebVersion"

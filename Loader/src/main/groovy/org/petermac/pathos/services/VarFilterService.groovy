@@ -735,7 +735,7 @@ class VarFilterService
             def oldMaxId = maxId
 
             def qry = """
-        select sv.id
+        select distinct(sv.id)
         from
               org.petermac.pathos.curate.SeqVariant as sv,
               org.petermac.pathos.curate.SeqSample as ss,

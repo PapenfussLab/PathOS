@@ -52,12 +52,26 @@ class ReportService
     //  Genes in assay: this is now stored in the SampleTest table Todo: use database not this hard coded table
     //
     static Map assayGenes  =    [
-                                    FLD_REP_CRC:  ['BRAF', 'KRAS', 'NRAS', 'RNF43', 'PIK3CA' ],
-                                    FLD_REP_MEL:  ['BRAF', 'KIT',  'NRAS', 'RAC1' ],
-                                    FLD_REP_LUNG: ['BRAF', 'EGFR', 'KRAS', 'MET' ],
-                                    FLD_REP_GIST: ['KIT', 'PDGFRA' ]
-                                    //FLD_REP_SOMP: ['BRAF', 'KIT',  'NRAS', 'KRAS', 'EGFR', 'PDGFRA', 'MET', 'RNF43', 'PIK3CA', 'RAC1' ]
-
+                                    FLD_REP_CRC:        ['BRAF', 'KRAS', 'NRAS', 'RNF43', 'PIK3CA' ],
+                                    FLD_REP_MEL:        ['BRAF', 'KIT',  'NRAS', 'RAC1' ],
+                                    FLD_REP_LUNG:       ['BRAF', 'EGFR', 'KRAS', 'MET' ],
+                                    FLD_REP_GIST:       ['KIT', 'PDGFRA' ],
+                                    FAM1_FAM_ONE:	    ['AIP', 'APC', 'ATM', 'AXIN2', 'BAP1', 'BMPR1A', 'BRCA1', 'BRCA2', 'BRIP1', 'BUB1B', 'CDC73', 'CDH1', 'CDK4', 'CDKN1B', 'CDKN2A', 'CHEK2', 'CSDE1', 'DICER1', 'ENGLN1', 'EGLN2', 'EPAS1', 'EPCAM', 'EXT1', 'EXT2', 'FH', 'FLCN', 'GATA2', 'GREM1', 'HOXB13', 'IDH1', 'KIF1B', 'MAX', 'MDH2', 'MEN1', 'MET', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'NF1', 'NF2', 'NTHL1', 'PALB2', 'PMS2', 'POLD1', 'POLE', 'POT1', 'PRKAR1A', 'PTCH1', 'PTEN', 'RAD51C', 'RAD51D', 'RB1', 'RET', 'RUNX1', 'SCG5', 'SDHA', 'SDHAF2', 'SDHB', 'SDHC', 'SDHD', 'SMAD4', 'SMARCA4', 'SMARCB1', 'SMARCE1', 'STK11', 'SUFU', 'TMEM127', 'TP53', 'TSC1', 'TSC2', 'VHL' ],
+                                    FAM1_SPECTRUM:	    ['APC', 'ATM', 'BAP1', 'BMPR1A', 'BRCA1', 'BRCA2', 'BRIP1', 'CDH1', 'CDK4', 'CDKN2A', 'CHEK2', 'EPCAM', 'GREM1', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'PALB2', 'PMS2', 'POLD1', 'POLE', 'PTEN', 'RAD51C', 'RAD51D', 'SMAD4', 'STK11', 'TP53' ],
+                                    FAM1_BRCA:	        ['BRCA1', 'BRCA2' ],
+                                    FAM1_BRCA_PLUS:	    ['ATM', 'BRCA1', 'BRCA2', 'PALB2', 'TP53' ],
+                                    FAM1_BR_OV_PR_PA:	['ATM', 'BRCA1', 'BRCA2', 'BRIP1', 'CDH1', 'CDKN2A', 'CHEK2', 'HOXB13', 'PALB2', 'PTEN', 'RAD51C', 'RAD51D', 'STK11', 'TP53' ],
+                                    FAM1_CRC_ENDOM:	    ['APC', 'EPCAM', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'NTHL1', 'PMS2', 'POLD1', 'POLE', 'PTEN', 'STK11' ],
+                                    FAM1_OV_CRC:	    ['BRCA1', 'BRCA2', 'BRIP1', 'EPCAM', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'RAD51C', 'RAD51D' ],
+                                    FAM1_MMR:	        ['EPCAM', 'MLH1', 'MSH2', 'MSH6', 'PMS2' ],
+                                    FAM1_POLY:	        ['APC', 'AXIN2', 'BMPR1A', 'BUB1B', 'GREM1', 'MUTYH', 'NTHL1', 'POLD1', 'POLE', 'PTEN', 'SMAD4', 'STK11' ],
+                                    FAM1_CRC_POLY:	    ['APC', 'AXIN2', 'BMPR1A', 'BUB1B', 'EPCAM', 'GREM1', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'NTHL1', 'PMS2', 'POLD1', 'POLE', 'PTEN', 'SMAD4', 'STK11' ],
+                                    FAM1_PARA_PHEO:	    ['CSDE1', 'EGLN1', 'EGLN2', 'EPAS1', 'FH', 'IDH1', 'KIF1B', 'MAX', 'MDH2', 'NF1', 'RET', 'SDHA', 'SDHAF2', 'SDHB', 'SDHC', 'SDHD', 'TMEM127', 'VHL' ],
+                                    FAM1_SKIN:	        ['BAP1', 'CDK4', 'CDKN2A', 'FH', 'FLCN', 'POT1', 'PTCH1', 'RB1', 'SUFU' ],
+                                    FAM1_ENDOC:	        ['AIP', 'CDC73', 'CDKN1B', 'MEN1', 'PRKAR1A', 'PTEN', 'RET', 'VHL' ],
+                                    FAM1_RENAL:	        ['FH', 'FLCN', 'MET', 'SDHB', 'SDHC', 'SDHD', 'TSC1', 'TSC2', 'VHL' ],
+                                    FAM1_SARC:	        ['APC', 'EXT1', 'EXT2', 'RB1', 'TP53' ],
+                                    FAM1_HAEM:          ['ADAMTS13', 'C3', 'CALR', 'CD46', 'CEBPA', 'CFB', 'CFH', 'CFHR1', 'CFI', 'CSF3R', 'CTC1', 'DGKE', 'DKC1', 'EGLN1', 'ELANE', 'EPAS1', 'EPOR', 'G6PC3', 'GATA1', 'GATA2', 'GFI1', 'HAX1', 'JAK2', 'LYST', 'MPL', 'NHP2', 'NOP10', 'PRF1', 'RAB27A', 'RPL11', 'RPL35A', 'RPL5', 'RPS10', 'RPS17', 'RPS19', 'RPS24', 'RPS26', 'RPS7', 'RTEL1', 'RUNX1', 'SBDS', 'SH2B3', 'SH2D1A', 'SRP72', 'STX11', 'STXBP2', 'TERC', 'TERT', 'THBD', 'THPO', 'TINF2', 'UNC13D', 'VHL', 'VWF', 'WAS', 'WRAP53', 'XIAP', 'TP53']
                                 ]
 
     /**
@@ -279,11 +293,11 @@ class ReportService
                                     sam.ret_site                             as site,
                                     sam.tumour_pct                           as tumour_pct,
                                     ''                                       as extref,
-                                    ${ampQC.ampReads}                        as ampReads,
-                                    ${ampQC.ampPct}                          as ampPct,
-                                    '${ampQC.lowAmps}'                       as lowAmps,
+                                    ${ampQC?.ampReads}                        as ampReads,
+                                    ${ampQC?.ampPct}                          as ampPct,
+                                    '${ampQC?.lowAmps}'                       as lowAmps,
                                     '${rr}'                                  as rois,
-                                    (CASE WHEN ss.final_review_by_id IS NULL THEN "DRAFT" ELSE "" END) as isdraft
+                                    (CASE WHEN ss.final_review_by_id IS NULL THEN "DRAFT" ELSE "FINAL" END) as isdraft
                             from	patient     as pat,
                                     pat_sample  as sam,
                                     seq_sample  as ss
@@ -478,7 +492,7 @@ class ReportService
 
         //  If not somatic or no tests, just use panelGroup
         //
-        if ( pg != 'MP FLD Somatic Production' || ! st ) return [ pg ]
+        if ((pg != 'MP FLD Somatic Production' && pg != 'MP Germline Capture Assay') || ! st ) return [ pg ]
 
         //  Find all test sets for this patient sample
         //
@@ -583,8 +597,14 @@ class ReportService
         def match = ( template =~ /(FLD_REP_[A-Z]+)/ )
         if ( match.count == 1 )
         {
-            def sampleTest = match[0][1]	//	Sample test name embedded in template filename
-            genes = assayGenes[sampleTest] as List
+            String sampleTest = match[0][1]	//	Sample test name embedded in template filename Todo: get rid of this !
+            genes = sampleTestGenes( sampleTest )
+        }
+        match = ( template =~ /(FAM1_[A-Z_+]+)/ )
+        if ( match.count == 1 )
+        {
+            String sampleTest = match[0][1]	//	Sample test name embedded in template filename Todo: get rid of this !
+            genes = sampleTestGenes( sampleTest )
         }
         if ( ! genes ) return true
 
@@ -644,9 +664,6 @@ class ReportService
                 if ( roir.overlap( ampr )) ol << amp
             }
 
-            //println ( "ROI: ${roi.name} Amplicon Overlaps ${ol}")
-
-
             //  Collect list of ROIs and their minimum coverage for overlapping amplicons
             //
             roicovs << [name: roi.name, coverage: minCoverage( roir, ol )]
@@ -654,8 +671,6 @@ class ReportService
 
         return roicovs
     }
-
-
 
     /**
      * Check if ROI is in gene list for Assay
@@ -670,9 +685,16 @@ class ReportService
         def match = ( template =~ /(FLD_REP_[A-Z]+)/ )
         if ( match.count == 1 )
         {
-            def sampleTest = match[0][1]	//	Sample test name embedded in template filename
-            genes = assayGenes[sampleTest] as List
+            String sampleTest = match[0][1]	//	Sample test name embedded in template filename Todo: get rid of this !
+            genes = sampleTestGenes( sampleTest )
         }
+        match = ( template =~ /(FAM1_[A-Z_+]+)/ )
+        if ( match.count == 1 )
+        {
+            String sampleTest = match[0][1]	//	Sample test name embedded in template filename Todo: get rid of this !
+            genes = sampleTestGenes( sampleTest )
+        }
+
         if ( ! genes ) return false
 
         return roi.gene in genes
@@ -710,5 +732,18 @@ class ReportService
         }
 
         return minc
+    }
+
+    /**
+     * Find set of genes in a Sample Test for variant filtering
+     *
+     * @param   sampleTest  Assay test set name
+     * @return              List of genes (if any) in a sampleTest
+     */
+    static List<String> sampleTestGenes( String sampleTest )
+    {
+        List genes = assayGenes[sampleTest] as List
+
+        return genes
     }
 }

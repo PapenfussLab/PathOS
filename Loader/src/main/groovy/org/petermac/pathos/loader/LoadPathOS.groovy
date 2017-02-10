@@ -453,7 +453,9 @@ class LoadPathOS
             //  Match for NextSeq runs
             //
             def match = ( sam.seqrun =~ /\d{6}_(NS[^_]+)_.*/ )       // 151009_NS500817_0026_AHGJYGBGXX
-            log.info( "Parse Seqrun: ${sam.seqrun} " + match[0])
+
+            //  Set NextSeq params
+            //
             if ( match.count == 1)
             {
                 fldmap.scanner  = match[0][1]
