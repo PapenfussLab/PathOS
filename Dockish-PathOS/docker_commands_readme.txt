@@ -1,0 +1,82 @@
+##	Notes for building pathos with Docker
+##
+
+#	Download the docker pathos repository
+#
+% mkdir -p /Users/Docker/Dockish-PathOS
+% cd /Users/Docker/Dockish-PathOS
+% git init
+% git remote add origin ssh://git@vm-115-146-91-157.melbourne.rc.nectar.org.au:7999/~thomas.conway/dockish-pathos.git
+% git pull origin master
+% git fetch
+% git checkout master
+
+#	Build image for pathos-build (About 45min first time) (About 7min on Mac) (2min on Cloud)
+#
+% cd docker/pathos-build/
+
+% docker build --tag pathos-build .
+
+#	Check image pathos-build was created
+#	
+% docker images
+
+#	Create data container
+#
+% docker create -v /cache --name pathos-build-cache pathos-build
+
+#	Run image
+#
+% mkdir /Users/Docker/Dockish-PathOS/docker/pathos/   # Needs to be visible to docker shared volumes
+
+#	Run image, populate pathos-build-cache (Mac ~45 min) and build artefacts (6 min) (Nectar PathosCore 2 min, Curate 24 min)
+#
+% docker run --rm -it -v /Users/Docker/Dockish-PathOS/docker/pathos/:/pathos/ --volumes-from pathos-build-cache pathos-build
+
+# check results
+#
+% ls -l /Users/Docker/Dockish-PathOS/docker/pathos
+
+#	Setup image for pathos-tomcat 
+#
+% cd /Users/Docker/Dockish-PathOS/docker
+% cp -v pathos/PathOS.war pathos-tomcat
+
+#	Setup image for pathos-tools
+#
+% cd /Users/Docker/Dockish-PathOS/docker/pathos
+% tar cvzf tools.tgz bin/ etc/ lib/ Pipeline/ Report/
+% cp -v tools.tgz /Users/Docker/Dockish-PathOS/docker/pathos-tools
+
+#	Create a composite image of all dependent pathos images
+#
+% cd /Users/Docker/Dockerish-PathOS/docker
+% vi .env   ## change PATHOS_DATA root of pipeline repository
+% docker-compose build
+
+#	Check results
+#
+% docker images
+
+#	Start up docker pathos (50s !)
+#
+% docker-compose up [-d]   ## -d to run as daemon
+
+#	Check that they came up and have the right ports
+#
+% docker container ls
+% docker ps
+
+#	Populate DB  (copied from /pathology/tmp/dbalt.170125.sql.gz)
+#
+% gzcat dbalt.170125.sql.gz | docker exec -i docker_pathos-mariadb_1 mysql -ubioinformatics -ppathos -D dblive -B
+
+#	Restart tomcat after DB load
+#
+docker restart docker_pathos-tomcat
+
+#	Populate pipeline data repository (VCFs BAMs etc)
+#
+tar xvf pipeline.repository.tgz
+
+## Go to browser (Mac)    https://localhost/PathOS/
