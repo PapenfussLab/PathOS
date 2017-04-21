@@ -1,4 +1,4 @@
-## Dockerized PathOS
+# Dockerized PathOS
 
 PathOS has a number of components, and elements of configuration
 that all have to work together to build a functioning system. Using
@@ -7,10 +7,9 @@ Docker makes this easier.
 Dockerised PathOS is implemented as a set of cooperating containers that work together to create a working
 system. This is shown schematically [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/Containers.png).
 
-# To bring up an instance
+## To bring up an instance
 
-- install docker
-- clone/download the PathOS docker configuration
+- clone/download this repository
 - obtain a WAR file for PathOS,
   and a tar file with the commandline utilities.
 - copy PathOS.war into the docker/pathos-tomcat directory
@@ -22,12 +21,13 @@ system. This is shown schematically [here](https://github.com/PapenfussLab/PathO
   This will create the necessary containers.
   It may take a minute or two to start up.
 
+The specific commands for Linux or MacOS are summarised [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/docker_commands_readme.txt).
 
 To get data in to an instance, you can use an invocation like:
 
     gzcat dbalt.170125.sql.gz | docker exec -i docker_pathos-mariadb_1 mysql -ubioinformatics -ppathos -D dblive -B
 
-# Using Docker Machine
+## Using Docker Machine
 
 Create the virtual machine:
 
