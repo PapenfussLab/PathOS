@@ -38,7 +38,7 @@ PathOS has been deployed in a number of clinical environments but is a large com
 The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
 
 There are two ways to virtualise PathOS for easy deployment, Docker containers or a Virtual Machine. [Docker](http://www.docker.com) is the most powerful method as it allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Lunix,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployment testing has been on Macs and Linux.
-The instructions for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockerish-PathOS).
+The instructions for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS).
 
 To trial the system locally as a VM, a demonstration virtual machine has been implemented as an easy way to experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
 

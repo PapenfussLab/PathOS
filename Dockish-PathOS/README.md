@@ -5,7 +5,7 @@ that all have to work together to build a functioning system. Using
 Docker makes this easier.
 
 Dockerised PathOS is implemented as a set of cooperating containers that work together to create a working
-system. This is shown schematically here [[https://github.com/PapenfussLab/PathOS/tree/master/Dockerish-PathOS/Containers.png|alt='PathOS docker containers']]
+system. This is shown schematically here [[https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/Containers.png|alt='PathOS docker containers']]
 
 # To bring up an instance
 
