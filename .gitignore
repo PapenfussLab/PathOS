@@ -13,3 +13,12 @@ gradle-app.setting
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
 .DS_Store
+
+Curate/.classpath
+Curate/.idea/
+Curate/.project
+Curate/.slcache/
+Curate/FinishMigrate.sh
+Curate/Migrate/
+Curate/scripts/
+Curate/test/
