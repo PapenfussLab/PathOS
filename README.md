@@ -17,6 +17,15 @@ The resulting few variants are then rendered into a clinical diagnostic report s
 
 PathOS carries out these tasks within a clinical laboratory setting where many patients must be reported on in a reliable, consistent and efficient manner.
 
+## Quick Start
+
+The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
+
+There are two ways to virtualise PathOS for easy deployment, Docker containers or a Virtual Machine. [Docker](http://www.docker.com) is the more powerful method as it allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Lunix,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployments have been on Macs and Linux.
+The instructions and config files for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS).
+
+To trial the system locally as a VM, a demonstration virtual machine has been implemented as an easy way to experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
+
 ## Technology Platform
 PathOS takes advantage of many open-source and public Java libraries to implement an enterprise-grade application suitable for hospital use and secure storage of patient medical data. It interfaces to laboratory LIMS systems for input of patient demographic details and sample and assay registration data. An HL7 interface is currently being developed to interface with other hospital records systems.
 
@@ -31,15 +40,6 @@ The backend database is implemented with MariaDB, a MySQL compatible relational 
 Build management uses Gradle to build system modules and create shared artifacts such as JARs, WARs and TAR files. Internally, Atlassian Bamboo is used for continuous integration to perform builds of system modules triggered by developer commits to the code repository.
 
 The PathOS search engine is implemented in Apache Lucene. This is a powerful search framework allowing customised search capabilities over any text field in the PathOS domain model.
-
-## Quick Start
-
-The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
-
-There are two ways to virtualise PathOS for easy deployment, Docker containers or a Virtual Machine. [Docker](http://www.docker.com) is the most powerful method as it allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Lunix,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployment testing has been on Macs and Linux.
-The instructions for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS).
-
-To trial the system locally as a VM, a demonstration virtual machine has been implemented as an easy way to experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
 
 ## Installation
 PathOS has been deployed in a number of clinical environments but is a large complex application with a number of interfaces to external systems that need to be integrated for full featured operation. It has been built from the ground up to meet the clinical workflow needs of the Peter MacCallum Cancer Centre and this is reflected in some of the architectural decisions. 
