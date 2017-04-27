@@ -32,8 +32,7 @@ Build management uses Gradle to build system modules and create shared artifacts
 
 The PathOS search engine is implemented in Apache Lucene. This is a powerful search framework allowing customised search capabilities over any text field in the PathOS domain model.
 
-## Installation
-PathOS has been deployed in a number of clinical environments but is a large complex application with a number of interfaces to external systems that need to be integrated for full featured operation. It has been built from the ground up to meet the clinical workflow needs of the Peter MacCallum Cancer Centre and this is reflected in some of the architectural decisions. 
+## Quick Start
 
 The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
 
@@ -42,9 +41,11 @@ The instructions for Docker deployment can be found [here](https://github.com/Pa
 
 To trial the system locally as a VM, a demonstration virtual machine has been implemented as an easy way to experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
 
+## Installation
+PathOS has been deployed in a number of clinical environments but is a large complex application with a number of interfaces to external systems that need to be integrated for full featured operation. It has been built from the ground up to meet the clinical workflow needs of the Peter MacCallum Cancer Centre and this is reflected in some of the architectural decisions. 
+
 If building PathOS from scratch, build artifacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
 This repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be customised for local requirements and adapted for Windows environments. 
-
 
 
 There are a number of dependencies including the following
