@@ -6,5 +6,5 @@
   --}%
 
 <label for="seqsampleadd" >Seq Samples:</label>
-<g:select name="seqsampleadd" noSelection="['':'Select one...']" from="${seqsamples}">
+<g:select name="seqsampleadd" noSelection="['':'Select sample...']" from="${seqsamples}">
 </g:select>

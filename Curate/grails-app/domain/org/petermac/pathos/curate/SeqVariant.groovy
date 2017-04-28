@@ -29,7 +29,6 @@ class SeqVariant implements Taggable
     Integer		fwdVarDepth
     Integer		revReadDepth
     Integer		revVarDepth
-    CurVariant	curated
     String      cosmic
     String      dbsnp
     String      chr
@@ -39,7 +38,9 @@ class SeqVariant implements Taggable
     Boolean     filtered
     String      filterFlag
     Boolean     reportable
-    Double      varPanelPct     // populated by Filtering
+    Double      varPanelPct
+    Integer         varSamplesSeenInPanel  //varSeenInPanel is how often that variant has been seen in a panel
+    Integer         varSamplesTotalInPanel //varTotalInpanel is how many vars there are in that var's panel. that is, panel freq is: varSeenInPanel / varTotalInPanel
     Double      gmaf
     String		ens_transcript
     String		ens_gene
@@ -89,12 +90,13 @@ class SeqVariant implements Taggable
     String      homopolymer
     String      varcaller
 
+    Integer maxPmClass
+
     static constraints =
         {
             variant(     maxSize: 500 )
             ens_variant( maxSize: 500 )
             gene()
-            curated( nullable: true )
             filtered()
             filterFlag( nullable: true )
             reportable()
@@ -166,23 +168,113 @@ class SeqVariant implements Taggable
             ampbias( nullable: true )
             homopolymer( nullable: true )
             varcaller( nullable: true )
+            varSamplesSeenInPanel( nullable: true)
+            varSamplesTotalInPanel( nullable: true)
+            maxPmClass( nullable: true)
         }
 
-    static hasMany = [ tags: Tag ]
+    static hasMany = [ tags: Tag ] //,  curVariants: CurVariant ] //, varLinks: VarLink ]
+
+
+    //  the mappedBy resolves the problem of multiple many-to-many and one-to-one relationships between curvar and seqvar
+    //  there's a matching line in curvar. this specifies that the manytomany is between the below vars only.
+    //  otherwise CurVar curated and SeqVar originating start getting messed up
+    //  static mappedBy = [curVariant: 'originating]
+
 
     //  Indexes on seqSample,sampleName,variant,hgvsg
     //
     static      mapping =
     {
-        seqSample   index: 'seq_sample_idx' //, unique: true
+        //seqSample   index: 'seq_sample_idx' //, unique: true
         variant     index: 'variant_idx'
         sampleName  index: 'sample_name_idx'
         hgvsg       index: 'hgvsg_idx' //, unique: true
         hgvsc       index: 'hgvsc_idx'
+
+        //  calculate max pmclass (needed for svlist sortorder)
+        maxPmClass formula: "(SELECT  max( case when SUBSTRING(cv.pm_class,2,1) > 0 then  SUBSTRING(cv.pm_class,2,1)  else 0  end)  FROM seq_variant as sv INNER JOIN cur_variant AS cv ON cv.grp_variant_accession=sv.hgvsg WHERE sv.id=id)"
     }
 
     String	toString()
     {
         "${gene}:${hgvsc}"
     }
+
+    def CurateService
+
+    /**
+     * returns panel freq
+     * (from 0-100)
+     * DEPRECATED
+     * @return
+     */
+    BigDecimal panelFreq() {
+        // this function is deprecated in favour of varPanelPct property (see PATHOS-1941)
+        try {
+            BigDecimal pf = ( this.varSamplesSeenInPanel.div(this.varSamplesTotalInPanel) )  // ( varSamplesSeenInPanel.div(varSamplesTotalInPanel) ) * 100
+            return pf * 100
+       } catch(all) {  //on any exception (null, divide-by-zero might happen)
+            return 0
+       }
+    }
+
+    /**
+     * Check if this SV is curated in a certain context.
+     * I.e. there is a CurVariant AND it is linked
+     *
+     * @param cc
+     * @return
+     */
+    boolean curatedInContext( ClinContext cc )
+    {
+        for (cv in this.allCurVariants()) {
+            if (cv.clinContext?.code == cc?.code) return true
+        }
+        return false
+    }
+
+    ArrayList<CurVariant> allCurVariants(){
+        return CurVariant.executeQuery("from CurVariant cv where cv.grpVariant.accession=:hgvsg",[hgvsg:this.hgvsg])
+    }
+
+    Integer numberOfCuratedContexts() {
+        return CurVariant.executeQuery("select count(*) from CurVariant cv where cv.grpVariant.accession=:hgvsg",[hgvsg:this.hgvsg])[0];
+    }
+
+
+    //  get CurVariant matching this SeqVariant's SeqSample's context
+    CurVariant currentCurVariant()
+    {
+        def cc = this.seqSample?.clinContext
+        def thisCvs = null
+        if(cc) {
+            thisCvs = CurVariant.executeQuery("from CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext=:cc",[hgvsg:this.hgvsg,cc:cc])
+
+        } else {
+            thisCvs = CurVariant.executeQuery("from CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext is null",[hgvsg:this.hgvsg])
+        }
+
+
+        assert (thisCvs?.size() < 2 || thisCvs == null)    //accesion and cc combo unique
+        return thisCvs[0]
+
+    }
+
+    boolean curate()
+    {
+        return CurateService.createNewCurVariantsFromSeqVariant(this)
+    }
+
+
+
 }
+
+
+
+
+
+
+
+
+

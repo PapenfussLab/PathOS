@@ -24,6 +24,7 @@ class SmithWatermanTest extends GroovyTestCase
 {
     SmithWaterman sw
 
+    //TODO: check error
     void setUp()
     {
         sw = new SmithWaterman()

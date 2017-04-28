@@ -5,17 +5,20 @@ package org.petermac.util
  */
 class DbConnectTest extends GroovyTestCase
 {
+    /**
+     * TODO: DbConnectTest is tested in DbConnectIntTest
+     */
 
-    void testTest()
-    {
-        assert DBConnection("pa_test" )
-    }
-
-    boolean DBConnection(String database)
-    {
-        def db        = new DbConnect( database )
-        boolean valid =  db.valid()
-        db.sql()
-        return valid
-    }
+//    void testTest()
+//    {
+//        assert DBConnection("pa_dev" )
+//    }
+//
+//    boolean DBConnection(String database)
+//    {
+//        def db        = new DbConnect( database )
+//        boolean valid =  db.valid()
+//        db.sql()
+//        return valid
+//    }
 }

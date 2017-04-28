@@ -22,9 +22,6 @@
 	<link href="<g:resource plugin='easygrid' dir='jquery.jqGrid-4.6.0/plugins' file='ui.multiselect.css'/>" type="text/css" rel="stylesheet" media="screen, projection" />
 
 	%{--Javascript Files--}%
-	%{--<g:javascript src="quasipartikel/jquery.min.js" />--}%
-	%{--<g:javascript src="quasipartikel/jquery-ui.min.js" />--}%
-	%{--<g:javascript src="quasipartikel/ui.multiselect.js" />--}%
 	<script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
 	<g:javascript src='jquery/jquery.jgrowl.js' plugin='spring-security-ui'/>
 
@@ -111,14 +108,12 @@
 		<grid:grid  name="pubmed" >
 			<grid:set caption='Pubmed table' width="100%"/>
 			<grid:set col="pmid"         width="120" />
-		%{--<grid:set col="doi"         width="120" />--}%
 			<grid:set col="date"         width="120" />
 			<grid:set col="journal"         width="120" />
 			<grid:set col="title"         width="120" />
 			<grid:set col="authors"         width="120" />
 			<grid:set col="affiliations"         width="120" />
 			<grid:set col="abstrct"         width="120" />
-		%{--<grid:set col="keywords"         width="120" />--}%
 		</grid:grid>
 		<grid:exportButton name="pubmed" formats="['csv', 'excel']"/>
 	</div>
@@ -144,22 +139,22 @@ var month = {
 
 datastore = {
     add: function(obj){
-        var pmid = obj[9];
+        var pmid = obj[10];
         datastore[pmid] = {
-            authors: obj[0],
-            date: obj[1],
-            title: obj[2],
-            journal: obj[3],
-            volume: obj[4],
-            issue: obj[5],
-            pages: obj[6],
-            affiliations: obj[7],
-            id: obj[8],
-            pmid: obj[9],
-            doi: obj[10],
-            abstract: obj[11],
+            id: obj[0],
+            tags: obj[1],
+            authors: obj[2],
+            date: obj[3],
+            title: obj[4],
+            journal: obj[5],
+            volume: obj[6],
+            issue: obj[7],
+            pages: obj[8],
+            affiliations: obj[9],
+            pmid: obj[10],
+            doi: obj[11],
             pdf: obj[12],
-            tags: obj[13]
+            abstract: obj[13],
         }
     },
     addJSON: function(d){
@@ -171,6 +166,26 @@ datastore = {
 };
 
 var colModel = [
+	{
+		name: "id",
+		hidden: true,
+	},
+    {
+        name: "tags",
+        label: "Tags",
+        hidden: true,
+        formatter: function(val, opt, obj) {
+            var string = "";
+            if(val){
+                var array = []
+                val.forEach(function(d){
+                    array.push('<a href="/PathOS/search/search?q='+d.label+'">'+d.label+'</a>');
+                });
+                string = array.join(", ")
+            }
+            return string;
+        }
+    },
     {
         name: "authors",
         label: "Authors",
@@ -217,7 +232,7 @@ var colModel = [
         search: false,
         width: 95,
         formatter: function (val, opt, obj){
-            var pmid = Array.isArray(obj) ? obj[9] : obj.pmid
+            var pmid = Array.isArray(obj) ? obj[10] : obj.pmid
                 d = datastore[pmid];
             var result = "";
             if(d.volume){
@@ -248,36 +263,34 @@ var colModel = [
         width: 240
     },
     {
-        name: "id",
-        label: "PubMed ID",
-        align: "center",
-        search: false,
-        width: 80,
-        formatter: function(val, opt, obj) {
-            var pmid = Array.isArray(obj) ? obj[9] : obj.pmid,
-                d = datastore[pmid],
-                pdfdoi = "";
-            if(d.pdf != "null" && d.pdf != "" && d.pdf != null) {
-                pdfdoi = "<a href='http://bioinf-ensembl.petermac.org.au/Pubmed/"+ d.pdf+"' target='_blank'>[PDF]</a>"
-            }
-            if(d.doi != "null" && d.doi != null) {
-                if(pdfdoi != ""){
-                    pdfdoi += " - "
-                }
-                pdfdoi += "<a href='http://dx.doi.org/"+encodeURI(d.doi)+"' target='_blank'>[DOI]</a>"
-            }
-            return "<br><span style='line-height:1.5em;'><a href='http://pubmed.com/"+pmid+"' target='_blank'>"+pmid+"</a><br>"+pdfdoi+"</span>";
+        name: "pmid",
+		formatter: function(pmid, opt, obj) {
+			var string = ""
+			if(pmid != null && pmid != "null") {
+				string = "<span style='line-height:1.5em;'><a href='https://www.ncbi.nlm.nih.gov/pubmed/"+pmid+"' target='_blank'>"+pmid+"</a></span>";
+			}
+            return string
         }
     },
     {
-        name: "pmid",
-        search: false,
-        hidden: true
+        name: "doi",
+        formatter: function(doi, opt, obj) {
+        	var string = "";
+            if(doi != null && doi != "null") {
+                string = "<span style='line-height:1.5em;'><a href='http://dx.doi.org/"+encodeURI(doi)+"' target='_blank'>"+doi+"</a></span>";
+            }
+            return string
+        }
     },
     {
-        name: "doi",
-        search: false,
-        hidden: true
+        name: "pdf",
+        formatter: function(pdf, opt, obj) {
+        	var string = "";
+        	if(pdf != "null" && pdf != null) {
+        		string = "<span style='line-height:1.5em;'><a href='http://bioinf-ensembl.petermac.org.au/Pubmed/"+ d.pdf+"' target='_blank'>[PDF]</a></span>";
+        	}
+            return string
+        }
     },
     {
         name: "abstrct",
@@ -300,26 +313,6 @@ var colModel = [
                 string = "title='" + rawObject[11].replace(/'/gi, "&apos") + "'";
             }
             return string
-        }
-    },
-    {
-        name: "pdf",
-        hidden: true
-    },
-    {
-        name: "tags",
-        label: "Tags",
-        hidden: true,
-        formatter: function(val, opt, obj) {
-            var string = "";
-            if(val){
-                var array = []
-                val.forEach(function(d){
-                    array.push('<a href="/PathOS/search/search?q='+d.label+'">'+d.label+'</a>');
-                });
-                string = array.join(", ")
-            }
-            return string;
         }
     }
 ];
@@ -417,7 +410,7 @@ $("#pubmed_table_date").attr("aria-selected", "true");
 var nav_data = {};
 function fixNavGrid(){
     // This function cleans up the navgrid
-    var pmid = $("#v_pmid span").html();
+    var pmid = $("#v_pmid span a").html();
     nav_data = datastore[pmid];
 
     window.history.replaceState({}, pmid, "/PathOS/Pubmed?pmid="+pmid);
@@ -430,8 +423,8 @@ function fixNavGrid(){
 	});
 
     // Change the size of the navgrid, and make it word wrap
-    $("#viewmodpubmed_table").width(600).height(800);
-    $("#ViewGrid_pubmed_table").height(800);
+    //$("#viewmodpubmed_table").width(600).height(800);
+    //$("#ViewGrid_pubmed_table").height(800);
     $(".CaptionTD").width(75);
     $(".DataTD").css("white-space", "normal");
     $(".DataTD").css("padding","5px");
@@ -458,25 +451,23 @@ function fixNavGrid(){
 
     $("#v_abstrct span").html(datastore[pmid].abstract);
 
-    $("#ViewTbl_pubmed_table_2").attr("style","top: 768px; position: absolute;");
 
     $("#pdf_form").remove();
     $("#tag_form").remove();
 
-    $("#v_id").prepend('<form id="pdf_form" action="upload_pdf" style="float:right; margin-top: 10px; margin-right: 10px;" method="POST"><input type="file" accept=".pdf" id="pdf" name="pdf" disabled/><input type="text" id="pdf_pmid" name="pdf_pmid" style="display:none;"/><input type="button" value="Upload" onclick="upload_pdf()"></form>');
+    $("#v_pdf").prepend('<form id="pdf_form" action="upload_pdf" style="float:right; margin-top: 10px; margin-right: 10px;" method="POST"><input type="file" accept=".pdf" id="pdf" name="pdf" disabled/><input type="text" id="pdf_pmid" name="pdf_pmid" style="display:none;"/><input type="button" value="Upload" onclick="upload_pdf()"></form>');
 
+	$.ajax({
+		url: "/PathOS/pubmed/check_pmid?pmid="+pmid,
+		success: function(d){
+			if(d == "null") {
+				var save = '<br><a href="#" onclick="addPMID('+pmid+');return false">[SAVE ROW]</a>';
+				var old_html = $("#v_pmid>span>span").html().replace("<br>","");
 
-
-    %{--$("#v_tags").prepend('<form id="tag_form" style="float:right; margin-top: 10px; margin-right: 10px;"><input id="tag_input"/><input type="button" value="Add Tag" onclick="add_tag()"></form>');--}%
-
-    %{--var availableTags = <g:allTags/>;--}%
-
-       %{--$("#tag_input").autocomplete({--}%
-           %{--source: availableTags--}%
-       %{--});--}%
-
-
-
+				$("#v_pmid>span").html("<p class='ui-state-lowlight' style='width: 80px; text-align: center;'>"+old_html+save+"</p>");
+			}
+		}
+	})
 
        setTimeout( function(){
            $("#pdf").removeAttr("disabled");
@@ -487,6 +478,7 @@ function fixNavGrid(){
 
 
    function upload_pdf(){
+	   var pmid = $("#v_pmid span a").html();
        if(document.getElementById("pdf").files[0].size < 30000000) {
            if(document.getElementById("pdf").files[0].name.split(".").pop().toLowerCase() == "pdf") {
                var http = new XMLHttpRequest();
@@ -500,10 +492,11 @@ function fixNavGrid(){
                        console.log("File upload response: "+d);
                        if (d == "success") {
                            $.jGrowl("File successfully uploaded.");
-                           $("#pdf_form input").remove();
-                           $("#pdf_form").append('<a href="http://bioinf-ensembl.petermac.org.au/Pubmed/'+$("#v_pmid span").html()+'.pdf" target="_blank">[Recently uploaded PDF]</a>')
-
-                           // After success, we could insert the [PDF] link immediately, and remove the input field.
+                           d3.selectAll("#trv_pdf #v_pdf span, tr.ui-state-highlight td[aria-describedby='pubmed_table_pdf']")
+								.append('a')
+								.attr("href", "http://bioinf-ensembl.petermac.org.au/Pubmed/"+pmid+".pdf")
+								.attr("target", "_blank")
+								.text("[PDF]")
 
                             PathOS.tags.addTag(d3.select(".tags_field"), "pdf")
 
@@ -533,16 +526,21 @@ function fixNavGrid(){
             url: url,
             method: "POST",
             success: function(d){
-                        console.log(d);
-                        if (d == "saved") {
-                            $.jGrowl("Article saved to database.");
-                            $('#'+pmid+' .ui-state-lowlight')
-                                .html($('#'+pmid+' .ui-state-lowlight').html().split('<br><a href="#" onclick="addPMID(')[0])
-                                .toggleClass('ui-state-lowlight');
-                        } else {
-                            $.jGrowl("Article was not saved to database. Please refresh page and try again.");
-                        }
-                    }
+					console.log(d);
+					if (d == "saved") {
+						$.jGrowl("Article saved to database.");
+						$('#'+pmid+' .ui-state-lowlight')
+							.html($('#'+pmid+' .ui-state-lowlight').html().split('<br>')[0])
+							.removeClass('ui-state-lowlight');
+						if($("#v_pmid .ui-state-lowlight").html()) {
+							$("#v_pmid .ui-state-lowlight")
+								.html($("#v_pmid .ui-state-lowlight").html().split('<br>')[0])
+								.removeClass('ui-state-lowlight');
+						}
+					} else {
+						$.jGrowl("Article was not saved to database. Please refresh page and try again.");
+					}
+				}
             });
    }
 
@@ -567,7 +565,7 @@ function fixNavGrid(){
                affiliations: d.affiliations,
                id: d.pmid,
                abstrct: d.abstract,
-               pdf: ""
+               pdf: d.pdf
 
            }, 'first');
 
@@ -585,7 +583,7 @@ function fixNavGrid(){
                    console.log(d);
                    if(d && d.rows && d.rows[0] && d.rows[0].cell) {
                        datastore.add(d.rows[0].cell);
-                       showRow(d.rows[0].cell[9]);
+                       showRow(d.rows[0].cell[10]);
                    }
                },
                cache: false,
@@ -596,13 +594,15 @@ function fixNavGrid(){
    }
 
 
-   function findPMID(pmid){
+function findPMID(pmid){
 
-		if(!pmid) {
-			pmid = $("#pmid_box").val().trim();
-		}
+	if(parseInt(pmid) > 0) {
+		$("#pmid_box").val(parseInt(pmid));
+	} else {
+		pmid = $("#pmid_box").val().trim();
+	}
 
-if(pmid !== ''){
+	if(pmid && pmid !== ''){
 
 	   var regex = /^\d{0,20}$/;
 
@@ -641,19 +641,19 @@ if(pmid !== ''){
 
                        datastore.addJSON(d);
                        showRow(d.pmid);
-                       $("#"+d.pmid+" td:nth-child(9)").addClass("ui-state-lowlight")
+                       $("#"+d.pmid+" td:nth-child(11)").addClass("ui-state-lowlight")
 
-                       var html = $("#"+d.pmid+" td:nth-child(9)").html();
+                       var html = $("#"+d.pmid+" td:nth-child(11)").html();
                        var save = '<br><a href="#" onclick="addPMID('+d.pmid+');return false">[SAVE ROW]</a>';
 
-                       $("#"+d.pmid+" td:nth-child(9)").html(html+save)
+                       $("#"+d.pmid+" td:nth-child(11)").html(html+save)
 
                    }
                }
            }
        }
-       }
    }
+}
 
 
    function parseAuthors(arr){
@@ -762,7 +762,7 @@ if(pmid !== ''){
    }
 
    function getCurrentpmid(){
-	   PathOS.tags.current_object = $('.ui-state-highlight td:nth-child(10)').attr('title');
+	   PathOS.tags.current_object = $('.ui-state-highlight td[aria-describedby="pubmed_table_pmid"]').attr('title');
        return PathOS.tags.current_object;
    }
 
@@ -812,6 +812,18 @@ $(document).ready( function(){
 	});
 })
 
+	$(document).ready(function(){
+	var width = $(window).width() - 430;
+
+	d3.select("#pubmedPager")
+		.style('padding', 1)
+		.style('width', width+'px')
+		.style('position', 'fixed')
+		.style('bottom', 0);
+	})
+
+	d3.select("#pubmed")
+		.style("margin-bottom", '20px')
 </r:script>
 
 

@@ -33,6 +33,11 @@ class SeqRelationController {
     }
 
     def create() {
+        println "aa"
+
+        def c = SeqSample.constraints.sampleType['inList']
+        println c
+
         [seqRelationInstance: new SeqRelation(params)]
     }
 
@@ -44,8 +49,12 @@ class SeqRelationController {
             return
         }
 
+        /*
+        seqsample_set_type
+         */
+
         // add any samples passed from params
-        addSamplesToSeqRelation(params,seqRelationInstance)
+        def warnings = addSamplesToSeqRelation(params,seqRelationInstance)
 
 
         flash.message = message(code: 'default.created.message', args: [message(code: 'seqRelation.label', default: 'SeqRelation'), seqRelationInstance.id])
@@ -88,7 +97,7 @@ class SeqRelationController {
         }
 
         // add any samples passed from params
-        addSamplesToSeqRelation(params,seqRelationInstance)
+        def warnings = addSamplesToSeqRelation(params,seqRelationInstance)
 
         // cycle through params and remove samples that have been checkboxed
         params.each{ k, v ->
@@ -118,6 +127,13 @@ class SeqRelationController {
         }
 
         flash.message = message(code: 'default.updated.message', args: [message(code: 'seqRelation.label', default: 'SeqRelation'), seqRelationInstance.id])
+
+        for (warning in warnings) {
+            println warning
+            // add warnings about changes sample types
+            flash.message += '<br/>' + warning //not the right way
+
+        }
         redirect(action: "show", id: seqRelationInstance.id)
     }
 
@@ -145,16 +161,16 @@ class SeqRelationController {
      * takes params and assumes the _form.gsp style (hidden fields with ids starting with "add_"
      * @param params
      * @param seqRelationInstance
-     * @return
+     * @return  warnings a List of warnings
      */
-    def addSamplesToSeqRelation(Map params, SeqRelation seqRelationInstance) {
+    private List<String> addSamplesToSeqRelation(Map params, SeqRelation seqRelationInstance) {
 
         //  we also set sample types to (T/N/TN) if a TumourNomrla seqrelation
         //
         def updateTNSampleTypes = false
         if (seqRelationInstance.relation == 'TumourNormal') updateTNSampleTypes = true
-
-
+        def warnings = []
+        println params
         //  cycle through samplename seqrun pairs to be added (passed as json) and add the seqrun
         //
         params.each{ k, v ->
@@ -172,32 +188,31 @@ class SeqRelationController {
                 }
 
                 if(newSs?.seqrun && newSs?.seqsample) {
-                    def run = Seqrun.findBySeqrun(newSs.seqrun)
+                    // these are 3 arraylists of size 1, or at least they should nbe
+                    def srun = newSs.seqrun.size() > 0 ?  newSs.seqrun[0] :""
+                    def ssname = newSs.seqsample.size() > 0 ?  newSs.seqsample[0] :""
+                    def stype = newSs.sampletype.size() > 0 ?  newSs.sampletype[0] :""
+
+                    def run = Seqrun.findBySeqrun(srun)
+
                     if (run) {
-                        def seqsample = SeqSample.findBySeqrunAndSampleName(run,newSs.seqsample)
-                        if(seqsample)       seqRelationInstance.addToSamples(seqsample)
+                        def seqsample = SeqSample.findBySeqrunAndSampleName(run,ssname)
 
-                        if(updateTNSampleTypes) {   //check suffix, if its T/N/TN set sampletype appropriately
-                            //get suffix and if it's a TN one, set accordingly
-                            if(seqsample.sampleName.contains('-')) {
-                                def splitname = seqsample.sampleName.split('-')
-                                def oldSampleType = seqsample.sampleType
-                                switch (splitname[splitname.size() - 1]) {
-                                    case 'N':
-                                        seqsample.setSampleType('Normal')
-                                        break;
-                                    case 'T':
-                                        seqsample.setSampleType('Tumour')
-                                        break;
-                                    case 'TN':
-                                        seqsample.setSampleType('TumourNormal')
-                                        break;
+                        if(seqsample) {
+                            def oldSampleType = seqsample.sampleType
+                            seqRelationInstance.addToSamples(seqsample)
 
-                                }
-                                if (oldSampleType != seqsample.getSampleType()) {
-                                    //warn us somewhee
-                                    log.warn('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.getSampleType() + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
-                                    println ('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.getSampleType() + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
+                            if(stype) {
+                                println stype
+                                println stype.getClass()
+                                seqsample.setSampleType(stype)
+                                println seqsample.getSampleType()
+                                println "---"
+                                if (oldSampleType != seqsample.sampleType) {
+                                    //warn us
+                                    log.warn('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.sampleType + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
+                                    println ('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.sampleType + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
+                                    warnings.add('Overwrote sample type of SeqSample ' + seqsample.sampleName + ' from ' + oldSampleType?oldSampleType:"none" + ' to ' + seqsample.sampleType)
                                 }
                             }
                         }
@@ -206,10 +221,7 @@ class SeqRelationController {
             }
         }
 
-
-
-
-        //warn if overwriting
+        return warnings
 
     }
 
@@ -221,5 +233,28 @@ class SeqRelationController {
         render(template:'seqsamplelist', model:[seqsamples:seqsamples])
     }
 
+    //  called by RemoteFunction from _form.gsp
+    //
+    def getSampleTypeBySampleNameAndSeqrun = {
+        def ss = params['seqsample']
+        def sr = params['seqrun']
+        SeqSample sSample
+        println ss
+        println sr
+        println "sfsdf"
+        def thisrun = Seqrun.findBySeqrun(sr)
+        if (thisrun) {
+            sSample = SeqSample.findBySampleNameAndSeqrun(ss, thisrun)
+        }
+
+        if (sSample) {
+            render(template:'sampletypelist', model:[sampletype:sSample.sampleType])
+        } else {
+            return null
+        }
+
+        //render(template:'seqsamplelist', model:[seqsamples:seqsamples])
+
+    }
 
 }

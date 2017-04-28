@@ -21,7 +21,7 @@ mp_annotator =
     {
         if (DEBUG) println "In mp_annnotator in=$inputs.vcf out=$output"
 
-        exec "${MP_PATHOS_HOME}/bin/Annotator --rdb $DBNAME --datasource mutalyzer,annovar,vep $inputs.vcf > $output"
+        exec "${MP_PATHOS_HOME}/bin/Annotator --rdb $DBNAME --mutalyzer https://mutalyzer.nl --datasource mutalyzer,annovar,vep $inputs.vcf > $output"
     }
 }
 

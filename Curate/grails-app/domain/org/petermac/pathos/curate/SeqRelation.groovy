@@ -28,7 +28,7 @@ class SeqRelation
 
     static  constraints =
     {
-        relation( inList: [ "Replicate", "Duplicate", "TumourNormal", "Trio" ]  )
+        relation( inList: [ "Replicate", "Duplicate", "TumourNormal", "Trio", "TimeSeries" ]  )
         base( nullable: true )
     }
 

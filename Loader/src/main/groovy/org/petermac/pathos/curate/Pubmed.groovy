@@ -31,7 +31,6 @@ class Pubmed implements Taggable {
 
     static  searchable =
             {
-                only = [ 'pmid', 'doi', 'journal', 'title', 'authors', 'affiliations', 'abstrct', 'tags' ]
                 tags component: true
             }
 

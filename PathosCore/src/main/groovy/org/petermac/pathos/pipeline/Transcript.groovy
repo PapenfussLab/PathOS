@@ -29,6 +29,17 @@ class Transcript
     /**
      * Constructor loads in transcript maps
      *
+     * @param   preferred  Map of gene -> refseq transcript (without version)
+     */
+    Transcript( Map preferred )
+    {
+        prefMap     = preferred
+        lrgMap      = [:]
+    }
+
+    /**
+     * Constructor loads in transcript maps
+     *
      * @param   dbname  Database for transcript references
      */
     Transcript( String dbname )

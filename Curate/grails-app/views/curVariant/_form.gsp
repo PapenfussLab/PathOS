@@ -205,7 +205,7 @@
         <g:message code="variant.reportDesc.label" default="Report Desc"/>
 
     </label>
-    <g:textArea name="reportDesc" cols="40" rows="5" maxlength="8000" value="${variantInstance?.reportDesc}"/>
+    <g:textArea class="highlightClass" name="reportDesc" cols="40" rows="5" maxlength="8000" value="${variantInstance?.reportDesc}"/>
 </div>
 <r:script>
 

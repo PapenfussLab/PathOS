@@ -3,12 +3,13 @@ import org.petermac.pathos.curate.*
 import org.petermac.pathos.curate.AuthRole
 import org.petermac.pathos.curate.AuthUser
 import org.petermac.pathos.curate.AuthUserAuthRole
-
+import org.petermac.util.Locator
 import java.text.SimpleDateFormat
 
 class BootStrap
 {
     def grailsApplication
+    def loc  = Locator.instance
     /**
      * Create initial Roles and Users for bootstrapping development
      */
@@ -100,6 +101,9 @@ class BootStrap
     }
 
 
+    
+    
+    
     void makeBaseSpringUsers()
     {
 
@@ -112,7 +116,7 @@ class BootStrap
         AuthRole expertRole
         AuthRole devRole
 
-        String defaultpassword = grailsApplication.config.dataSource.defaultuserpassword
+        String defaultpassword = loc.defaultTestUserPassword
 
         devRole = AuthRole.find{authority=="ROLE_DEV"}
         viewerRole = AuthRole.find{authority=="ROLE_VIEWER"}
@@ -185,10 +189,10 @@ class BootStrap
                 //NO ROLE for guest
             }
         }
-
-
-
     }
+
+
+
 
     def searchableService
 
@@ -200,34 +204,44 @@ class BootStrap
     {
         servletContext ->
 
+            //  Make default filtering templates
+            //
+
+
 
             //  Bootstrap users for development environment
-        //
-        switch(GrailsUtil.environment)
-        {
+            //
+            switch(GrailsUtil.environment)
+            {
+                case [ 'pa_uat', 'pa_test', 'pa_dev' ]:
+                    makeBaseSpringRoles()
+                    makeBaseSpringUsers()
+                    makeBaseClinContexts()
+                    break;
 
-            case ["pa_uat","pa_test"]:
-                makeBaseSpringRoles()
-                makeBaseSpringUsers()
-                makeBaseClinContexts()
+                case 'pa_local':
+                    makeBaseSpringRoles()
+                    makeBaseSpringUsers()
+                    makeBaseClinContexts()
+                    break;
 
-                break;
+                case 'pa_prod':
+                    //makeBaseSpringUsers()
+                    break;
+            }
 
-            case "pa_local":
-                makeBaseSpringRoles()
-                makeBaseSpringUsers()
-                makeBaseClinContexts()
-                break;
-
-            case "pa_prod":
-                //makeBaseSpringUsers()
-                break;
-        }
+            // Don't bother reindexing Searchable if the environment is pa_local
+            // On pa_local, just press the "reindex" button in Admin Options to reindex
+            // DKGM 6-Sept-2016
+            if(GrailsUtil.environment != 'pa_local' ) {
+                println "Reindexing the search"
+                searchableService.reindex()
+            } else {
+                println "GrailsUtil.environment is pa_local, don't bother reindexing the search"
+            }
 
             // Manually start the mirroring process to ensure that it comes after the automated migrations.
-            //println "Performing bulk index"
-            searchableService.reindex()
-            //println "Starting mirror service"
+            println "Starting Searchable mirroring service"
             searchableService.startMirroring()
     }
 

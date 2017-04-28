@@ -24,29 +24,111 @@ def index =
 }
 
 def quickSearch = {
-    render getResults(params.q as String, 1, 0) as JSON
+    HashMap results = getResults(params.q as String, 1, 0)
+    render results as JSON
 }
 
 def search = {
-    render getResults(params.q as String, 10, 0) as JSON
+    HashMap results = getResults(params.q as String, 10, 0)
+    render results as JSON
 }
 
 def deepSearch = {
-    render getResults(params.q as String, 10, params.o as Integer) as JSON
+    HashMap results = getResults(params.q as String, 10, params.o as Integer)
+    render results as JSON
 }
+
+def searchSeqSamples(String q) {
+    HashMap results = [seqSample:[
+        extra: [],
+        link: "/PathOS/seqVariant/svlist/",
+        name: "Sequenced Sample",
+        offset: 0,
+        results: [],
+        scores: [],
+        table_link: "/PathOS/seqSample/list",
+        tags: [],
+        title_field: "sampleName",
+    ]];
+
+    def query =
+"""
+select
+    x from SeqSample x
+where
+    x.sampleName like :q
+    or
+    x.seqrun.seqrun like :q
+"""
+
+    def tagQuery =
+"""
+select
+    x from SeqSample x
+join
+    x.tags as t
+where
+    t.label like :q
+    or
+    t.description like :q
+    or
+    t.createdBy.username like :q
+    or
+    t.createdBy.displayName like :q
+"""
+
+
+    if(q) {
+        q = q.trim();
+        ArrayList<SeqSample> samples = SeqSample.executeQuery(query, [q: "%${q}%", offset: 0, max: 50]);
+        ArrayList<SeqSample> taggedSamples = SeqSample.executeQuery(tagQuery, [q: "%${q}%", offset: 0, max: 50]);
+
+        for (SeqSample x : taggedSamples){
+            if (!samples.contains(x))
+                samples.add(x);
+        }
+
+        results.seqSample.total = samples.size();
+        results.seqSample.max = samples.size();
+        results.seqSample.hits = results.seqSample.max+"/"+results.seqSample.max;
+        results.seqSample.results = samples;
+
+        samples.each({ it ->
+            results.seqSample.extra.push([title:it.sampleName]);
+            results.seqSample.scores.push(2);
+
+            ArrayList<Tag> tags = [];
+            it.tags.each({ tag ->
+                tags.push(tag);
+            })
+            results.seqSample.tags.push(tags);
+        })
+    }
+
+    render results as JSON
+}
+
+
+
+
+
 
 def putTime = {
     def result = 'fail'
-    def query = params.q as String
-    def speed = params.s as Integer
-    def user  = params.u as String
-    def time  = params.t as String
+    String query = params.q as String
+    Integer speed = params.s as Integer
+    String user  = params.u as String
+    String time  = params.t as String
+    Integer results = params.r as Integer
+    String version = params.v as String
     if(query && speed && params && time) {
         new SearchTimes([
                 query: query,
                 speed: speed,
                 user:  user,
-                time:  time
+                time:  time,
+                numberOfResults: results,
+                pathosVersion: version
         ]).save();
         result = 'success'
     }
@@ -74,22 +156,47 @@ def getAverageTime = {
 def svTags = {
     def q = params.q.trim()
     def query =
-    """
+"""
     select
         x from SeqVariant x
     join
         x.tags as t
     where
         t.label like :query
-    """
+        or
+        t.description like :query
+        or
+        t.createdBy.username like :query
+        or
+        t.createdBy.displayName like :query
+"""
+    List results = SeqVariant.executeQuery(query, [query: '%'+q+'%', offset: 0, max: 10])
 
-    render SeqVariant.executeQuery(query, [query: '%'+q+'%']) as JSON
+def counter =
+"""
+    select
+        count(*) from SeqVariant x
+    join
+        x.tags as t
+    where
+        t.label like :query
+        or
+        t.description like :query
+        or
+        t.createdBy.username like :query
+        or
+        t.createdBy.displayName like :query
+"""
+
+    int count = SeqVariant.executeQuery(counter, [query: '%'+q+'%'])[0]
+
+    render ( [ results: results, count: count ] as JSON )
 }
 
 def svExact = {
     def q = params.q.trim()
     def query =
-            """
+"""
     select
         x from SeqVariant x
     where
@@ -98,32 +205,32 @@ def svExact = {
         x.hgvsg = :query
         or
         x.sampleName = :query
-    """
+"""
+    List results = SeqVariant.executeQuery(query, [query: q, offset: 0, max: 10])
 
-    render SeqVariant.executeQuery(query, [query: q]) as JSON
+    def counter =
+"""
+    select
+        count(*) from SeqVariant x
+    where
+        x.hgvsc = :query
+        or
+        x.hgvsg = :query
+        or
+        x.sampleName = :query
+"""
+
+    int count = SeqVariant.executeQuery(counter, [query: q])[0]
+
+    render ( [ results: results, count: count ] as JSON )
 }
 
-    def getResults( String q, Integer n, Integer o) {
-        def searchResults = [:]
-        if ( !n ) {
-            n = 10;
-        }
-        if ( !o ) {
-            o = 0;
-        }
+
+    private HashMap getResults( String q, Integer n = 10, Integer o = 10) {
+        HashMap searchResults = [:]
 
         if ( q ) {
             q = q.trim()
-            searchResults.seqSample = trySearch ([
-                    q:              q,
-                    n:              n,
-                    o:              o,
-                    name:           "Sequenced Sample",
-                    table:          SeqSample,
-                    link:           "/PathOS/seqVariant/svlist/",
-                    table_link:     "/PathOS/seqSample/list",
-                    title_field:    "sampleName"
-            ])
 
             searchResults.patSample = trySearch ([
                     q:              q,
@@ -183,22 +290,6 @@ def svExact = {
         return searchResults
     }
 
-    Map convertObjectToMap( def object ) {
-        Map result = [:]
-        object.properties.each { prop, val ->
-            switch(prop) {
-                case ["seqVariants", "seqSamples", "patAssays"]:
-                    result[prop] = val.size()
-                    break;
-                default:
-                    result[prop] = val
-                    break;
-            }
-        }
-        return result
-    }
-
-
     /**
      * Execute a search on an object
      *
@@ -208,25 +299,21 @@ def svExact = {
      * String link      The URI to the table, after which the id of the element is appended
      * @return          Searchable Map of hits
      */
-    Map trySearch( Map config )
+    private HashMap trySearch( HashMap config )
     {
         try
         {
             // This allows us to search partial matches, but also rank whole matches higher than partials
 
-            def q = QueryParser.escape(config.q)
+            String q = QueryParser.escape(config.q)
+            String luceneQuery = "(${q}) (*${q}*)"
 
-            def luceneQuery = "(${q}) OR (*${q}*)"
-
-            Map m = config.table.search(luceneQuery, [ max: config.n, offset: config.o ])
-
-
+            def m = config.table.search(luceneQuery, [ defaultOperator: "OR", max: config.n, offset: config.o ])
             m.link          = config.link
             m.name          = config.name
             m.table_link    = config.table_link
             m.title_field   = config.title_field
                                     // m.results comes from Searchable
-            m.data          = []    // m.data is the PathOS class, which converts to a Map
             m.extra         = []    // m.extra stores deeper information from the PathOS class's hasMany fields. These need to be custom grabbed.
             m.tags          = []
 
@@ -247,7 +334,7 @@ def svExact = {
                 if (obj) {
 
                     def extra = [
-                            string: obj.toString()
+                        title: obj.toString()
                     ]
 
                     def tags = []
@@ -257,69 +344,24 @@ def svExact = {
                         }
                     }
 
-
                     switch(config.name) {
-                        case 'Sequenced Sample':
-                                def seqVariants = []
-                                obj.seqVariants.each { sv ->
-                                        Map data = [
-                                                id: sv.id,
-                                                name: sv.toString(),
-                                                hgvsc: sv.hgvsc,
-                                                hgvsp: sv.hgvsp,
-                                                hgvsg: sv.hgvsg,
-                                                gene: sv.gene,
-                                                curated: sv.curated?.pmClass
-                                        ]
-                                        seqVariants.push(data)
-                                    }
-                                extra.panel = it.panel.toString()
-                                extra.seqVariants = seqVariants
-                            break
-                        case 'Patient Sample':
-                                def patAssays = []
-                                obj.patAssays.each {
-                                    patAssays.push([
-                                            name: it.toString(),
-                                            id: it.id
-                                    ])
-                                }
-                                def seqSamples = []
-                                obj.seqSamples.each {
-                                    seqSamples.push([
-                                            name: it.toString(),
-                                            seqrun: it.seqrun,
-                                            id: it.id
-                                    ])
-                                }
-                                def patient = obj.patient
-                                extra.dob = formatDate(date:patient.dob, format:'dd-MMM-yyyy')
-                                extra.collectDate = formatDate(date:obj.collectDate , format:'dd-MMM-yyyy')
-                                extra.rcvdDate = formatDate(date:obj.rcvdDate , format:'dd-MMM-yyyy')
-                                extra.requestDate = formatDate(date:obj.requestDate , format:'dd-MMM-yyyy')
-                                extra.patient = patient
-                                extra.patAssays = patAssays
-                                extra.seqSamples = seqSamples
-                            break
                         case 'Sequenced Run':
-                                def seqSamples = []
-                                obj.seqSamples.each {
-                                    seqSamples.push([
-                                        name: it.toString(),
-                                        seqrun: it.seqrun,
-                                        id: it.id
-                                    ])
-                                }
-                                extra.seqSamples = seqSamples
+                            // Note, if any of these values are null, they will be skipped.
+                            // Also note, these values are hardcoded into the search
+                            // -DKGM 8-March-2017
+                            extra.seqSamples = SeqSample.executeQuery("select x.id, x.sampleName, x.authorisedQcFlag, x.passfailFlag from SeqSample x where x.seqrun = :sr", [sr:obj])
+
                             break
                         case 'Curated Variant':
-                                def seqVariants = SeqVariant.findAllByCurated(obj)
-                                extra.seqVariants = seqVariants
+                            extra.seqVariants = SeqVariant.countByHgvsc(obj.grpVariant);
+                            break
+                        case 'Tag':
+                            extra.createdBy = obj.createdBy.toString()
                             break
                         default:
                             break
                     }
-                    m.data.push convertObjectToMap(obj)
+
                     m.tags.push tags
                     m.extra.push extra
 
@@ -337,12 +379,47 @@ def svExact = {
 
             return m
         }
-        catch( Exception exp)
+        catch( Exception exp )
         {
             log.debug( "Search Error: ${exp.message}", exp )
             return [error: "Search Error: ${exp.message}"]
         }
     }
+
+
+def patSampleLookup(Long id) {
+    PatSample ps = PatSample.get(id);
+    HashMap extra = [:];
+
+    if (ps) {
+        extra = [
+            patient: ps.patient,
+            seqSamples: ps.seqSamples,
+            seqruns: ps.seqSamples.collect { it.seqrun.toString() }
+        ]
+    }
+
+    render extra as JSON;
+}
+
+def seqSampleLookup(Long id){
+    SeqSample ss = SeqSample.get(id);
+    HashMap extra = [:]
+
+    if(ss) {
+        extra = [
+            title: ss.sampleName,
+            seqrun: ss.seqrun.toString(),
+            panel: ss.panel.toString(),
+            seqVariants: SeqVariant.countBySeqSample(ss),
+            curVariants: SeqVariant.executeQuery("select x from SeqVariant x where x.seqSample = :ss and x.maxPmClass != null", [ss:ss])
+        ]
+    }
+
+    render extra as JSON;
+}
+
+
 
 def tables(){
 
@@ -367,11 +444,12 @@ def tables(){
                 title: "Panels",
                 link: "/PathOS/Panel/list"
         ],
-        Amplicon: [
-                count: Amplicon.count(),
-                title: "Amplicons",
-                link: "/PathOS/Amplicon/list"
-        ],
+//  Don't show this table for now, because it is not used. DKGM 20-December-2016
+//        Amplicon: [
+//                count: Amplicon.count(),
+//                title: "Amplicons",
+//                link: "/PathOS/Amplicon/list"
+//        ],
         Roi: [
                 count: Roi.count(),
                 title: "Regions of Interest",
@@ -426,6 +504,11 @@ def tables(){
                 count: SeqRelation.count(),
                 title: "Sequenced Relations",
                 link: "/PathOS/SeqRelation/list"
+        ],
+        Tag: [
+                count: Tag.count(),
+                title: "Tags",
+                link: "/PathOS/Tag/list"
         ]
     ]
 

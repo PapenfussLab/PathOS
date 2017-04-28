@@ -1,0 +1,193 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="Accept as a confident somatic mutation">
+##FILTER=<ID=REJECT,Description="Rejected as a confident somatic mutation">
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=BQ,Number=A,Type=Float,Description="Average base quality for reads supporting alleles">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=SS,Number=1,Type=Integer,Description="Variant status relative to non-adjacent Normal,0=wildtype,1=germline,2=somatic,3=LOH,4=post-transcriptional modification,5=unknown">
+##GATKCommandLine=<ID=MuTect,Version=2.7-1-g42d771f,Date="Sat Mar 01 03:22:27 EST 2014",Epoch=1393604547988,CommandLineOptions="analysis_type=MuTect input_file=[/home/data/sequencing/georgina.ryland/Ovarian_Exome_Cohort/Variant_Calling_Batch_2/IC080/Bam/Split_dups_realign_recal_IC080N.bam, /home/data/sequencing/georgina.ryland/Ovarian_Exome_Cohort/Variant_Calling_Batch_2/IC080/Bam/Split_dups_realign_recal_IC080T.bam] read_buffer_size=null phone_home=NO_ET gatk_key=/usr/local/cluster/all_arch/mutect/pipeline/../maria.doyle_petermac.org.key tag=NA read_filter=[] intervals=[/home/data/reference/bed_files/NimbleGen_v2/SeqCap_EZ_Exome_v2_target_regions_MERGED_150bp_extended.bed] excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/home/data/reference/indexes/human/g1k_v37/fasta/human_g1k_v37.fasta nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=NONE downsample_to_fraction=null downsample_to_coverage=null baq=OFF baqGapOpenPenalty=40.0 fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 allow_bqsr_on_reduced_bams_despite_repeated_warnings=false validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null disable_auto_index_creation_and_locking_when_reading_rods=false num_threads=1 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false logging_level=INFO log_to_file=null help=false version=false noop=false enable_extended_output=false enable_qscore_output=false artifact_detection_mode=false tumor_sample_name=IC080T bam_tumor_sample_name=null normal_sample_name=IC080N force_output=false force_alleles=false only_passing_calls=false initial_tumor_lod=4.0 tumor_lod=6.3 fraction_contamination=0.02 minimum_mutation_cell_fraction=0.0 normal_lod=2.2 normal_artifact_lod=1.0 strand_artifact_lod=2.0 strand_artifact_power_threshold=0.9 dbsnp_normal_lod=5.5 minimum_normal_allele_fraction=0.0 tumor_f_pretest=0.005 min_qscore=5 gap_events_threshold=3 heavily_clipped_read_fraction=0.3 fraction_mapq0_threshold=0.5 pir_median_threshold=10.0 pir_mad_threshold=3.0 required_maximum_alt_allele_mapping_quality_score=20 max_alt_alleles_in_normal_count=2 max_alt_alleles_in_normal_qscore_sum=20 max_alt_allele_in_normal_fraction=0.03 power_constant_qscore=30 power_constant_af=0.30000001192092896 vcf=org.broadinstitute.sting.gatk.io.stubs.VariantContextWriterStub no_cmdline_in_header=org.broadinstitute.sting.gatk.io.stubs.VariantContextWriterStub sites_only=org.broadinstitute.sting.gatk.io.stubs.VariantContextWriterStub bcf=org.broadinstitute.sting.gatk.io.stubs.VariantContextWriterStub dbsnp=[(RodBinding name=dbsnp source=/home/data/databases/Gatk_Reseource_Bundle/dbsnp_137.b37.vcf)] cosmic=[(RodBinding name=cosmic source=/home/data/databases/Cosmic/Cosmic_v54/hg19_cosmic_v54_120711.vcf)] normal_panel=[] coverage_file=null coverage_20_q20_file=null power_file=null tumor_depth_file=null normal_depth_file=null filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="dbSNP Membership">
+##INFO=<ID=MQ0,Number=1,Type=Integer,Description="Total Mapping Quality Zero Reads">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic event">
+##INFO=<ID=VT,Number=1,Type=String,Description="Variant type, can be SNP, INS or DEL">
+##contig=<ID=1,length=249250621,assembly=b37>
+##contig=<ID=2,length=243199373,assembly=b37>
+##contig=<ID=3,length=198022430,assembly=b37>
+##contig=<ID=4,length=191154276,assembly=b37>
+##contig=<ID=5,length=180915260,assembly=b37>
+##contig=<ID=6,length=171115067,assembly=b37>
+##contig=<ID=7,length=159138663,assembly=b37>
+##contig=<ID=8,length=146364022,assembly=b37>
+##contig=<ID=9,length=141213431,assembly=b37>
+##contig=<ID=10,length=135534747,assembly=b37>
+##contig=<ID=11,length=135006516,assembly=b37>
+##contig=<ID=12,length=133851895,assembly=b37>
+##contig=<ID=13,length=115169878,assembly=b37>
+##contig=<ID=14,length=107349540,assembly=b37>
+##contig=<ID=15,length=102531392,assembly=b37>
+##contig=<ID=16,length=90354753,assembly=b37>
+##contig=<ID=17,length=81195210,assembly=b37>
+##contig=<ID=18,length=78077248,assembly=b37>
+##contig=<ID=19,length=59128983,assembly=b37>
+##contig=<ID=20,length=63025520,assembly=b37>
+##contig=<ID=21,length=48129895,assembly=b37>
+##contig=<ID=22,length=51304566,assembly=b37>
+##contig=<ID=X,length=155270560,assembly=b37>
+##contig=<ID=Y,length=59373566,assembly=b37>
+##contig=<ID=MT,length=16569,assembly=b37>
+##contig=<ID=GL000207.1,length=4262,assembly=b37>
+##contig=<ID=GL000226.1,length=15008,assembly=b37>
+##contig=<ID=GL000229.1,length=19913,assembly=b37>
+##contig=<ID=GL000231.1,length=27386,assembly=b37>
+##contig=<ID=GL000210.1,length=27682,assembly=b37>
+##contig=<ID=GL000239.1,length=33824,assembly=b37>
+##contig=<ID=GL000235.1,length=34474,assembly=b37>
+##contig=<ID=GL000201.1,length=36148,assembly=b37>
+##contig=<ID=GL000247.1,length=36422,assembly=b37>
+##contig=<ID=GL000245.1,length=36651,assembly=b37>
+##contig=<ID=GL000197.1,length=37175,assembly=b37>
+##contig=<ID=GL000203.1,length=37498,assembly=b37>
+##contig=<ID=GL000246.1,length=38154,assembly=b37>
+##contig=<ID=GL000249.1,length=38502,assembly=b37>
+##contig=<ID=GL000196.1,length=38914,assembly=b37>
+##contig=<ID=GL000248.1,length=39786,assembly=b37>
+##contig=<ID=GL000244.1,length=39929,assembly=b37>
+##contig=<ID=GL000238.1,length=39939,assembly=b37>
+##contig=<ID=GL000202.1,length=40103,assembly=b37>
+##contig=<ID=GL000234.1,length=40531,assembly=b37>
+##contig=<ID=GL000232.1,length=40652,assembly=b37>
+##contig=<ID=GL000206.1,length=41001,assembly=b37>
+##contig=<ID=GL000240.1,length=41933,assembly=b37>
+##contig=<ID=GL000236.1,length=41934,assembly=b37>
+##contig=<ID=GL000241.1,length=42152,assembly=b37>
+##contig=<ID=GL000243.1,length=43341,assembly=b37>
+##contig=<ID=GL000242.1,length=43523,assembly=b37>
+##contig=<ID=GL000230.1,length=43691,assembly=b37>
+##contig=<ID=GL000237.1,length=45867,assembly=b37>
+##contig=<ID=GL000233.1,length=45941,assembly=b37>
+##contig=<ID=GL000204.1,length=81310,assembly=b37>
+##contig=<ID=GL000198.1,length=90085,assembly=b37>
+##contig=<ID=GL000208.1,length=92689,assembly=b37>
+##contig=<ID=GL000191.1,length=106433,assembly=b37>
+##contig=<ID=GL000227.1,length=128374,assembly=b37>
+##contig=<ID=GL000228.1,length=129120,assembly=b37>
+##contig=<ID=GL000214.1,length=137718,assembly=b37>
+##contig=<ID=GL000221.1,length=155397,assembly=b37>
+##contig=<ID=GL000209.1,length=159169,assembly=b37>
+##contig=<ID=GL000218.1,length=161147,assembly=b37>
+##contig=<ID=GL000220.1,length=161802,assembly=b37>
+##contig=<ID=GL000213.1,length=164239,assembly=b37>
+##contig=<ID=GL000211.1,length=166566,assembly=b37>
+##contig=<ID=GL000199.1,length=169874,assembly=b37>
+##contig=<ID=GL000217.1,length=172149,assembly=b37>
+##contig=<ID=GL000216.1,length=172294,assembly=b37>
+##contig=<ID=GL000215.1,length=172545,assembly=b37>
+##contig=<ID=GL000205.1,length=174588,assembly=b37>
+##contig=<ID=GL000219.1,length=179198,assembly=b37>
+##contig=<ID=GL000224.1,length=179693,assembly=b37>
+##contig=<ID=GL000223.1,length=180455,assembly=b37>
+##contig=<ID=GL000195.1,length=182896,assembly=b37>
+##contig=<ID=GL000212.1,length=186858,assembly=b37>
+##contig=<ID=GL000222.1,length=186861,assembly=b37>
+##contig=<ID=GL000200.1,length=187035,assembly=b37>
+##contig=<ID=GL000193.1,length=189789,assembly=b37>
+##contig=<ID=GL000194.1,length=191469,assembly=b37>
+##contig=<ID=GL000225.1,length=211173,assembly=b37>
+##contig=<ID=GL000192.1,length=547496,assembly=b37>
+##reference=file:///home/data/reference/indexes/human/g1k_v37/fasta/human_g1k_v37.fasta
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	IC080T	IC080N
+1	23235534	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:79,44:34:123:0.358:2	0:152,0:.:152:0.00:0
+1	40733673	.	C	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:26,18:34:44:0.409:2	0:67,0:.:67:0.00:0
+1	40756381	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:17,4:35:21:0.190:2	0:36,0:.:36:0.00:0
+1	64515227	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:12,17:32:29:0.586:2	0:32,0:.:32:0.00:0
+1	114215884	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:32,13:36:45:0.289:2	0:39,0:.:39:0.00:0
+1	152285213	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:85,39:34:124:0.315:2	0:189,0:.:188:0.00:0
+1	152799987	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:56,22:35:78:0.282:2	0:112,1:.:113:8.850e-03:0
+1	153430306	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:50,28:31:80:0.359:2	0:80,0:.:80:0.00:0
+1	155792280	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:39,20:34:59:0.339:2	0:85,0:.:85:0.00:0
+1	169696580	rs144621590	C	T	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:37,21:32:58:0.362:2	0:75,0:.:75:0.00:0
+1	220184168	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:12,6:17:18:0.333:2	0:13,2:.:15:0.133:0
+1	230910485	rs12728795	C	T	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:13,3:29:16:0.188:2	0:23,0:.:23:0.00:0
+2	26998294	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:86,44:35:130:0.338:2	0:134,0:.:134:0.00:0
+2	120658220	.	C	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:23,13:37:36:0.361:2	0:27,0:.:27:0.00:0
+2	136567517	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:41,3:35:44:0.068:2	0:50,0:.:50:0.00:0
+2	198360213	rs13432424	A	T	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:34,3:33:37:0.081:2	0:50,1:.:50:0.020:0
+2	207833959	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:99,54:34:153:0.353:2	0:202,0:.:202:0.00:0
+2	210832235	rs79390501	G	A	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:24,11:36:35:0.314:2	0:37,0:.:37:0.00:0
+2	238285819	rs111295967	C	T	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:29,15:35:44:0.341:2	0:58,0:.:58:0.00:0
+2	242194839	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:48,34:35:82:0.415:2	0:92,0:.:92:0.00:0
+3	19498221	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:23,10:35:33:0.303:2	0:38,0:.:38:0.00:0
+3	42687276	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:21,6:16:27:0.222:2	0:19,0:.:19:0.00:0
+3	51196668	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:67,26:34:93:0.280:2	0:120,0:.:120:0.00:0
+3	70747106	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:9,3:34:12:0.250:2	0:16,0:.:16:0.00:0
+3	113299481	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:235,14:35:249:0.056:2	0:292,0:.:292:0.00:0
+4	68358713	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:83,53:34:136:0.390:2	0:144,0:.:144:0.00:0
+4	142053878	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:3,2:35:5:0.400:2	0:9,0:.:9:0.00:0
+4	153573966	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:72,48:33:120:0.400:2	0:128,0:.:128:0.00:0
+4	175578032	.	A	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:19,17:33:36:0.472:2	0:36,0:.:36:0.00:0
+4	187629003	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:31,24:35:55:0.436:2	0:50,0:.:50:0.00:0
+5	878460	rs112921031	C	T	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:33,3:34:36:0.083:2	0:40,1:.:39:0.024:0
+5	79855314	.	A	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:107,75:34:182:0.412:2	0:261,0:.:261:0.00:0
+5	140552523	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:107,66:33:173:0.382:2	0:202,0:.:202:0.00:0
+5	141334883	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:40,21:34:61:0.344:2	0:72,1:.:73:0.014:0
+5	176863153	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:45,5:35:50:0.100:2	0:54,1:.:55:0.018:0
+6	65532662	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:63,41:33:104:0.394:2	0:104,0:.:104:0.00:0
+6	73830375	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:17,7:33:24:0.292:2	0:24,0:.:24:0.00:0
+7	38289295	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:16,3:36:19:0.158:2	0:16,0:.:16:0.00:0
+7	38289298	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:15,3:36:18:0.167:2	0:16,0:.:16:0.00:0
+7	72419401	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:36,4:28:40:0.100:2	0:49,0:.:48:0.00:0
+7	100841691	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:7,4:34:11:0.364:2	0:14,0:.:14:0.00:0
+7	158282503	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:5,2:37:7:0.286:2	0:14,0:.:14:0.00:0
+8	22548269	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:35,27:33:62:0.435:2	0:68,0:.:68:0.00:0
+9	21971186	rs121913387	G	A	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:0,2:36:2:1.00:2	0:9,0:.:9:0.00:0
+9	135917537	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:20,18:35:38:0.474:2	0:45,0:.:45:0.00:0
+10	112769261	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:6,9:37:15:0.600:2	0:14,0:.:14:0.00:0
+10	118308142	.	T	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:6,8:36:14:0.571:2	0:17,0:.:17:0.00:0
+11	5269572	rs201642811	A	C	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:5,2:38:7:0.286:2	0:60,1:.:61:0.016:0
+11	5776344	.	A	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:129,77:35:206:0.374:2	0:186,0:.:186:0.00:0
+11	48347196	.	A	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:145,60:34:206:0.293:2	0:268,0:.:268:0.00:0
+11	55036736	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:16,14:31:30:0.467:2	0:35,0:.:33:0.00:0
+11	55606711	rs148923372	G	A	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:116,74:35:190:0.389:2	0:216,0:.:217:0.00:0
+11	56127722	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:32,28:33:60:0.467:2	0:58,0:.:57:0.00:0
+11	61291201	.	T	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:17,9:12:26:0.346:2	0:19,0:.:19:0.00:0
+11	126391240	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:54,13:34:67:0.194:2	0:89,0:.:90:0.00:0
+12	25398284	rs121913529	C	A	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:97,61:34:158:0.386:2	0:163,0:.:163:0.00:0
+12	58125165	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:29,21:35:50:0.420:2	0:52,0:.:52:0.00:0
+12	71973956	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:11,3:28:14:0.214:2	0:26,0:.:26:0.00:0
+12	82828441	.	A	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:115,58:33:173:0.335:2	0:171,0:.:171:0.00:0
+12	113303382	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:61,28:34:89:0.315:2	0:93,1:.:94:0.011:0
+12	119957864	.	A	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:25,21:33:46:0.457:2	0:71,0:.:71:0.00:0
+12	131605592	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:1,5:34:6:0.833:2	0:11,0:.:11:0.00:0
+13	21562956	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:8,5:34:13:0.385:2	0:22,0:.:22:0.00:0
+13	114504697	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:18,11:34:29:0.379:2	0:39,0:.:40:0.00:0
+14	20784537	.	G	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:71,54:33:125:0.432:2	0:141,0:.:141:0.00:0
+15	33831643	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:58,35:35:93:0.376:2	0:115,0:.:115:0.00:0
+16	1389185	.	G	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:13,4:31:17:0.235:2	0:8,0:.:8:0.00:0
+16	55880406	.	A	G	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:24,16:35:40:0.400:2	0:41,0:.:41:0.00:0
+16	75448614	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:85,57:33:142:0.401:2	0:165,0:.:165:0.00:0
+16	85136057	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:3,2:35:5:0.400:2	0:8,0:.:8:0.00:0
+17	10368811	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:145,15:34:160:0.094:2	0:196,0:.:196:0.00:0
+17	39274415	rs425487	C	T	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:31,8:32:40:0.205:2	0:59,0:.:60:0.00:0
+17	45216135	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:40,3:35:43:0.070:2	0:61,1:.:60:0.016:0
+17	45216150	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:38,3:35:41:0.073:2	0:56,1:.:55:0.018:0
+17	50008307	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:17,61:33:78:0.782:2	0:94,0:.:94:0.00:0
+17	54912166	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:4,14:33:18:0.778:2	0:20,0:.:20:0.00:0
+17	56492923	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:5,31:34:36:0.861:2	0:36,0:.:36:0.00:0
+17	61987983	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:35,7:33:42:0.167:2	0:51,0:.:51:0.00:0
+18	10682127	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:66,11:34:77:0.143:2	0:97,0:.:97:0.00:0
+19	5696131	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:23,3:30:26:0.115:2	0:33,0:.:33:0.00:0
+19	6843256	rs111299196	G	A	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:50,35:34:85:0.412:2	0:97,0:.:97:0.00:0
+19	31768426	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:65,28:32:94:0.301:2	0:111,1:.:112:8.929e-03:0
+19	33095201	rs148470330	G	A	.	PASS	DB;SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:14,13:34:27:0.481:2	0:39,0:.:39:0.00:0
+19	33406229	.	C	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:46,4:26:50:0.080:2	0:65,0:.:65:0.00:0
+19	39306986	.	G	A	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:22,5:34:27:0.185:2	0:31,0:.:31:0.00:0
+19	44571202	.	G	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:81,36:36:117:0.308:2	0:143,0:.:143:0.00:0
+19	56435204	.	A	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:147,6:35:153:0.039:2	0:153,0:.:153:0.00:0
+20	26061817	.	T	C	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:34,3:35:37:0.081:2	0:37,1:.:35:0.026:0
+22	25715999	.	C	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:45,4:32:49:0.082:2	0:51,1:.:52:0.019:0
+X	46466666	.	A	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:10,6:30:16:0.375:2	0:20,0:.:20:0.00:0
+X	130218390	.	G	T	.	PASS	SOMATIC;VT=SNP	GT:AD:BQ:DP:FA:SS	0/1:45,15:34:60:0.250:2	0:68,0:.:68:0.00:0

@@ -1,4 +1,4 @@
-<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
+<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.SeqVariant; org.petermac.pathos.curate.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -94,6 +94,11 @@
                 </span>
             </li>
         </g:if>
+
+        <li class="fieldcontain">
+            <span id="run-status" class="property-label">Run Status</span>
+            <span id="run-status-value" class="property-value" aria-labelledby="run-status">This run is still being processed...</span>
+        </li>
 
         <li class="fieldcontain">
             <span id="pipelog-label" class="property-label"><g:message code="seqrun.pipelog.label" default="Pipeline Log"/></span>
@@ -216,7 +221,7 @@
     <div id="contamination" class="chartBox">
         <h3>Contamination Heatmap</h3>
 
-        <g:if test="${seqrunInstance.panelList.contains('Pathology_hyb')}">
+        <g:if test="${seqrunInstance.panelList?.contains('Pathology_hyb')}">
             <script>
                 var contaminationUrl = "${ UrlLink.contaminationUrl(seqrunInstance.seqrun) }",
                     contaminationDiv = d3.select("#contamination");
@@ -278,51 +283,55 @@
         </tr>
         </thead>
 
-        <g:each in="${seqrunInstance.seqSamples.sort{a,b -> a.sampleName <=> b.sampleName}}" var="s">
+        <g:each in="${seqrunInstance.seqSamples.sort{a,b -> a.sampleName <=> b.sampleName}}" var="ss">
             <tr>
                 <td>
-                    <g:link controller="seqVariant" action="svlist" id="${s?.id}">
-                        ${s?.encodeAsHTML()}
+                    <g:link controller="seqVariant" action="svlist" id="${ss?.id}">
+                        ${ss?.encodeAsHTML()}
                     </g:link>
                 </td>
                 <td>
-                    <g:link controller="seqSample"  action="showQC" id="${s?.id}">
-                        <g:if test="${s.authorisedQcFlag}">
-                            <g:qcPassFail authorised="${true}" passfailFlag="${s.passfailFlag}" />
+                    <g:link controller="seqSample"  action="showQC" id="${ss?.id}">
+                        <g:if test="${ss.authorisedQcFlag}">
+                            <g:qcPassFail authorised="${true}" passfailFlag="${ss.passfailFlag}" />
                         </g:if>
                         <g:else>
                             Set QC
                         </g:else>
                     </g:link></td>
-                <td>${s.seqVariants.size()}</td>
-                <td>${s.seqVariants.findAll{ it.curated != null }.size()}</td>
+                <td>${SeqVariant.countBySeqSample(ss)}</td>
+                <td>${SeqVariant.executeQuery("select count(*) from SeqVariant sv, CurVariant cv where  cv.grpVariant.accession=sv.hgvsg and sv.seqSample=:ss ", [ss: ss])[0]}</td> <%--- svs with curVars --%>
                 <td>
-                    <g:if test="${s.finalReviewBy}"><noop style="color: black; background-color: white;padding-left: 10px; padding-right: 8px; text-decoration: none">Final</noop></g:if>
-
-                    <g:elseif test="${s.firstReviewBy}"><span style="color: black; background-color: #EBEBEB;padding-left: 10px; padding-right: 12px; text-decoration: none">First</span></g:elseif>
-                    <g:else>&nbsp;</g:else>
-
+                    <g:if test="${ss.finalReviewBy}">
+                        <noop style="color: black; background-color: white; padding-left: 10px; padding-right: 8px; text-decoration: none">Final</noop>
+                    </g:if>
+                    <g:elseif test="${ss.firstReviewBy}">
+                        <span style="color: black; background-color: #EBEBEB; padding-left: 10px; padding-right: 12px; text-decoration: none">First</span>
+                    </g:elseif>
+                    <g:else>
+                        <span>&nbsp;</span>
+                    </g:else>
                 </td>
-                <td>${s.seqVariants.findAll{ it.filterFlag == 'pass' }.size()}</td>
-                <td>${s.seqVariants.findAll{ it.reportable }.size()}</td>
-                <td id="igv-open-${s.sampleName}">
+                <td>${SeqVariant.countBySeqSampleAndFilterFlag(ss, "pass")}</td>
+                <td>${SeqVariant.countBySeqSampleAndReportable(ss, true)}</td>
+                <td id="igv-open-${ss.sampleName}">
                     <tooltip:tip code="Open this sample with the in-browser IGV">
                         <a href="#none" onclick='launchIGV({
-                            seqrun: "${s.seqrun.seqrun}",
-                            sample: "${s.sampleName}",
-                            panel:  "${s.panel}",
-                            dataUrl: "${ UrlLink.dataUrl (s.seqrun.seqrun, s.sampleName, '')}"
+                            seqrun: "${ss.seqrun.seqrun}",
+                            sample: "${ss.sampleName}",
+                            panel:  "${ss.panel}",
+                            dataUrl: "${ UrlLink.dataUrl (ss.seqrun.seqrun, ss.sampleName, '')}"
                         })'>View Sample</a>
                     </tooltip:tip>
                 </td>
                 <td>
                     <tooltip:tip code="seqrun.merge.tip">
-                        <a href="http://localhost:60151/load?file=${org.petermac.pathos.pipeline.UrlLink.dataUrl(s.seqrun.seqrun,s.sampleName,s.sampleName+".vcf")},${org.petermac.pathos.pipeline.UrlLink.dataUrl(s.seqrun.seqrun,s.sampleName,s.sampleName+".bam")}&merge=true">Merge</a>
+                        <a href="http://localhost:60151/load?file=${org.petermac.pathos.pipeline.UrlLink.dataUrl(ss.seqrun.seqrun,ss.sampleName,ss.sampleName+".vcf")},${org.petermac.pathos.pipeline.UrlLink.dataUrl(ss.seqrun.seqrun,ss.sampleName,ss.sampleName+".bam")}&merge=true">Merge</a>
                     </tooltip:tip>
                 </td>
-                <td>${s.panel}</td>
-                <td>${s.analysis}</td>
-                <td>${s.userName}</td>
+                <td>${ss.panel}</td>
+                <td>${ss.analysis}</td>
+                <td>${ss.userName}</td>
             </tr>
         </g:each>
     </table>
@@ -478,7 +487,7 @@ function drawAmpliconChart(data, i) {
     });
 }
 
-function changeHeatmapValues(heatmapTsvLoc) {
+function changeHeatmapValues() {
     var midval = Math.round($('#heatmapMax').val() / 2)
     var maxval = Math.round($('#heatmapMax').val())
     var minval = Math.round($('#heatmapMin').val())
@@ -489,7 +498,7 @@ function changeHeatmapValues(heatmapTsvLoc) {
         $('#heatmap').heatmap(
                 {
                     data: {
-                        values: new jheatmap.readers.TableHeatmapReader({ url: heatmapTsvLoc })
+                        values: new jheatmap.readers.TableHeatmapReader({ url: '${heatmapTsvPath}' })
                     },
 
                     init: function(heatmap) {
@@ -543,6 +552,14 @@ function changeHeatmapValues(heatmapTsvLoc) {
         }
         $("#igv-open-"+d.sample).html("Loaded!");
     }
+
+    $.ajax({
+        url: "${UrlLink.pipelineUrl( seqrunInstance.seqrun )}",
+        success: function(d){
+            d3.select("#run-status-value").text("This run is ready!");
+        }
+    })
+
 </r:script>
 </body>
 </html>

@@ -39,7 +39,10 @@ class SeqSample implements Taggable
 
     static		hasMany     = [ seqVariants: SeqVariant, relations: SeqRelation, tags: Tag  ]
 
-    static      searchable  = {
+    static      searchable  =
+    {
+        except = [ 'seqVariants', 'relations' ]
+        panel component: true
         tags component: true
     }
 
@@ -74,6 +77,8 @@ class SeqSample implements Taggable
     {
         seqrun      index: 'seqrun_idx'
         sampleName  index: 'sample_name_idx'
+        sampleType       index: 'sample_type_idx'
+
     }
 
     String	toString()

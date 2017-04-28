@@ -10,6 +10,7 @@ package org.petermac.pathos.curate
 import groovy.time.TimeCategory
 import groovy.time.TimeDuration
 import org.codehaus.groovy.grails.plugins.DomainClassGrailsPlugin
+import org.hibernate.Hibernate
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import groovy.util.logging.Log4j
@@ -55,95 +56,130 @@ class VarFilterService
     public int applyFilter( Session session, boolean force )
     {
         int mod   = 0
-        Map haveregions = getHasRoiVariants()
+
+        // Get variants that have an ROI
+        //
+        HashSet haveregions = getHasRoiVariants(force)
+        log.info( "Found ${haveregions.size()} variants with ROI")
+
+        // Get singleton vars (ones that occur only once in a replicate r/ship)
+        //
+        HashSet singletons = getSingletons(force)
+        log.info( "Found ${singletons.size()} singleton variants")
+
         // Re read filter rules from config file
         //
         rules = getRules()
 
-        //  Get the lookup table for the frequency of variant in the panel by sample
+        //  Get variants that are in their ROI
         //
-        def varfreqMap = variantSamples()
+        HashSet inregions = getInRegionSeqVariants(force)
 
-        //  Find all singleton variants for duplicate samples
-        //
-
-
-        Map inregions = getInRegionSeqVariants()
-
-        Map singletons = duplicateSampleSingletons()
-
-
+        log.info( "Found ${inregions.size()} ROI variants")
 
 
         if ( force )
         {
+            //  WARNING! running with force==true will almost certainly fail with an out of memory error on a well-populated production db
+            //  this is extremely memory intensive
+            //  and should also be unnecessary
 
-                def rows = SeqVariant.executeQuery( "select count(*) from org.petermac.pathos.curate.SeqVariant")
+            //  Count all SeqVariants
+            //
+            def rows = SeqVariant.executeQuery( "select count(*) from org.petermac.pathos.curate.SeqVariant")
+            int cnt  = rows[0] as int
 
-                int cnt    = rows[0] as int
+            //  Loop through all SeqVariants
+            //
+            int offset = 0
+            while ( offset < cnt )
+            {
+                //  Loop through all Sequenced Variants and set Filter Flag
+                //
+                SeqVariant.withTransaction
+                        {
 
-                int offset = 0
+                            //  set varSamplesSeenInPanel and varSamplesTotalInPanel - variables used to calculate panel frequnecies -
+                            //  for these seqvars
+                            //
+                            setPanelFrequenciesForVariants(  SeqVariant.findAll() ) //  very memory intensive if there are a good number of svs
+                            log.info( "Finished setting panel frequency values")
 
-                while ( offset < cnt ) {
-                    //  Loop through all Sequenced Variants and set Filter flag
-                    //
-                    SeqVariant.withTransaction
-                            {
-                                SeqVariant.findAll([max: MAXFLUSH, offset: offset]).each
-                                        {
-                                            SeqVariant variant ->
-                                                ++mod
+                            SeqVariant.findAll([max: MAXFLUSH, offset: offset]).each
+                                    {
+                                        SeqVariant variant ->
+                                            ++mod
 
-                                                def initFlagList = []
-                                                if (singletons.containsKey(variant.id ))  initFlagList << 'sin'
-                                                if (!(inregions.containsKey(variant.id))) {
-                                                   if (haveregions.containsKey(variant.id))  initFlagList << 'oor'
+                                            List initFlagList = []
+                                            if (singletons.contains(variant.id ))
+                                            {
+                                                initFlagList << 'sin'
+                                            }
+                                            if (!(inregions.contains(variant.id)))
+                                            {
+                                                if (haveregions.contains(variant.id))
+                                                {
+                                                    initFlagList << 'oor'
                                                 }
+                                            }
 
-                                                setFilter( initFlagList, varfreqMap, variant )
+                                            setFilter( initFlagList, variant )
 
-                                                session.flush()
+                                            session.flush()
+                                    }
 
-                                        }
+                            offset += MAXFLUSH
+                            log.info("Filtered ${mod} variants")
+                            session.flush()
+                            session.clear()
 
-                                offset += MAXFLUSH
-                                log.info("Filtered ${mod} variants")
-                                session.flush()
-                                session.clear()
-
-                                // workaround for a GORM memory leak bug (see http://burtbeckwith.com/blog/?p=73 for details)
-                                //
-                                DomainClassGrailsPlugin.PROPERTY_INSTANCE_MAP.get().clear()
-                            }
-
-                }
-
+                            // workaround for a GORM memory leak bug (see http://burtbeckwith.com/blog/?p=73 for details)
+                            //
+                            DomainClassGrailsPlugin.PROPERTY_INSTANCE_MAP.get().clear()
+                        }
+            }
         }
         else
         {
             SeqVariant.withTransaction
-            {
-                //  capture all null flag seqvars
-                //
-                def nullSeqVars = SeqVariant.findAllByFilterFlagIsNull()
+                    {
+                        //  find all null flag SeqVariants
+                        //
+                        List<SeqVariant> nullSeqVars = SeqVariant.findAllByFilterFlagIsNull()
+
+                        //  set varSamplesSeenInPanel and varSamplesTotalInPanel - variables used to calculate panel frequnecies -
+                        //  for these seqvars
+                        //
+                        setPanelFrequenciesForVariants( nullSeqVars )
+                        log.info( "Finished setting panel frequency values")
+
+                        //  Loop through all unset variants only and set Filter flag
+                        //
+                        nullSeqVars.each
+                                {
+                                    SeqVariant variant ->
+                                        ++mod
+
+                                        List initFlagList = []
+                                        if (singletons.contains(variant.id ))
+                                        {
+                                            initFlagList << 'sin'
+                                        }
+                                        if ( ! inregions.contains(variant.id))
+                                        {
+                                            if (haveregions.contains(variant.id))
+                                            {
+                                                initFlagList << 'oor'
+                                            }
+                                        }
+
+                                        setFilter( initFlagList, variant )
+                                }
+
+                        log.info( "Finished setting individual flags")
 
 
-                //  Loop through all unset variants only and set Filter flag
-                //
-                nullSeqVars.eachWithIndex //these are vars that were null before updateRoiFlags was called
-                {
-                    SeqVariant variant, int i ->
-                        ++mod
-
-                        def initFlagList = []
-                        if (singletons.containsKey(variant.id ))  initFlagList << 'sin'
-                        if (!(inregions.containsKey(variant.id))) {
-                            if (haveregions.containsKey(variant.id))  initFlagList << 'oor'
-                        }
-
-                        setFilter( initFlagList, varfreqMap, variant )
-                }
-            }
+                    }
         }
 
         return mod
@@ -157,15 +193,12 @@ class VarFilterService
      * @param variant       SeqVariant to be modified
      * @param cnt           Records count of Variants
      */
-    private void setFilter( List initFlagList, Map varfreqMap, SeqVariant variant )
+    private void setFilter( List initFlagList, SeqVariant variant )
     {
         def    panelGroup   = variant.seqSample.panel.panelGroup        // panel group of the variant
-        def    varfreq      = varfreqMap[ panelGroup ]                  // get the map of variant freq.
-        Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
+        //Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
 
-        //  Save frequency of variant in the panel by sample for display
-        //
-        variant.varPanelPct = varPanelPct
+
 
         List flag = applyRules( variant.properties, panelGroup, rules, initFlagList )
         if ( flag )
@@ -303,70 +336,24 @@ class VarFilterService
         return false
     }
 
-    /**
-     * Set the curated link flag for all SeqVariants
-     * New Variants may have been added
-     *
-     * @param   vars    CurVariant keys to update (empty == all Variants)
-     * @return          Count of rows modified
-     */
-    public static int setCurated( List vars )
-    {
-        int mod = 0
 
-        //  Find all CurVariant records in List vars
-        //
-        def variants
-        if ( ! vars )
-            variants = CurVariant.findAll()                            // collect all CurVariant rows
-        else
-        {
-            def uniqVars = vars.unique()
-            variants = CurVariant.findAllByVariantInList( uniqVars )   // collect Variants from List
-        }
-
-        log.info( "Setting curated for ${variants.size()} Variants")
-
-        //  Loop through all Variants and set Curated link in SeqVariants
-        //
-        variants.eachWithIndex
-        {
-            CurVariant variant, int i ->
-
-                if ( i % 100 == 0 )
-                    log.info( "Row: ${i} Adding CurVariant associations [${variant}]" )
-
-                //	Add all instances of this CurVariant found in SeqVariant
-                //
-                def seqvars = SeqVariant.findAllByVariant( variant.variant )
-
-                for ( SeqVariant seqvar in seqvars )
-                    variant.addToSeqVariants( seqvar )
-
-                mod += seqvars.size()
-        }
-
-        log.info( "Set curated for ${mod} SeqVariants")
-
-        return mod
-    }
 
     //  Defined filtering criteria and short description
     //
     static public final Map filters =   [
-                                            pass:'Passed',
-                                            nof:'No Filtering',
-                                            vrd:'Total Read Depth',
-                                            vad:'Variant Read Depth',
-                                            blk:'Black List',
-                                            con:'Inferred Benign Consequences',
-                                            vaf:'Low Variant Allele Frequency',
-                                            gaf:'High Global Minor Allele Frequency',
-                                            pnl:'High Variant Frequency in Panel',
-                                            sin:'Singleton in duplicate sample for run',
-                                            amp:'Uneven amplicon read distribution',
-                                            oor:'Out of region of interest',
-                                        ]
+            pass:'Passed',
+            nof:'No Filtering',
+            vrd:'Total Read Depth',
+            vad:'Variant Read Depth',
+            blk:'Black List',
+            con:'Inferred Benign Consequences',
+            vaf:'Low Variant Allele Frequency',
+            gaf:'High Global Minor Allele Frequency',
+            pnl:'High Variant Frequency in Panel',
+            sin:'Singleton in duplicate sample for run',
+            amp:'Uneven amplicon read distribution',
+            oor:'Out of region of interest',
+    ]
 
     /**
      * Generate summary stats for filtering
@@ -378,15 +365,15 @@ class VarFilterService
         //  Loop through all Sequenced Variants and set Filter flag
         //
         def results = SeqVariant.withCriteria
-        {
-            //  Perform "group by" count of filterFlag property
-            //
-            projections
-            {
-                groupProperty("filterFlag")
-                rowCount()
-            }
-        }
+                {
+                    //  Perform "group by" count of filterFlag property
+                    //
+                    projections
+                            {
+                                groupProperty("filterFlag")
+                                rowCount()
+                            }
+                }
 
         //  Return a Map of filter flag descriptions, the 3-letter code and a count of occurrences in SeqVariants
         //
@@ -540,7 +527,7 @@ class VarFilterService
         {
             def fr = rules.filters."${flt}"
             if ( fr.manifests.contains(panel)
-            || ( fr.manifestPattern && (panel =~ /^${fr.manifestPattern}/ )))  // manifest pattern is anchored at start
+                    || ( fr.manifestPattern && (panel =~ /^${fr.manifestPattern}/ )))  // manifest pattern is anchored at start
             {
                 //  Found a match set map and exit
                 //
@@ -554,123 +541,70 @@ class VarFilterService
     }
 
     /**
-     * Find all runs with duplicate sample prefixes (PM sample names) - that is, replicates
-     *
+     * get singleton variant ids (that is, variants that are in a replicate sample, and are not present in all replicates
+     * @param force get all, even those without null filter flag (otherwise we only get where filterflag is null)
      * @return  List of ids of singleton variants for samples that are replicates
      */
-    private static Map duplicateSampleSingletons()
+    public static HashSet getSingletons( boolean force = true )
     {
-        //  HQL query to find all Seqruns with duplicate PM sample prefixes
-        //  returns a List of arrays [ Seqrun, <sample prefix>, <no of Samples>]
+
+        //  grab all seqsamples w replicate relationships
         //
-        //build a nice long string for our LIKE clause
-        def likestring = "sa.sampleName LIKE '%-1'"
-        for (def i = 2; i < 10; i++) {
-            likestring = likestring + " OR sa.sampleName LIKE '%-${i}'"
-        }
+        SeqRelation.withTransaction
+                {
+                    def qry = """
+                      SELECT    sr.id
+                      FROM      org.petermac.pathos.curate.SeqRelation as sr
+                      WHERE     relation = 'Replicate'
+                      """
 
+                    def srids = SeqSample.executeQuery( qry )
 
+                    log.info( "Found ${srids.size()} Replicate SeqRelations")
 
-        def qry =   """select  sa.seqrun,
-                           substring(sa.sampleName,1,char_length(sa.sampleName) - 2) as prefix,
-                           (count(*)) as noReps
-                           from    org.petermac.pathos.curate.SeqSample as sa
-                           where  ( ${likestring} )
-                           group by sa.seqrun,  sa.patSample,
-                           substring(sa.sampleName,1,char_length(sa.sampleName) - 2) """
+                    List vars = []
 
+                    for (srid in srids)
+                    {
+                        def thisSr = SeqRelation.read(srid)
+                        vars = vars + getSingletonsForRelation(thisSr, force)
+                    }
 
-
-        def runs = SeqSample.executeQuery( qry )
-        log.info( "Found ${runs.size()} duplicate samples")
-
-
-
-        //  Find all singleton variants in duplicate samples
-        //
-        List vars = []
-        for( run in runs )
-        {
-            def isRep = true
-
-            //have a check that the non-prefix verison exists, if there's only one. e.g. if 14K123-1 exists
-            //but 14K123 does not, it's not really a rep, somebody just messed up.
-            //we could disable this check to speed things up.
-            if (run[2] == 1) {
-
-                def check = "SELECT sa.seqrun FROM org.petermac.pathos.curate.SeqSample as sa WHERE sa.sampleName='"+ run[1] +"'"
-                def checkruns = SeqSample.executeQuery( check )
-                if (!checkruns) {
-                    isRep = false
-                } else {
-                    run[2] = run[2] + 1 // run[2] was number of replicates after the FIRST. here we make it the TOTAL number of replicates
-
+                    def varmap = new HashSet()
+                    for (var in vars)
+                    {
+                        varmap.add(var)
+                    }
+                    return varmap
                 }
-
-            }
-            if (isRep) {
-
-                vars = vars + (singletonVars(run.toList()))
-
-            }
-
-
-        }
-
-        vars = vars.flatten()
-
-        def varmap = [:]
-        for (var in vars) {
-            varmap[var] = true
-        }
-
-        log.info( "Found ${vars.size()} singleton vars")
-
-        return varmap
-
-
     }
 
     /**
-     * Find all variants occurring once only in the same run in the same sample
-     *
-     * @param   run     Array of replicate samples to search [ Seqrun, <sample prefix>, <no of Samples>]
-     * @return          List of SeqVariant ids that are singletons for replicate samples
+     * get all singleton samples in a seqrelation
+     * @param sr - seqrelations to get singletons from
+     * @param force get all, even those without null filter flag (otherwise we only get where filterflag is null)
+     * @return
      */
-    private static List singletonVars( List run )
+    private static List getSingletonsForRelation( SeqRelation sr , boolean force  )
     {
-        def seqrun = run[0]
-        def prefix = run[1]
-        def samcnt = run[2]
+        def ffNullQry = ""
+        if (!force) ffNullQry = " AND sv.filterFlag IS NULL "
 
-        //
-        def likestring = "sv.sampleName='${prefix}'"
-        for (def i = 1; i < 10; i++) {
-            likestring = likestring + " OR sv.sampleName='${prefix}-${i}'"
+        def qry2 = """
+                   select   sv.id
+                   FROM     org.petermac.pathos.curate.SeqVariant as sv
+                   JOIN     sv.seqSample as ss
+                   WHERE    :thisSeqRelation in elements( ss.relations )
+                   ${ffNullQry}
+                   GROUP BY   sv.variant
+                   HAVING     count(*) < 2
+                   """
 
-        }
+        def theseSvs = SeqVariant.executeQuery(qry2,[thisSeqRelation:sr])
 
-        //  get all seqvars that only occur once in a set of replicate seqruns
-        //
-
-
-        def qry =
-                """select	sv.id
-                        from	org.petermac.pathos.curate.SeqVariant as sv
-                        join	sv.seqSample  as sa
-                         where	sa.seqrun.seqrun = '${seqrun.seqrun}'
-                        and		( ${likestring} )
-                        group
-                        by 		sv.variant
-                        having  count(*) < 2"""
-
-
-
-
-        def vars = SeqVariant.executeQuery( qry )
-
-        return vars
+        return theseSvs
     }
+
 
     /**
      * Get rules from known file config location Todo: move into grails config framework
@@ -719,61 +653,65 @@ class VarFilterService
 
     /**
      * get all svs that have a ROI (& a null filter flag)
-     * @param force get all, even those without null filter flag
+     * @param force get all, even those without null filter flag (otherwise we only get where filterflag is null)
      * @return
      */
-    private static Map getHasRoiVariants( boolean force = true ) {
-        def nullOnly = false
-        if (!force )  nullOnly = true
+    public static HashSet getHasRoiVariants( boolean force = true )
+    {
+        long maxId     = 0
+        int  batchSize = 1500000
+        int  count     = 0
+        def  svmap     = new HashSet()
 
-        int maxId = 0
-        int batchSize = 1500000
-        int count = 0
-        def svmap = [:]
-        Closure executeQuery = {
+        Closure executeQuery =
+                {
+                    def oldMaxId = maxId
 
-            def oldMaxId = maxId
+                    def qry =   """
+                        select distinct(sv.id)
+                        from
+                              org.petermac.pathos.curate.SeqVariant as sv,
+                              org.petermac.pathos.curate.SeqSample as ss,
+                              org.petermac.pathos.curate.Panel as pl,
+                              org.petermac.pathos.curate.Roi as roi
+                        where sv.seqSample.id = ss.id
+                              and ss.panel.id = pl.id
+                              and pl.id   = roi.panel.id
+                              and sv.id > ${maxId}
+                        """
 
-            def qry = """
-        select distinct(sv.id)
-        from
-              org.petermac.pathos.curate.SeqVariant as sv,
-              org.petermac.pathos.curate.SeqSample as ss,
-              org.petermac.pathos.curate.Panel as pl,
-              org.petermac.pathos.curate.Roi as roi
-        where sv.seqSample.id = ss.id
-              and ss.panel.id = pl.id
-              and pl.id   = roi.panel.id
-              and sv.id > ${maxId} """
+                    if ( ! force )
+                    {
+                        qry = qry + " AND sv.filterFlag IS NULL"
+                    }
 
-            if (nullOnly) {
+                    qry = qry + " order by sv.id"
 
-                qry = qry + " AND sv.filterFlag IS NULL "
-            }
+                    def rows = SeqVariant.executeQuery(qry, [max: batchSize]) //could batch this if needed
 
-            qry = qry + """
-              order by sv.id
-       """
+                    for (svid in rows)
+                    {
+                        svmap.add(svid)
+                        maxId = svid
+                        count++
+                    }
 
-
-            def rows = SeqVariant.executeQuery(qry, [max: batchSize]) //could batch this if needed
-
-            for (sv in rows) {
-                svmap[sv] = true
-                maxId = sv
-                count++
-            }
-            Date now = new Date()
-
-            return (maxId != oldMaxId)
-        }
+                    return ( maxId != oldMaxId )
+                }
 
         while (executeQuery());
 
+        //  Output results
+        //
+        String infoString = "Found " + count + " vars with a ROI "
+        if ( ! force )
+        {
+            infoString += " and null filter flag"
+        }
+        log.info( infoString )
 
         return svmap
     }
-
 
 
     /**
@@ -781,107 +719,141 @@ class VarFilterService
      * @param force get all, even those without null filter flag
      * @return
      */
-    private static Map getInRegionSeqVariants( boolean force = true ) {
-        def nullOnly = false
-        if (!force )  nullOnly = true
+    private static HashSet getInRegionSeqVariants( boolean force = true )
+    {
+        def qry =   """
+                    select sv.id
+                    from
+                          org.petermac.pathos.curate.SeqVariant as sv,
+                          org.petermac.pathos.curate.SeqSample as ss,
+                          org.petermac.pathos.curate.Panel as pl,
+                          org.petermac.pathos.curate.Roi as roi
+                    where sv.seqSample.id = ss.id
+                    and   ss.panel.id     = pl.id
+                    and   roi.panel.id    = pl.id
+                    and   roi.chr = sv.chr
+                    and   roi.startPos <= sv.pos and sv.pos <= roi.endPos
+                    """
 
-        Date now = new Date()
-
-
-        def qry = """
-        select sv.id
-        from
-              org.petermac.pathos.curate.SeqVariant as sv,
-              org.petermac.pathos.curate.SeqSample as ss,
-              org.petermac.pathos.curate.Panel as pl,
-              org.petermac.pathos.curate.Roi as roi
-        where sv.seqSample.id = ss.id
-              and  ss.panel.id = pl.id
-              and  pl.id   = roi.panel.id
-              and  sv.chr  = roi.chr  and  sv.pos >= roi.startPos and sv.pos <= roi.endPos
-       """
-
-        if (nullOnly) {
-
-            qry = qry + " AND sv.filterFlag IS NULL"
+        if ( ! force )
+        {
+            qry = qry + "and sv.filterFlag IS NULL"
         }
 
         def rowsBatch = SeqVariant.executeQuery(qry) //could batch this if needed
-        def svmap = [:]
-        for (sv in rowsBatch) {
-            svmap[sv] = true
+        def svmap = new HashSet()
+        for ( svid in rowsBatch )
+        {
+            svmap.add(svid)
         }
 
         return svmap
-
     }
 
 
-    /**
-     * list to map with KEYS as values
-     * @param thisList
-     * @return
-     */
-    Map listToMap (thislist) {
-        //collectEntries?
-        def thismap = [:]
-        for (listitem in thislist) {
-            thismap[listitem] = true
-        }
-
-        return thismap
-
-    }
- 
 
     /**
-     * Make a list of lists. we use this to batch update statements
+     *  calculate and set panel frequnecy variables (varSamplesSeenInPanel, varSamplesTotalInPanel) on all svs in the list
+     *  as panel frequencies are immutable once set, this should only be called with newly-imported seqvariants.
+     *  this function will refuse to update seqvariants where varSamplesSeenInPanel has been set
      *
-     * @param rows
-     * @param increment
-     * @return
-     */
-    List<String> buildBatchList( rows, increment = 200 )
-    {
-
-        List<String> rowbatches = new ArrayList<String>()
-        def x = 0
-        for (int i = 0; i < rows.size(); i = i + increment) {
-
-            def from = i
-            def to = i + increment
-            if (to >= rows.size()) {
-
-                to = (rows.size() - 1)
-
-            }
-
-            if (to > from) {    //check to be safe
-                rowbatches[x] = rows[from..to]
-                x++
-            }
-        }
-        return rowbatches
-    }
-
-    /**
-     * Flatten a list into a single character delimited string
+     * @param svs - list of svs to calc and set panel frequencies on
+     * @return number of svs updated
      *
-     * @param thisList  List to flatten
-     * @param delimit   List delimiter, default ','
-     * @return
      */
-    String listToString( List thisList, delimit=',')
+    public static int setPanelFrequenciesForVariants( List<SeqVariant> svs )
     {
-        StringBuilder sb = new StringBuilder();
-        for (String s : thisList)
+        //  break svs into panels
+        //
+        HashMap panelSvs = new HashMap<Panel, HashSet<SeqVariant>>() //key is panel name, value is list of svs
+        for ( sv in svs )
         {
-            sb.append(s);
-            sb.append(delimit);
+            if ( ! panelSvs[sv.seqSample.panel] )
+            {
+                panelSvs.put( sv.seqSample.panel, [] as HashSet )
+            }
+            panelSvs.get( sv.seqSample.panel ).add( sv )
         }
-        def outList = sb.toString()
-        outList = (outList.substring(0, outList.length()-1)) //remove last delimit character
-        return outList
+
+        def updated = 0
+        panelSvs.each
+                {
+                    Panel p, HashSet<SeqVariant> panelvars ->
+
+
+                        //  get samples in panel for varSamplesTotalInPanel
+                        //  we do calculations on this resultset because it excludes Cntrl,NTC,Synth
+                        //
+                        def qry =   """
+                                SELECT  sv.hgvsg,
+                                        ss.id,
+                                        ss.sampleType,
+                                        sv.id as svid
+                                FROM    org.petermac.pathos.curate.SeqVariant as sv
+                                JOIN    sv.seqSample as ss
+                                WHERE   ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType != 'Synthetic' ) OR ss.sampleType IS NULL)
+                                AND     ss.panel = :thisPanel
+                                """
+                        def res = SeqVariant.executeQuery(qry, [thisPanel: p])
+
+                        if ( ! res ) return 0
+
+                        def nall = res.groupBy { it[1] }.size()
+                        if ( true ) // even if nall == 0, this should work
+                        {
+                            Map resmap = new HashMap<String, Set<Long>>();
+
+                            //  Assemble a map from our results
+                            //  where key is  hgvsg and val is set of ssamples it appears in (set, so no uniques)
+                            //
+                            for ( row in res )
+                            {
+                                if ( ! resmap[ row[0]  ])
+                                {
+                                    resmap.put( row[0] , [] as Set )
+                                }
+                                resmap[ row[0] ].add( row[1] )
+                            }
+
+                            //  Here we loop through query result of all the vars in the panel (otherwise we miss vars
+                            //  in NTC/Synth/Control samples for our calc)
+                            //
+                            for ( sv in panelvars )
+                            {
+                                //SeqVariant sv = SeqVariant.get( panelvars[1] )    //row[1] is id
+
+                                //  have a specific clause to only set them
+                                //  where panelfreq is not yet calculated
+                                //
+                                if (  (sv.varPanelPct == null ) )
+                                {
+                                    def svhgvsg = sv.hgvsg
+                                    int nvar    = 0
+                                    if ( resmap[svhgvsg] )
+                                    {
+                                        nvar = resmap[ svhgvsg ].size()
+                                    }
+
+                                    //  set properties
+                                    //
+                                    sv.varSamplesSeenInPanel  = nvar
+                                    sv.varSamplesTotalInPanel = nall
+
+                                    if (nvar > 0 && nall > 0)  {
+                                        sv.varPanelPct = (( nvar.div(nall) ) * 100).toDouble().round(2)
+                                    }
+                                    else {
+                                        sv.varPanelPct = 0
+                                    }
+
+                                    updated++
+
+                                }
+                            }
+                        }
+                }
+
+        return updated
     }
 
 

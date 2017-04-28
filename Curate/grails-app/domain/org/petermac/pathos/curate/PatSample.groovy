@@ -46,7 +46,9 @@ class PatSample implements Taggable
 
     static searchable =
         {
-            only = [ 'sample', 'tags' ]
+            except = [ 'seqSamples' ]
+            owner component: true
+            patient component: true
             tags component: true
         }
 

@@ -7,17 +7,21 @@
 
 package org.petermac.pathos.curate
 
-import grails.util.GrailsUtil
+import org.codehaus.groovy.grails.web.mapping.LinkGenerator
 import org.petermac.util.JiraNotifier
+import org.petermac.util.Locator
 
 import java.text.MessageFormat
 
 class EvidenceController
 {
+    LinkGenerator grailsLinkGenerator
+    static def loc = Locator.instance
+    static def env = loc.pathosEnv
+
     def evidenceService
     def SpringSecurityService
     static allowedMethods = [ update: "POST" ]
-
 
     def edit(Long id)
     {
@@ -69,67 +73,56 @@ class EvidenceController
         if ( prevClass != variantInstance.evidence.evidenceClass )
         { // Create notifier
 
+            CurVariant var = variantInstance
             def jnotifier = new JiraNotifier()
-            def basepath
-            def isTest = true
-            switch (GrailsUtil.environment) {
-                case ['pa_prod']:
-                    basepath = 'http://bioinf-pathos:8080/PathOS'
-                    isTest = false
-                    break;
-                case ['pa_uat','pa_stage']:
-                    basepath = 'http://bioinf-pathos-test:8080/PathOS'
-                    break;
-                default:
-                    basepath = 'http://localhost:8080/PathOS'
-                    break;
-            }
 
-            def varlist = ''
+            def cvlink = grailsLinkGenerator.link(controller: 'curVariant', action: 'show', id: var.id, absolute: true)
 
+            HashMap pmColors = [
+                    "Unclassified": '#000',
+                    "C1: Not pathogenic": '#000',    // It should be #fffdc1 but that would be unreadable
+                    "C2: Unlikely pathogenic": '#f4d374',
+                    "C3: Unknown pathogenicity": '#e89e53',
+                    "C4: Likely pathogenic": '#d65430',
+                    "C5: Pathogenic": '#ae2334'
+            ]
+            def classColor = pmColors[variantInstance.evidence.evidenceClass]
+            def prevClassColor = pmColors[prevClass]
 
-            def valout = "Triggered by ${currentUser.getDisplayName()} (${currentUser.getUsername()}) ${currentUser.getEmail()} " + "\n" + "\n"
-            valout = valout + "CurVariant ${variantInstance} (HGVSP ${variantInstance.hgvsp}) changed evidence class to ${variantInstance.evidence.evidenceClass} from ${prevClass}. It is present in the following seqsamples:"
-            if (isTest) {
-                valout = "TEST! NOT A REAL ISSUE! ${valout}"
-            }
+            def seqSs = variantInstance.allSeqSamples()
+            def size = seqSs.size()
+            def message = "This Curated Variant has too many related Sequenced Variants to show here.\nPlease use PathOS to view the *${size} Sequenced Variants*."
 
-            def maxLinks = 20
+            if (size <= 20) {
 
-            //build a string of hyperlinks but cap it at a certain amount
-            def seenSeqSamples = []
-            def seqvars = SeqVariant.findAllByCurated(variantInstance)
-            def counter = 0
-            //sort seqvars so we get the latest first
+                message = "It is present in the following Sequenced Samples:\n\n"
 
-            seqvars = seqvars.sort{ -it.id }
-
-            for ( seqv in seqvars ) {
-                def seqsamp = SeqSample.findById(seqv.seqSampleId)
-                if (seqsamp) {
-                    if (!seenSeqSamples.contains(seqv.seqSampleId)) {
-                        if (counter < maxLinks) {
-                            varlist = varlist + "\n" + "${seqsamp.sampleName} ${basepath}/seqVariant/svlist/${seqsamp.id}"
-                        }
-                        counter = counter + 1
-                        seenSeqSamples.add(seqv.seqSampleId)
-                    }
+                seqSs.sort{ a, b -> b.sampleName <=> a.sampleName }.each {
+                    def ssLink = grailsLinkGenerator.link(controller: 'seqVariant', action: 'svlist', id: it?.id, absolute: true)
+                    message = message + "* [${it.sampleName}|${ssLink}]\n"
                 }
             }
-            if (counter >= maxLinks) {
-                varlist = varlist + "\n... plus ${counter - maxLinks} more for a total of ${counter} SeqSamples"
-            }
 
-            valout = valout + "\n" + varlist
+            def issueSummary = "CurVariant changed evidence class: ${var} is now ${variantInstance.evidence.evidenceClass} and was ${prevClass}"
 
-            def issueSummary = "CurVariant changed evidence class: ${variantInstance} is now ${variantInstance.evidence.evidenceClass} and was ${prevClass}"
-            if (isTest) {
+            def valout =
+            """*Triggered by:* ${currentUser.getDisplayName()} ([~${currentUser.getEmail().split('@')[0]}]) ${currentUser.getEmail()}
+
+            *Curated Variant:* [${var}|${cvlink}]
+            *New evidence class:* {color:${classColor}}${variantInstance.evidence.evidenceClass}{color}
+            *Old evidence class:* {color:${prevClassColor}}${prevClass}{color}
+
+            ${message}"""
+
+            if ( env != "pa_prod" ) {
                 issueSummary = "TEST! ${issueSummary}"
+                valout = "TEST! NOT A REAL ISSUE!\n${valout}"
             }
 
-
-
-            def response = jnotifier.createJiraIssue("${issueSummary}", "${valout}", "Task","molpath")
+            def response
+            if ( env != "pa_local" ) {
+                response = jnotifier.createJiraIssue(issueSummary, valout, "Task", "molpath")
+            }
 
             if (response) {
                 if (response.containsKey('errors')) {
@@ -140,10 +133,7 @@ class EvidenceController
                 if (response.containsKey('id') && response.containsKey('key')) {
                     println "Issue created. Issue ${response['id']} ${response['key']} "
 
-                    //assign it to pathos ops now
                     int newIssueId = response['id'] as int //cast to int
-                    jnotifier.assignJiraIssue('molpath.ops', newIssueId)
-                    jnotifier.addWatcherToJiraIssue('molpath.ops', newIssueId)
                     println "-------Curl response:--------"
                     println response
                     println "------------------------"
@@ -151,6 +141,8 @@ class EvidenceController
                     //make a new issue
                     def jiraIssue = new JiraIssue(triggered_by: currentUser, issueType: 'changed_class', curVariant: variantInstance, issueIdentifier: response['key']).save(flush: true, failOnError:true)
                 }
+            } else {
+                println "No response from JiraIssue"
             }
         }
 
@@ -162,18 +154,22 @@ class EvidenceController
 
         if ( ! variantInstance.save(flush: true))
         {
+            println "We have errors in the Evidence Controller Update"
+            variantInstance.errors.each {
+                println it
+            }
             render(view: "edit", model: [evidenceInstance: variantInstance.evidence])
             return
         }
 
         //  Create audit message
         //
-        def audit_msg = "Set classification for ${variantInstance.variant} to ${variantInstance.pmClass} from ${prevClass}"
+        def audit_msg = "Set classification for ${variantInstance.toString()} to ${variantInstance.pmClass} from ${prevClass}"
         def audit     = new Audit(  category:    'curation',
-                                    variant:     variantInstance.variant,
+                                    variant:     variantInstance.toString(),
                                     complete:    new Date(),
                                     elapsed:     0,
-                                    software:    'Path-OS',
+                                    software:    'PathOS',
                                     swVersion:   meta(name: 'app.version'),
                                     task:        'classification',
                                     username:    currentUser.getUsername(),

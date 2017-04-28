@@ -7,43 +7,27 @@
 
 package org.petermac.pathos.curate
 
+import grails.persistence.Entity
+
+/**
+ *  Removed refseq field KDD 31-jan-17
+ *  Made Grails domain table
+ */
+
+@Entity
 class RefGene
 {
     String	gene
     String  hgncid
     String  accession
     String  genedesc
-    String  refseq
-
-    static mapping =
-    {
-        table                   "ref_hgnc_genes"
-        version                 false
-        columns
-        {
-            gene	            column:	"gene"
-            hgncid	            column:	"hgncid"
-            accession	        column:	"accession"
-            genedesc	        column:	"genedesc"
-            refseq	            column:	"refseq"
-        }
-    }
 
     static constraints =
     {
-        gene( unique: true)
-        hgncid( nullable: true)
+        gene(      unique:   true)
+        hgncid(    nullable: true)
         accession( nullable: true)
-        genedesc( nullable: true)
-        refseq( nullable: true)
-        refseq validator: { val, obj, errors ->
-            //return (it.startsWith("NM_"))
-            if (val != null && !(val.startsWith("NM_"))) {
-                errors.rejectValue('refseq','Refseq transcript must start with "NM_"! Error ')
-            }
-           }
-
-
+        genedesc(  nullable: true, maxSize: 5000)
     }
 
     String	toString()

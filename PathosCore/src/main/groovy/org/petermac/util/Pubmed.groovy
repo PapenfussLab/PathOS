@@ -31,7 +31,7 @@ class Pubmed
 {
     static JsonSlurper slurper = new JsonSlurper()
 
-    private static final def  pmidURL = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/'
+    private static final def  pmidURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/'
 
     /**
      * Main execution thread
@@ -131,7 +131,7 @@ class Pubmed
 
     /**
      * Check server is up
-     * To test use % curl 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi?retmode=json'
+     * To test use % curl 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi?retmode=json'
      *
      * @return      true if server available
      */

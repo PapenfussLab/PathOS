@@ -29,6 +29,10 @@ class AuthUser {
 		password column: '`password`'
 	}
 
+	static searchable = {
+		only = [ 'username', 'displayName', 'email' ]
+	}
+
 	Set<AuthRole> getAuthorities() {
 		AuthUserAuthRole.findAllByAuthUser(this).collect { it.authRole } as Set
 	}

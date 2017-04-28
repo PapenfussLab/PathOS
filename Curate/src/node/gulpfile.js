@@ -44,13 +44,16 @@ gulp.task('html', function() {
 });
 
 // Concatenate JS
+// Note, this task does not minify the javascript
 gulp.task("jsconcat", function() {
 	return gulp.src([
 			// Editable - Add any additional paths to JS Bower components here
 
 			"bower_components/d3/d3.min.js",
+			'node_modules/d3-selection-multi/build/d3-selection-multi.min.js',
 			"bower_components/jquery/dist/jquery.min.js",
 			"bower_components/jquery-ui/jquery-ui.min.js",
+			'node_modules/highlight-within-textarea/jquery.highlight-within-textarea.js',
 			'bower_components/bootstrap-sass/assets/javascripts/bootstrap.min.js',
 // 			'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
 			"src/js/vendor/*.js"
@@ -105,7 +108,10 @@ gulp.task('fonts', function() {
 
 // Static CSS
 gulp.task("staticCSS", function(cb) {
-	return gulp.src(['bower_components/jquery-ui/themes/base/jquery-ui.min.css']).pipe( gulp.dest( dist+"/css" ) );
+	return gulp.src([
+		'bower_components/jquery-ui/themes/base/jquery-ui.min.css',
+		'node_modules/highlight-within-textarea/jquery.highlight-within-textarea.css'
+	]).pipe( gulp.dest( dist+"/css" ) );
 });
 
 // Stylesheets

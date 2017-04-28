@@ -1,4 +1,4 @@
-<%@ page import="grails.util.Environment; org.petermac.pathos.curate.*" %>
+<%@ page import="grails.util.Environment; org.petermac.util.Locator; org.petermac.pathos.curate.*" %>
 
 <!DOCTYPE html>
 <html>
@@ -27,7 +27,7 @@
             <section id='home-page'>
                 <div class='container'>
                     <div class='row'>
-                        <div class="fb-box">
+                        <div class="outlined-box">
                             <h1 style="text-align:center; margin-bottom:10px;">Latest 10 Sequenced Runs:</h1>
                             <table id="seqrun-list">
                                 <thead>
@@ -52,7 +52,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-8 col-md-offset-2">
-<h1 class="text-center" style="text-align: center; padding:20%;">Your PeterMac login was successfully verified, however we could not find your PathOS account.<br><br>Please <a href="mailto:Christopher.Welsh@petermac.org?subject=New PathOS User <Your name here>&body=<Please CC your manager for approval>%0A%0AHi Ken and team,%0A%0AI need a PathOS user account%0AMy PeterMac username is: <Your username here>%0AI am from <Your department here> and I am a <Curator, Lab Tech, Clinician, Other>%0AThe Environment is: ${Environment.getCurrentEnvironment().name}%0A%0AThanks,%0A<Your real name here>">email us</a> to enable your account.</h1>
+<h1 class="text-center" style="text-align: center; padding:20%;">Your PeterMac login was successfully verified, however we could not find your PathOS account.<br><br>Please <a href="mailto:Christopher.Welsh@petermac.org?subject=New PathOS User <Your name here>&body=<Please CC your manager for approval>%0A%0AHi Ken and team,%0A%0AI need a PathOS user account%0AMy PeterMac username is: <Your username here>%0AI am from <Your department here> and I am a <Curator, Lab Tech, Clinician, Other>%0AThe Environment is: ${Locator.pathosEnv}%0A%0AThanks,%0A<Your real name here>">email us</a> to enable your account.</h1>
                     </div>
                 </div>
             </div>
@@ -60,32 +60,32 @@
     </sec:ifLoggedIn>
 </div>
 <script>
-    <g:set var="env" value="${Environment.getCurrentEnvironment().name}"/>
+    <g:set var="env" value="${Locator.pathosEnv}"/>
 
 // Since search is the main point of this page, hide the search bar in the header.
 //d3.select("#searchHeader").style("display", "none");
 
 // Write the new patch notes here:
     var features =  [
-                    "Logins match PeterMac logins",
-                    "Added sample relationships (replicates,duplicates,tumour/normal)",
-                    "User interface makeover, logo, navigation, object colours etc",
-                    "Sliding panel IGV Browser",
-                    "User tags and Smart system tags",
-                    "Google-style search on all major objects",
-                    "Simplified PathOS properties file",
-                    "Added second review button",
-                    "Automated release deployment"
-                    ];
+        "Clinical Context added",
+        "New mailmerge fields for reports",
+        "Admins can upload Report Templates",
+        "Admins can edit Filter Flag Templates",
+        "Panel Frequency has been reworked",
+        "Automatic MolPath JIRA Issues have been cleaned up",
+        "Variants are sorted differently on the Sequenced Sample page",
+        "Tags are more accessible on the Sequenced Sample page",
+        "Citations are generated from PubMed references"
+    ];
 
 
     var patch = new PathOS.module({
         name: 'patch',
         type: 'default',
         hide: true,
-        title: "PathOS v1.2 (Jon Snow) feature list:",
+        title: "PathOS v1.3 (Melisandre) feature list:",
         data: features
-    })
+    });
 
     var status = new PathOS.module({
         name: 'status',
@@ -94,8 +94,10 @@
         title: "Application Status",
         data: {
             "PathOS version":"<g:meta name="app.version"/>",
-            "Environment":"${Environment.getCurrentEnvironment().name}",
             "Build version":"${grailsApplication.metadata['app.buildNumber']}",
+            "Environment":"${Locator.pathosEnv}",
+            "Database Host": "${Locator.dbHost}",
+            "Database Schema": "${Locator.dbSchema}",
             "Grails version":"<g:meta name="app.grails.version"/>",
             "Groovy version":"${GroovySystem.getVersion()}",
             "JVM version":"${System.getProperty('java.version')}",
@@ -106,7 +108,7 @@
             "Tag Libraries":"${grailsApplication.tagLibClasses.size()}",
             "git rev-parse HEAD":"<g:render template='/git'/>"
         }
-    })
+    });
 
 
 
@@ -128,31 +130,30 @@ $.ajax({
                 .each(function(d){
                     var row = d3.select(this);
 
-                    // This stupid split then join shit, is because we want a nonbreaking space here. DKGM 28-10-16
-                    row.append('td').html(d.runDate.split(" ").join("&nbsp;"));
+                    var runDate = d.runDate ? d.runDate.split(" ").join("&nbsp;") : "",
+                        seqrun = d.seqrun ? d.seqrun : "",
+                        panelList = d.panelList ? d.panelList.split(',').join(', ') : "",
+                        library = d.library ? d.library.split(',').join(', ') : "",
+                        platform = d.platform ? d.platform.split(',').join(', ') : "";
+
+                    row.append('td').html(runDate);
 
                     row.append('td')
                         .attr("nowrap", true)
                         .append('a')
-                        .attr('href', function(d){
-                            return '/PathOS/seqrun/show/'+ d.seqrun;
-                        })
-                        .text(function(d){
-                            return d.seqrun;
-                        });
+                        .attr('href', '/PathOS/seqrun/show/' + seqrun)
+                        .text(seqrun);
 
                     row.append('td')
-                        .text(d.panelList.split(',').join(', '));
+                        .text(panelList);
 
-                    row.append('td')
-                            .text(d.library.split(',').join(', '));
+                    row.append('td').text(library);
 
-                    row.append('td')
-                        .text(d.platform.split(',').join(', '));
+                    row.append('td').text(platform);
 
                     var auth = row.append('td');
 
-                    if(d.authorised === null) {
+                    if(d.authorised === null || d.authorised == "null") {
                         auth.text("Not set")
                         .classed('AuthNotSet', true);
                     } else if (d.passfailFlag) {

@@ -9,17 +9,13 @@ class VcfUpload {
 
     AuthUser user
     String filePath
-    String env
     Seqrun seqrun
-    SeqSample seqSample
     Date dateCreated
 
     static constraints =
             {
 
                 filePath nullable: true
-                seqSample nullable: true
-                env nullable: true
 
             }
 

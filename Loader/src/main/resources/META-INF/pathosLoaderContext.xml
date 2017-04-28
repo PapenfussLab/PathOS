@@ -40,7 +40,7 @@
         message-source-ref="messageSource">
         <property name="hibernateProperties">
            <util:map>
-             <entry key="hibernate.hbm2ddl.auto" value="update"/>
+             <entry key="hibernate.hbm2ddl.auto" value="none"/>
          </util:map>
         </property> 
     </gorm:sessionFactory>

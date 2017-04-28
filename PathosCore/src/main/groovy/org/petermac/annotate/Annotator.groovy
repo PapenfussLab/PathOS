@@ -41,11 +41,12 @@ class Annotator
         //
         cli.with
         {
-            h( longOpt: 'help',		    'this help message' )
-            d( longOpt: 'debug',		'turn on debugging' )
-            s( longOpt: 'datasource',   args: 1, required: true, 'comma separated list of datasources to use for annotation eg mutalyzer,vep,annovar,iarc' )
-            r( longOpt: 'rdb',          args: 1, required: true, 'RDB to use' )
-            e( longOpt: 'errors',       args: 1, 'File name for error records' )
+            h(  longOpt: 'help',		'this help message' )
+            d(  longOpt: 'debug',		'turn on debugging' )
+            s(  longOpt: 'datasource',   args: 1, required: true, 'comma separated list of datasources to use for annotation eg mutalyzer,vep,annovar,iarc' )
+            r(  longOpt: 'rdb',          args: 1, required: true, 'RDB to use' )
+            e(  longOpt: 'errors',       args: 1, 'File name for error records' )
+            mut(longOpt: 'mutalyzer',    args: 1, 'Mutalyzer annotation server host [https://mutalyzer.nl]' )
         }
 
         def opt = cli.parse( args )
@@ -104,7 +105,7 @@ class Annotator
 
         //  Process VCFs
         //
-        int nmut = new Annotator().annotateVcf( vcfFiles, opt.rdb, dss, errFile )
+        int nmut = new Annotator().annotateVcf( vcfFiles, opt.rdb, dss, errFile, opt.mutalyzer ?: 'https://mutalyzer.nl' )
 
         log.info( "Done: processed ${vcfFiles.size()} files, annotated ${nmut} mutations" )
     }
@@ -117,7 +118,7 @@ class Annotator
      * @param   dss     DataSource List
      * @return          Number of variants output
      */
-    private int annotateVcf( List<File> vcfs, String rdb, List dss, File errFile )
+    int annotateVcf( List<File> vcfs, String rdb, List dss, File errFile, String mutHost )
     {
         int nv = 0
 
@@ -128,7 +129,7 @@ class Annotator
                 case 'mutalyzer':
                     List vars = uniqVars( vcfs, 'mutalyzer' )
 
-                    def mds = new MutVarDataSource( rdb )
+                    def mds = new MutVarDataSource( rdb, mutHost )
                     nv      = mds.addToCache( vars )
 
                     log.info( "Added ${nv} new vars to Mutalyzer cache out of ${vars.size()}")

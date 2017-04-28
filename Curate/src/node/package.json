@@ -5,6 +5,7 @@
   "author": "",
   "dependencies": {
     "browser-sync": "^2.11.1",
+    "d3-selection-multi": "^1.0.0",
     "dotenv": "^2.0.0",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.0",
@@ -22,6 +23,7 @@
     "gulp-sass": "^2.2.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.5.2",
+    "highlight-within-textarea": "^1.0.3",
     "jshint": "^2.9.1",
     "jshint-stylish": "^2.1.0",
     "rimraf": "^2.5.2",

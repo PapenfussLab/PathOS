@@ -91,18 +91,24 @@ class Vcf2Tsv
         //
         log.info("Vcf2Tsv " + args )
 
-        def nlines = vcf2Tsv( vcff, tsvf, opt.sample ?: '', opt.seqrun ?: '', opt.panel ?: '', colsf )
+        def nlines = vcf2Tsv( vcff, tsvf, opt.sample ?: '', opt.seqrun ?: '', opt.panel ?: '', colsf, true )
 
         log.info("Done, processed ${nlines} lines")
     }
 
     /**
-     * Main execution thread
+     * Convert a VCF file into a TSV file
      *
-     * @param   opt     Parsed CLI options
-     * @return          lines processed
+     * @param vcff      Input VCF File
+     * @param tsvf      Output TSV file
+     * @param sample    Sample name
+     * @param seqrun    Seqrun name
+     * @param panel     Panel name
+     * @param colsf     Column list to output into TSV
+     * @param header    True if header needed
+     * @return          no of variants processed
      */
-    static Integer vcf2Tsv( File vcff, File tsvf, String sample = '', String seqrun = '', String panel = '', File colsf )
+    static Integer vcf2Tsv( File vcff, File tsvf, String sample, String seqrun, String panel, File colsf, Boolean header )
     {
         Vcf vcf = new Vcf( vcff )
         vcf.load()
@@ -116,17 +122,55 @@ class Vcf2Tsv
         //
         if ( colsf )
         {
-            //  File of column names - one per line Todo: add aliases to columns
+            //  Set column names - one per line - optionally with alias after a comma
             //
-            List cols = colsf.readLines()
+            List    cols        = []
+            List    aliasCols   = []
+
+            setColumnNames( colsf, cols, aliasCols )
 
             //  Output TSV using column list
             //
-            tsv.write( tsvf, cols )
+            tsv.write( tsvf, cols, aliasCols, header )
         }
         else
-            tsv.write( tsvf )       //  Output TSV
+            tsv.write( tsvf, header )       //  Output TSV
 
         return tsv.nrows()
+    }
+
+    /**
+     * Read in output column names with optional alias
+     *
+     * @param colsf     File of column names - one per line - with optional alias after a comma
+     * @param cols      List of column names to populate
+     * @param aliasCols List of aliases to use or column name otherwise
+     */
+    private static void setColumnNames( File colsf, List cols, List aliasCols )
+    {
+        List<String> names = colsf.readLines()
+
+        //  clean up columns and apply optional aliases
+        //
+        for ( col in names )
+        {
+            List<String> cc = col.split( /,/ )  // use comma as separator between column name and alias
+
+            //  simple column name
+            //
+            if ( cc.size() == 1)
+            {
+                cols        << col.trim()
+                aliasCols   << col.trim()
+            }
+
+            //  column has an alias
+            //
+            if ( cc.size() == 2)
+            {
+                cols        << cc[0].trim()
+                aliasCols   << cc[1].trim()
+            }
+        }
     }
 }

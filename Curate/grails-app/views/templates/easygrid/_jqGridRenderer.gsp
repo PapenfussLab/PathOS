@@ -23,6 +23,22 @@
     jQuery("#${gridId}").jqGrid({
     url: '${g.createLink(controller: attrs.controller, action: "${gridConfig.id}Rows", params: GridUtils.externalParams(gridConfig))}',
     loadError: easygrid.loadError,
+%{--
+This function can be added to sort the svlist table on the front end.
+It is commented out for now because the mysql function AES wrote does the sorting already.
+
+
+<g:if test="${gridId}=='curation_table'">
+    'beforeProcessing': function(data, status, xhr){
+        console.log("omg we got some data");
+        console.log(data);
+        var rows = data.rows;
+
+        data.rows = rows.sort(function(a,b){
+            return JSON.parse(b.cell[8]).length - JSON.parse(a.cell[8]).length;
+        });
+    },
+</g:if>--}%
     pager: '#${pagerId}',
     ${JsUtils.convertToJs(conf - [navGrid: conf.navGrid] - [filterToolbar: conf.filterToolbar], gridId, true)},
     <g:if test="${gridConfig.subGrid}">
@@ -88,8 +104,11 @@
             .jqGrid('navButtonAdd','#${pagerId}',{id:"saveuserprefs", caption:"", buttonicon:"ui-icon-disk", title:"Save filter and column preferences", onClickButton:${gridConfig.savePrefsFunction}})
         </g:if>
 
-
         ;
+
+        <g:if test="${gridId}=='curation_table'">
+            $("#curation_table_allCuratedVariants").attr("aria-selected", true);
+        </g:if>
 
     </g:if>
 </jq:jquery>

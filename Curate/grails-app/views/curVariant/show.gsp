@@ -1,5 +1,5 @@
 
-<%@ page import="org.petermac.pathos.curate.CurVariant" %>
+<%@ page import="org.petermac.pathos.curate.CurVariant; org.petermac.pathos.curate.SeqVariant" %>
 <!DOCTYPE html>
 <html>
 	<head>
@@ -8,14 +8,14 @@
 		<title>${variantInstance} - <g:message code="default.show.label" args="[entityName]" /></title>
 	</head>
 	<body>
-		<a href="#show-variant" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
+		<a href="#show-curVariant" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
 		<div class="nav" role="navigation">
 			<ul>
 				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
 			</ul>
 		</div>
-		<div id="show-variant" class="content scaffold-show" role="main">
+		<div id="show-curVariant" class="content scaffold-show" role="main">
 			<h1><g:message code="default.show.label" args="[entityName]" /></h1>
 			<g:if test="${flash.message}">
 			    <div class="message" role="status">${flash.message}</div>
@@ -26,13 +26,33 @@
 					<span class="property-value" aria-labelledby="variant-label">${variantInstance}</span>
 				</li>
 				<li class="fieldcontain">
-					<span id="variant-label" class="property-label">Mutation Context</span>
-					<span class="property-value" aria-labelledby="variant-label"><b>${variantInstance.clinContext? variantInstance.clinContext : 'None'}</b></span>
+					<span id="clinContext-label" class="property-label">Clinical Context</span>
+					<span class="property-value" aria-labelledby="clinContext-label"><b>${variantInstance.clinContext? variantInstance.clinContext : 'None'}</b>
+						<g:if test="${variantInstance.allSeqVariants()}">
+- <a href="#show-all-contexts" onclick='PathOS.svlist.showCVs(${(variantInstance.allSeqVariants() as ArrayList<SeqVariant>)?.pop().id })'>Inspect other Clinical Contexts</a>
+						</g:if><g:else>This is an orphan with no linked SeqVariants</g:else>
+							</span>
 				</li>
+				<li class="fieldcontain">
+					<span id="group-variant-label" class="property-label">Group Variant</span>
+					<span class="property-value" aria-labelledby="group-variant-label"><b>${variantInstance.grpVariant? variantInstance.grpVariant : 'None'}</b></span>
+				</li>
+				<li class="fieldcontain">
+					<span id="originating-variant-label" class="property-label">Originating Variant</span>
+					<span class="property-value" aria-labelledby="originating-variant-label">
+						<g:if test="${variantInstance.originating}">
+							<g:link controller='seqVariant' action='svlist' id='${variantInstance.originating?.seqSample?.id}'>${variantInstance.originating.seqSample} : ${variantInstance.originating}</g:link>
+						</g:if>
+						<g:else>
+							None
+						</g:else>
+				</li>
+
+
 				<g:if test="${variantInstance?.variant}">
 				<li class="fieldcontain">
-					<span id="variant-label" class="property-label"><g:message code="seqVariant.variant.label" default="Variant" /></span>
-					<span class="property-value" aria-labelledby="variant-label"><g:fieldValue bean="${variantInstance}" field="variant"/></span>
+					<span id="seqVariant-label" class="property-label"><g:message code="seqVariant.variant.label" default="Variant" /></span>
+					<span class="property-value" aria-labelledby="seqVariant-label"><g:fieldValue bean="${variantInstance}" field="variant"/></span>
 				</li>
 				</g:if>
 			
@@ -81,8 +101,8 @@
 
 				<g:else>
 				<li class="fieldcontain">
-					<span id="pmClass-label" class="property-label"><g:message code="variant.pmClass.label" default="Clinical Context" /></span>
-					<span class="property-value" aria-labelledby="pmClass-label">
+					<span id="clinical-context-label" class="property-label"><g:message code="variant.pmClass.label" default="Clinical Context" /></span>
+					<span class="property-value" aria-labelledby="clinical-context-label">
 					<g:link controller="curVariant" action="edit" id="${variantInstance?.id}">
 						<g:if test="${variantInstance?.clinContext}">${variantInstance?.clinContext}</g:if><g:else>No Clinical Context</g:else>
 					</g:link>
@@ -172,16 +192,14 @@
 
 				<g:if test="${variantInstance?.reportDesc}">
 				<li class="fieldcontain">
-					<span id="reportDesc-label" class="property-label"><g:message code="variant.reportDesc.label" default="Report Desc" /></span>
-					
-						<span class="property-value" aria-labelledby="reportDesc-label"><g:fieldValue bean="${variantInstance}" field="reportDesc"/></span>
-					
+					<span id="reportDesc-label" style="margin-right: 20px" class="property-label">Report Description</span>
+					<textarea readonly style="margin-left: 0" class="highlightClass property-value" aria-labelledby="reportDesc-label"><g:fieldValue bean="${variantInstance}" field="reportDesc"/></textarea>
 				</li>
 				</g:if>
 			
 				<g:if test="${variantInstance?.evidence}">
 				<li class="fieldcontain">
-					<span id="evidence-label" class="property-label"><g:message code="variant.evidence.label" default="Evidence" /></span>
+					<span id="evidence-label" class="property-label">Evidence</span>
 					
 						<span class="property-value" aria-labelledby="evidence-label">
                             <g:link controller="evidence" action="edit" id="${variantInstance?.id}">
@@ -189,8 +207,18 @@
                             </g:link>
                         </span>
 				</li>
+
+				<li class="fieldcontain">
+					<span id="evidenceDesc-label" style="margin-right: 20px" class="property-label">Evidence Description</span>
+					<textarea readonly style="margin-left: 0" class="highlightClass property-value" aria-labelledby="evidenceDesc-label"><g:fieldValue bean="${variantInstance.evidence}" field="justification"/></textarea>
+				</li>
 				</g:if>
-			
+
+				<li class="fieldcontain">
+					<span id="pmid-label" class="property-label">Linked Pubmed Articles</span>
+					<span class="property-value" aria-labelledby="pmid-label"><ul><g:displayPMIDs cv="${variantInstance.id}"/></ul></span>
+				</li>
+
 				<g:if test="${variantInstance?.classified}">
 				<li class="fieldcontain">
 					<span id="classified-label" class="property-label"><g:message code="variant.classified.label" default="Classified" /></span>
@@ -226,15 +254,15 @@
 					
 				</li>
 
-                    <g:if test="${jiraIssues}">
-                        <g:each in="${jiraIssues}" var="issue">
-                        <li class="fieldcontain">
-                            <span id="lastUpdated-label" class="property-label"><g:message code="variant.jiraissue.label" default="JIRA Issue" /></span>
+					<g:if test="${jiraIssues}">
+						<g:each in="${jiraIssues}" var="issue">
+							<li class="fieldcontain">
+								<span id="jiraIssue-label" class="property-label"><g:message code="variant.jiraissue.label" default="JIRA Issue" /></span>
 
-                            <span class="property-value" aria-labelledby="lastUpdated-label"><a target="_blank" href="https://${jiraAddress}/jira/browse/${issue.issueIdentifier}">${issue.issueIdentifier}</a> - ${issue.issueType}</span>
+								<span class="property-value" aria-labelledby="jiraIssue-label"><a target="_blank" href="${jiraAddress}/jira/browse/${issue.issueIdentifier}">${issue.issueIdentifier}</a> - ${issue.issueType}</span>
 
-                        </li>
-                        </g:each></g:if>
+							</li>
+						</g:each></g:if>
 				</g:if>
 				<g:showPageTags/>
 			</ol>
@@ -253,6 +281,79 @@
 <script>
 	console.log("${variantInstance?.id}")
 	<g:showPageTagsScript tags="${variantInstance?.tags as grails.converters.JSON}" id="${variantInstance?.id}" controller="curvariant"/>
+
+
+
+%{--
+DKGM 24-November-2016
+Ajax stuff so that we can show all of the Linked Sequenced Variants on demand
+--}%
+
+	var allSeqVariantsLoaded = false;
+	function toggleLinkedSeqVariants(){
+		$("#linked-seqVariants").toggleClass("hidden");
+
+		if(!allSeqVariantsLoaded) {
+			allSeqVariantsLoaded = true;
+			$.ajax({
+				type: "GET",
+				url: "/PathOS/curVariant/linkedSeqVars/?id="+${variantInstance?.id},
+				success: function(d){
+						d3.select("#slow-load-warning").classed("hidden", true);
+
+						var list = d3.select("#linked-seqVariants");
+						d.sort(function(a,b){
+							return b.seqSample - a.seqSample;
+						}).forEach(function(ss){
+							list.append("li")
+								.classed("property-value", true)
+								.append("b")
+								.append("a")
+								.attr("href", "/PathOS/seqVariant/svlist/"+ss.seqSample)
+								.text(ss.string);
+						});
+					},
+				cache: false,
+				contentType: false,
+				processData: false
+			});
+		}
+	}
+
+	PathOS.pubmed.applyHighlight('highlightClass');
+
 </script>
 	</body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

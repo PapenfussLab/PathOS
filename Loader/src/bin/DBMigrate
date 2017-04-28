@@ -10,7 +10,7 @@
 #
 . SetLoaderEnv
 
-export JAVA_OPTS="-XX:MaxPermSize=3072m -Xmx4g -XX:-UseGCOverheadLimit"
+export JAVA_OPTS="-XX:MaxPermSize=4072m -Xmx5g -XX:-UseGCOverheadLimit"
 
 #
 #	Run Java

@@ -28,15 +28,23 @@ import org.petermac.pathos.pipeline.Locus
 @Log4j
 class GATK
 {
-    final String   ref   = null                 // Genome reference fasta file
-    final String   et    = null                 // GATK ET key :-(
+    private String ref   = null                 // Genome reference fasta file
+    private String et    = null                 // GATK ET key :-(
     static         debug = false                // debug flag
     static Locator loc   = Locator.instance     // Singleton locator class
 
-    GATK()
+    GATK( boolean no_et = true )
     {
         ref = loc.genomePath
-        et  = loc.gatkET
+        if ( no_et )
+        {
+            et = loc.gatkET
+
+            //  Check if ET key file exists
+            //
+            File etf = new File(et)
+            if ( ! etf.exists()) et = null
+        }
     }
 
     //  Command line main
@@ -192,14 +200,23 @@ class GATK
     {
         File tmpLog = FileUtil.tmpFile( 'gatkLog' )
 
-        List cmd =  [
-                        '-et',  'NO_ET',
-                        '-K',   et,
-                        '-R',   ref,
-                        '-l',   (debug ? 'INFO' : logLevel),
-                        '-log', tmpLog.absolutePath
-                    ]
+        List cmd =      [
+                            '-R',   ref,
+                            '-l',   (debug ? 'INFO' : logLevel),
+                            '-log', tmpLog.absolutePath
+                        ]
 
+        //  Add ET options for GATK if we have a key installed
+        //
+        List etOpt =    [
+                            '-et',  'NO_ET',
+                            '-K',   et
+                        ]
+
+        if ( et ) cmd = (cmd << etOpt).flatten()
+
+        //  Add any other options
+        //
         cmd = (cmd << args).flatten()
 
         //  Run GATK command

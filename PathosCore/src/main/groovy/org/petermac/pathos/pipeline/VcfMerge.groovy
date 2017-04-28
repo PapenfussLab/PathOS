@@ -82,7 +82,7 @@ class VcfMerge
             File vcf = new File( ivf as String )
             if ( ! vcf.exists())
             {
-                log.fatal( "File ${vcf} doesn't exists: Exiting")
+                log.fatal( "File ${vcf} doesn't exist: Exiting")
                 System.exit(1)
             }
             vcfs << vcf
@@ -202,7 +202,8 @@ class VcfMerge
             {
                 log.debug( "Found matching variant ${m.CHROM + ':' + m.POS}" )
                 log.debug( "Primary variant ${pmap.CHROM + ':' + pmap.POS}" )
-                vc = "Intersection"
+                //vc = "Intersection"
+                vc = "${primLabel},${mergeLabel}"
 
                 //  remove intersection row from merge rows
                 //

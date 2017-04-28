@@ -9,6 +9,7 @@ class FilterflagCheckerTest extends GroovyTestCase
     String DB
     Boolean isPaLocal
 
+    //TODO WE need to re-assess these functions
     void setUp()
     {
         def env = System.getenv()

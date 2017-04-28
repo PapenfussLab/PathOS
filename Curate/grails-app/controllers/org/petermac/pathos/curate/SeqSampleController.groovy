@@ -113,7 +113,7 @@ class SeqSampleController
                     patSample: ss.sampleName,
                     complete: new Date(),
                     elapsed: 0,
-                    software: 'Path-OS',
+                    software: 'PathOS',
                     swVersion: meta(name: 'app.version'),
                     task: 'sample qc',
                     username: currentUser.getUsername(),

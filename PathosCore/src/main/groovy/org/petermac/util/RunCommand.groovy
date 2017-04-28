@@ -89,6 +89,9 @@ class RunCommand
 
         if ( m.exitval )
         {
+            //AES: runMap returns m.exit not m.exitval so this is always fale but i'm leaving this in as not to affect
+            //existing code (i think returning null on failure is a poor idea, far better to return stderr+out and exitval
+            //regardless, most of the time i'd want my stderr if my exitval is 1). unless KDD you want to fix this?
             log.error( "Command failure: "	+ m.stderr.tokenize("\n").join(cont))
             log.debug( "Command output: "	+ m.stdout.tokenize("\n").join(cont))
             return null

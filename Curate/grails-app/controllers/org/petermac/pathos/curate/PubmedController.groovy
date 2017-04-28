@@ -5,7 +5,7 @@
 
 package org.petermac.pathos.curate
 
-import org.apache.commons.io.FileUtils
+import org.petermac.util.Locator
 
 // Uhhh... this was giving me naming issues, so I aliased it.
 import org.petermac.util.Pubmed as PubmedUtility
@@ -15,15 +15,13 @@ import grails.converters.*
 
 import org.grails.plugin.easygrid.Easygrid
 
-import java.text.MessageFormat
-import java.text.SimpleDateFormat
-
 
 @Easygrid
 class PubmedController {
     //  Scaffold everything else
     //
     static scaffold = Pubmed
+    def loc = Locator.instance                      // file locator
 
     /**
      * Table definition for Easygrid
@@ -36,6 +34,8 @@ class PubmedController {
                 editable false
                 inlineEdit false
                 columns {
+                    id     // Hide this one
+                    tags
                     authors
                     date
                     title
@@ -44,14 +44,10 @@ class PubmedController {
                     issue
                     pages
                     affiliations
-
-                    // Hide these:
-                    id
                     pmid
                     doi
-                    abstrct
                     pdf
-                    tags
+                    abstrct
                 }
             }
 
@@ -62,6 +58,16 @@ class PubmedController {
     }
     def show() {
         redirect url: "/Pubmed"
+    }
+
+    def cite() {
+        Pubmed article = Pubmed.findByPmid(params.int('pmid'));
+
+        if(article) {
+            render PubmedService.buildCitation(article)
+        } else {
+            render "Not in system."
+        }
     }
 
     /**
@@ -76,7 +82,12 @@ class PubmedController {
             render "Fail"
     }
 
+    def check_pmid(Long pmid) {
+        render Pubmed.findByPmid(pmid)
+    }
+
     //perhaps we should do some error checking to see if the pmid is any good...
+    // This should probably be "Long pmid" DKGM 28-November-2016
     def fetch_pmid(String pmid){
         Pubmed entry = Pubmed.findByPmid(pmid);
 
@@ -139,7 +150,7 @@ class PubmedController {
         if(filename =~ /^\d+{0,20}$/) {
 
             try {
-                file.transferTo(new File("/pathology/NGS/Pubmed/${filename}.pdf"))
+                file.transferTo(new File(loc.pubmedDir + filename + '.pdf'))
                 Pubmed.findByPmid(filename)?.setPdf(filename + ".pdf")
                 render "success"
             } catch (all) {

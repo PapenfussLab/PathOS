@@ -53,10 +53,11 @@ class HouseKeeping
                     b(longOpt: 'backup',  args: 1, 'backup this schema to standard backup directory')
                     c(longOpt: 'checkdir', args: 0, 'check directory file status')
                     a(longOpt: 'archive', args: 1, 'archive this schema to standard backup directory')
-                    f(longOpt: 'filtercheck', args: 1, 'check if filter flags are set correctly')
+                    f(longOpt: 'filtercheck', args: 1, '(--filtercheck pa_environment) check if filter flags are set correctly')
                     d(longOpt: 'debug', args:0, 'run in debug mode')
                     j(longOpt: 'jira', args:0, 'make jira issue on failure')
                     i(longOpt: 'isup', args:1, 'check if URL is up - will send warning email to PathOS developers unless debug is on')
+                    vl(longOpt: 'vlcheck', args:1, '(--varlink pa_environment) check varlink database integrity and notify if dirty database detected (pathos v1.3)')
                 }
         def opt = cli.parse(args)
 
@@ -94,7 +95,7 @@ class HouseKeeping
                 checkdir(argin, opt.debug, opt.jira)
         }
         if ( opt.filtercheck  ) filtercheck( opt.filtercheck,  opt.debug, opt.jira)
-
+        if ( opt.vlcheck  ) varlinkcheck( opt.vlcheck,  opt.debug, opt.jira)
         Integer elapsed = (System.currentTimeMillis() - start) / (60 * 1000)    // minutes elapsed
 
         log.info("Done in ${elapsed} minute(s).")
@@ -291,6 +292,37 @@ class HouseKeeping
 
         //todo make a jira issue if jira is set. low priority.
     }
+
+    /**
+     * Check filter flags for all seqvariants to see if they're consistent
+     */
+    static void varlinkcheck(rdb,debug,jira) {
+        //
+        //
+        //
+        def db = new DbConnect(rdb)
+        def sql = db.sql()
+
+        //grab where curvar and seqvar match
+        def qry = """
+                SELECT sv.id as seqvar_id, cv.id as curvar_id FROM cur_variant as cv INNER JOIN seq_variant as sv ON sv.hgvsg=cv.grp_variant_accession
+                LEFT JOIN var_link AS vl ON vl.seq_variant_id=sv.id AND vl.cur_variant_id=cv.id
+                WHERE vl.seq_variant_id IS NULL AND vl.cur_variant_id IS NULL
+                """
+        def res = sql.rows(qry)
+
+        if (res) {
+
+            System.err.println( "VarLinkChecker found ${res.size()} inconsistencies. The following SeqVariant+CurVariant pairs do not have VarLinks but should:" )
+            for (row in res) {
+                if (row.size() == 2)
+                    System.err.println( "seqvariant id " +  row[1] + " curvariant id: "  + row[1] )
+            }
+
+        }
+
+        //todo do we need an email?
+     }
 
     /**
      * Backup database schema

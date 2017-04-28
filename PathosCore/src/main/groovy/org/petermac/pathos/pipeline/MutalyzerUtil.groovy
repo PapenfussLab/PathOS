@@ -23,16 +23,41 @@ import org.petermac.util.Vcf
 @Log4j
 class MutalyzerUtil
 {
+    private static Mutalyzer mutalyzer = new Mutalyzer()
+    private static String    mutHost   = null
+
+    /**
+     * Constructor with default Mutalyzer
+     */
+    MutalyzerUtil()
+    {
+        mutalyzer = new Mutalyzer()
+    }
+
+    /**
+     * Constructor with Mutalyzer host to connect to
+     * @param mutHost
+     */
+    MutalyzerUtil( String mutHost )
+    {
+        this.mutHost = mutHost
+        if ( mutHost )
+            mutalyzer = new Mutalyzer( mutHost )
+        else
+            mutalyzer = new Mutalyzer()
+    }
+
     /**
      * Run mutalyser batch extract to convert VCF variants
      *
      * @param   infile      VCF File
      * @param   ofile       Output VCF file
-     * @param   cacheDB     Annotation cache DB to use
+     * @param   cacheDB     Annotation cache DB to use (not used if nocache is set)
      * @param   nocache     Dont cache variants
+     * @param   tsMap       Use this Map instead (not used if nocache is false)
      * @return              Number of variants output
      */
-    static int convertVcf( File infile, File ofile, String cacheDB, boolean nocache )
+    static int convertVcf( File infile, File ofile, String cacheDB, boolean nocache, Map tsMap = null )
     {
         //  Read in VCF variants as HGVSg
         //
@@ -45,9 +70,9 @@ class MutalyzerUtil
 
         //  Process all variants: either from cache or direct to Mutalyzer
         //
-        List<Map> vars = []
-        if ( nocache )
-            vars = normaliseVariants( hgs, cacheDB )
+        List<Map> vars
+        if ( nocache && ! cacheDB )
+            vars = normaliseVariants( hgs, null, tsMap )
         else
             vars = cacheVariants( hgs, cacheDB )
 
@@ -133,7 +158,7 @@ class MutalyzerUtil
      */
     static List<Map> cacheVariants( List vars, String cacheDB )
     {
-        def ds = new MutVarDataSource( cacheDB )
+        def ds = new MutVarDataSource( cacheDB, mutHost )
 
         return ds.addGetCache( vars, true )
     }
@@ -143,17 +168,18 @@ class MutalyzerUtil
      *
      * @param   vars    Map of HGVSg variants keyed on HGVSg
      * @param   rdb     RDB to use for preferred transcripts
+     * @param   tsMap   Map of gene -> refseq Transcript
      * @return          List of Maps of normalised variants
      */
-    static List<Map> normaliseVariants( List vars, String rdb )
+    static List<Map> normaliseVariants( List vars, String rdb, Map tsMap )
     {
         //  Convert hgvsg to transcripts
         //
-        List<Map> mutl = Mutalyzer.batchPositionConverter( vars )
+        List<Map> mutl = mutalyzer.batchPositionConverter( vars )
 
         //  Filter transcripts to preferred gene transcripts
         //
-        List<Map> filterts = filterTranscripts( mutl, rdb )
+        List<Map> filterts = filterTranscripts( mutl, rdb, tsMap )
 
         //  Run name checker on HGVSc variants
         //
@@ -171,13 +197,19 @@ class MutalyzerUtil
      *
      * @param   mutl        List of Maps for each variant [variant:, error:, transcripts: ]
      * @param   dbname      Database for transcript references
+     * @param   tsMap       Map of gene -> refseq Transcript
      * @return              List of filtered mRNA refseq transcripts [variant:, error:, transcripts:, filterts:, refseq:, lrg: ]
      */
-    static List<Map> filterTranscripts( List<Map> mutl, String dbname )
+    static List<Map> filterTranscripts( List<Map> mutl, String dbname, Map tsMap )
     {
         //  Transcript class for selecting the preferred transcript for each variant
+        //  Can be from
         //
-        def tscl = new Transcript( dbname )
+        def tscl
+        if ( dbname )
+            tscl = new Transcript( dbname )
+        else
+            tscl = new Transcript( tsMap )
 
         for ( mut in mutl )
         {
@@ -229,7 +261,7 @@ class MutalyzerUtil
 
         //  Perform validation: Use refseq hgvsc
         //
-        List<Map> muts = Mutalyzer.batchNameChecker( hgvscs )
+        List<Map> muts = mutalyzer.batchNameChecker( hgvscs )
 
         //  Match up calling variant with Mutalyzer results
         //
@@ -262,7 +294,7 @@ class MutalyzerUtil
             if ( var.hgvsg ) var.hgvsg = HGVS.normaliseHgvsG(var.hgvsg)
             if ( var.hgvsc != mut.in ) var.status = 'RENAMED'
             if ( mut.hgvsp && mut.protein_ref ) var.hgvsp   = mut.protein_ref + ':' + mut.hgvsp
-            if ( mut.gene ) var.gene = Mutalyzer.shortGene(mut.gene)
+            if ( mut.gene ) var.gene = mutalyzer.shortGene(mut.gene)
             if ( mut.error) var.error = mut.error
         }
 
@@ -288,7 +320,7 @@ class MutalyzerUtil
 
         //  Map them back to genomic positions
         //
-        List<Map> hgs = Mutalyzer.batchPositionConverter( mods.hgvsc )
+        List<Map> hgs = mutalyzer.batchPositionConverter( mods.hgvsc )
 
         //  One for one match of input/output
         //

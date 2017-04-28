@@ -26,7 +26,7 @@ class Audit
 
     static constraints =
         {
-            category( inList: [ 'pipeline', 'lims', 'record', 'curation', 'database' ])
+            category( inList: [ 'pipeline', 'lims', 'record', 'curation', 'database', 'report' ])
             seqrun( nullable: true )
             variant( nullable: true )
             patSample( nullable: true )

@@ -189,7 +189,7 @@ class UrlLink
     {
         def baseURL = loc.cnvViewerUrl
 
-        baseURL += "/${version}/?collection=${loc.samBase}&panel=${panel}&run=${seqrun}&sample=${sample}"
+        baseURL += "/${version}/?collection=${loc.samBase}&panel=${panel}&run=${seqrun}&sample=${sample}&locked=TRUE&index_path=CNV"
 
         return baseURL
     }

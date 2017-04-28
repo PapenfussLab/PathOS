@@ -25,13 +25,21 @@ import org.petermac.pathos.pipeline.MutalyzerUtil
 @Log4j
 class MutVarDataSource extends VarDataSource
 {
-    static def      code = DS.Mutalyzer.code()          //  Code for this DataSource loader
+    static def      code    = DS.Mutalyzer.code()       //  Code for this DataSource loader
     static String   rdb                                 //  RDB to use
+    static String   mutHost = null                      //  Mutalyzer Host to use
 
-    MutVarDataSource( String rdb )
+    /**
+     * Constructor with Mutalyzer Host
+     *
+     * @param rdb       Cache database
+     * @param mutHost   Mutalyzer Host
+     */
+    MutVarDataSource( String rdb, String mutHost )
     {
         super( rdb )
-        this.rdb = rdb
+        this.rdb     = rdb
+        this.mutHost = mutHost
     }
 
     /**
@@ -73,8 +81,9 @@ class MutVarDataSource extends VarDataSource
         if ( ! novelVars ) return nadd
 
         //  Mutalyze all uncached variants
+        //  Todo: this needs to pass though a parameterised mutalyzer host in the future
         //
-        List<Map> mutvars = MutalyzerUtil.normaliseVariants( novelVars, rdb )
+        List<Map> mutvars = new MutalyzerUtil( mutHost ).normaliseVariants( novelVars, rdb, null )
 
         for ( mut in mutvars )
         {

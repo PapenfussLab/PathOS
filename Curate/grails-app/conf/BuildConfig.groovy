@@ -73,16 +73,21 @@ grails.project.dependency.resolution =
                             exclude(group: 'commons-logging', name: 'commons-logging')
                             exclude(group: 'commons-lang', name: 'commons-lang')
                         }
-                        compile 'commons-beanutils:commons-beanutils:1.9.2' {
-                            exclude(group: 'commons-logging', name: 'commons-logging')
-                            exclude(group: 'commons-lang', name: 'commons-lang')
-                        }
+
+//                        This is unused because it wasn't invoked properly.
+//                        I am fixing it, but also commenting it out, because it is not being used.
+//                        DKGM 12-Jan-2017
+//                        compile('commons-beanutils:commons-beanutils:1.9.2'){
+//                            exclude(group: 'commons-logging', name: 'commons-logging')
+//                            exclude(group: 'commons-lang', name: 'commons-lang')
+//                        }
+
                         compile 'com.esotericsoftware.kryo:kryo:2.24.0'
 
 
                         runtime 'mysql:mysql-connector-java:5.1.25'
 
-                        compile(':PathosCore-all:1.2.5') {
+                        compile(':PathosCore-all:1.3') {
                             changing = true
                         }
 
@@ -161,6 +166,5 @@ grails.project.dependency.resolution =
                         //    exclude "spock-grails-support"
                         //}
 
-                        //compile ":taggable:1.1.0"
                     }
         }

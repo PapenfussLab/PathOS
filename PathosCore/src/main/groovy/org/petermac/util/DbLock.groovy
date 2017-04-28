@@ -28,7 +28,7 @@ class DbLock
 {
     static Sql    sql       = null
     static String dbname    = null
-    static double staleLock = 10        // Lock is stale if more than 10 minutes old
+    static double staleLock = 120        // Lock is stale if more than 2 hourso ld
 
     /**
      * Constructor to define DB and optional stale lock timeout

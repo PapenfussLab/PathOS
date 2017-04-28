@@ -30,6 +30,8 @@ class Panel
         manifest
     }
 
+    static searchable = true
+
     static mapping =
     {
         sort panelGroup: "asc"

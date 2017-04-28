@@ -29,7 +29,7 @@ class Seqrun implements Taggable
 
     static  searchable =
     {
-        only = [ 'seqrun', 'experiment', 'library', 'scanner', 'authorised', 'tags' ]
+        except = [ 'seqSamples' ]
         tags component: true
     }
 

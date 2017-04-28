@@ -10,12 +10,13 @@ package org.petermac.util
 
 import groovy.json.JsonSlurper
 import groovy.json.StringEscapeUtils
-
+import groovy.util.logging.Log4j
 /**
  *  Jira integration class to log issues directly from an application
  *
  *  Created by Andrei Seleznev  on 12/12/2014
  */
+@Log4j
 class JiraNotifier
 {
     /**
@@ -31,7 +32,7 @@ class JiraNotifier
         //
         Locator loc = Locator.instance
 
-        String jiraAdd = loc.jiraAddress
+        String jiraAdd = loc.jiraAddress + "/jira/rest/api/2/issue/"    //append the issue API
         String proxyString = loc.jiraProxy
         String userName = loc.jiraUsername
         String userPass = loc.jiraPass
@@ -56,11 +57,15 @@ class JiraNotifier
         def method = "PUT"
         if ( ! usePut ) method = "POST"
 
+        if (proxyString == "''") proxyString = ''
+
         //  curl it up
         //
         String curlCommand = "curl ${proxyString} -k -D- -u ${userName}:${userPass} -X ${method} --data-binary @${dataFile.getPath()} -H \"Content-Type: application/json\" ${baseurl}"
         println "JIRA: Curling"
         println curlCommand
+        log.warn("JIRA curling")
+        log.warn(curlCommand)
         def response = new RunCommand( curlCommand ).run()
 
         return response
@@ -74,7 +79,7 @@ class JiraNotifier
      */
     static Map assignJiraIssue(String assignee, int issueId)
     {
-        String issueData ='{ "fields" : { "assignee" : {"name" : "'+"${assignee}"+'"}}}'
+        String issueData = /{ "fields" : { "assignee" : {"name" : "${assignee}"}}}/
         println issueData
         def response = makeJiraCurlCall(issueData,issueId,true)
 
@@ -101,9 +106,9 @@ class JiraNotifier
      */
     static Map addWatcherToJiraIssue(String watcher, int issueId)
     {
-        String issueData = '"'+watcher+'"'
+        String issueData = /"${watcher}"/
         println issueData
-        def response = makeJiraCurlCall(issueData,issueId,false,'/watchers')
+        def response = makeJiraCurlCall( issueData, issueId, false, '/watchers')
 
         HashMap returnResponse = [:]
 
@@ -137,22 +142,20 @@ class JiraNotifier
 
         summary = StringEscapeUtils.escapeJava(summary)
         desc    = StringEscapeUtils.escapeJava(desc)
-        String issueData = '{ "fields": {' +
-                ' "project": ' +
-                ' {' +
-                '   "id":' + "\"${projectid}\"" +
-                ' },' +
-                ' "summary": ' + "\"${summary}\"" + "," +
-                ' "description": ' + "\"${desc}\"" + "," +
-                ' "issuetype": {' +
-                ' "name": ' + "\"${issuetype}\"" +
-                ' } ' +
-                ' } ' +
-                ' } '
 
-        //  kdd removed 17aug16 def response = makeJiraCurlCall(issueData,0,false,'',project)
-        //  was crashing with No signature of method: org.petermac.util.JiraNotifier.makeJiraCurlCall()
-        //
+        String issueData = """{
+    "fields": {
+        "project": {
+            "id": "${projectid}"
+        },
+        "summary": "${summary}",
+        "description": "${desc.replaceAll(":p", "\\\\\\\\:p")}",
+        "issuetype": {
+            "name": "${issuetype}"
+        }
+    }
+}"""
+
         def response = makeJiraCurlCall( issueData, 0, false, '' )
 
         HashMap returnResponse = [:]

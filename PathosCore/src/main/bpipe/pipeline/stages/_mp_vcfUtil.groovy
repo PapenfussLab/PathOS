@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2015. PathOS Variant Curation System. All rights reserved.
+ * Copyright (c) 2016 PathOS Variant Curation System. All rights reserved.
  *
- * Organisation: Peter MacCallum Cancer Centre
- * Author: doig ken
+ * Organisation:    Peter MacCallum Cancer Centre
+ * Author:          Kenneth Doig
  */
 
 /**
@@ -27,7 +27,8 @@ mp_normVcf	=
 
     if (DEBUG) println "In mp_normVcf in=$input.vcf out=$output"
 
-	exec "${MP_PATHOS_HOME}/bin/NormaliseVcf --rdb ${DBNAME} $input.vcf $output"
+	exec "${MP_PATHOS_HOME}/bin/NormaliseVcf --mutalyzer https://vmpr-res-mutalyzer1.unix.petermac.org.au --rdb ${DBNAME} $input.vcf $output"
+//	exec "${MP_PATHOS_HOME}/bin/NormaliseVcf --mutalyzer https://mutalyzer.nl --rdb ${DBNAME} $input.vcf $output"
 }
 
 @Filter('ma')
@@ -216,17 +217,26 @@ mp_mergeVcfPM =
         //  Extract variant call from the basename of the VCF file eg VCF=/path/sample.varcall.vcf
         //
         def vcfs = inputs.vcf
-        if ( vcfs.size() != 2 && ! PANEL.startsWith( "MRD" )) succeed( "Need 2 VCFs for mp_mergeVcfPM" )
-        if ( vcfs.size() == 0 &&   PANEL.startsWith( "MRD" )) succeed( "No VCFs for mp_mergeVcfPM" )
 
         //  Loop through VCF paths and extract variant caller
         //
-        def varcalls = []
         def vcfp = vcfs.find{ it =~ /Primal/ }
         def vcfc = vcfs.find{ it =~ /Canary/ }
-//        if ( ! vcfp || ! vcfc ) succeed( "Need 2 Variant callers for mp_mergeVcfPM" )
 
-        //  Marge VCFs using VcfMerge
+        //  Check we have the correct input files
+        //      2 for amplicon
+        //      1 canary got MRD
+        //
+        if ( ! PANEL.startsWith( "MRD" ))
+        {
+            if ( vcfs.size() != 2 ) succeed( "Need 2 VCFs for mp_mergeVcfPM" )
+        }
+        else
+        {
+            if ( ! vcfc ) succeed( "No Canary VCFs for mp_mergeVcfPM" )
+        }
+
+        //  Merge VCFs using VcfMerge
         //
         produce( "${SAMPLE}.merge.vcf" )
         {
@@ -240,7 +250,11 @@ mp_mergeVcfPM =
             }
             else
             {
-                exec "${MP_PATHOS_HOME}/bin/VcfMerge --output $output --labels Primal,Canary ${vcfp} ${vcfc}"
+                exec    """
+                        canLabel=`Canary --version|sed 's/ /_/'`;
+                        prmLabel='Primal_1.01';
+                        ${MP_PATHOS_HOME}/bin/VcfMerge --output $output --labels "${prmLabel},${canLabel}" ${vcfp} ${vcfc}
+                        """
             }
         }
     }

@@ -56,36 +56,22 @@
                         <label>Seqrun</label>
                         <g:textField name="seqrun" value="${userparams?.seqrun}"/>
                     </div><br/>
-                    <%--<label>Sample</label>
-                    <div class="fieldcontain">
-                        <g:textField name="Sample" />
-                    </div>--%>
 
-                 <%--   <div class="fieldcontain">
-                    <label>Queue</label>
-                        <g:textField name="queue" value="${userparams?.queue? userparams?.queue:"pathology"}"/>
+                    <div class="fieldcontain">
+                        <label>Panel</label>
+                        <g:textField name="panel" value="${userparams?.panelName}" />
                     </div><br/>
-                 <%--   <label>DB</label>
-                    <div class="fieldcontain">
-                        <g:textField name="DB" />
-                    </div> --%>
 
                     <div class="fieldcontain">
-                    <label>SeqSample</label>
-                    <g:textField name="seqsamplename" value="${userparams?.seqsamplename}" />
-                </div>
-                  <%--  <label>Pipeline</label>
-                    <div class="fieldcontain">
-                        <g:textField name="Pipeline" />
-                    </div>--%>
+                        <label>Apply filters</label>
+                        <g:checkBox name="filterFlag" value="${userparams?.filter}" />
+                    </div>
 
 
                     <label></label>
                     <div class="fieldcontain">
                         <label>VCF Upload</label>
                         <input type="file"  id="vcfUpload" name="vcfUpload" />
-
-
                     </div>
                     <br/>
 
@@ -97,14 +83,14 @@
                         <label>Command to Execute</label>
                         <label style="text-align: left"><div id="shellcommand" style="font-family: monospace;"></div></label>
                     </div>
-            </span>
+                </span>
                 </fieldset>
 
                 </tbody>
 
                 <fieldset class="buttons">
                     <div class="fieldcontain">
-                    <g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
+                        <g:submitButton name="create" class="save" value="${message(code: 'default.button.Upload.label', default: 'Upload')}" />
                 </fieldset>
             </table>
         </div>
@@ -149,7 +135,14 @@
       if (!panelval) {
             panelval = "NoPanel"
       }
-      shellcommand = "RunPipe -b -p mp_vcfAmplicon -r ${env} -s " + $('#seqrun').val() + " -a " + $('#seqsamplename').val() + " Seqrun.tsv"
+
+      if( $('#panel').val() )
+      {
+            shellcommand =  "VcfLoader --rdb ${env} --seqrun " + $('#seqrun').val() + " --panel " + $('#panel').val() + " in.vcf"
+      } else {
+            shellcommand =  "VcfLoader --rdb ${env} --seqrun " + $('#seqrun').val() + " in.vcf"
+
+      }
       $('#shellcommand').text(shellcommand)
     }
 

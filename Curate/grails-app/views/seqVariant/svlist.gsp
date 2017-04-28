@@ -6,7 +6,7 @@
 
   --}%
 
-<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
+<%@ page import="grails.converters.JSON; org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.*" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -142,6 +142,15 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     z-index: 99999;
 }
 
+#showTags span {
+    font-size: 11.2px;
+}
+
+#ViewTbl_curation_table_2 {
+    position: absolute;
+    bottom: 0;
+}
+
 </style>
 
 </head>
@@ -170,7 +179,6 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
             <g:each in="${flash.errors}" var="error">${error}<br/></g:each>
         </div>
     </g:if>
-
 
 
 <div class="row">
@@ -252,8 +260,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <li class="fieldcontain">
             <span id="vep-label" class="property-label">CNV</span>
             <span class="property-value">
-                <a href='${UrlLink.gaffaUrl("cnb",seqSample?.seqrun?.seqrun,seqSample?.sampleName,seqSample.panel.manifest)}' target="_blank">Gaffa 1</a>
-                <a href='${UrlLink.gaffaUrl("gaffa",seqSample?.seqrun?.seqrun,seqSample?.sampleName,seqSample.panel.manifest)}' target="_blank">Gaffa 2</a>
+                <a href='${UrlLink.gaffaUrl( "gaffa", seqSample?.seqrun?.seqrun, seqSample?.sampleName, seqSample.panel.manifest )}' target="_blank">Gaffa</a>
             </span>
         </li>
 
@@ -366,7 +373,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
         <li class="fieldcontain" id="showTags">
             <span class="property-label">Tags of SeqSample:<br>${seqSample?.toString()}</span>
-            <div id="showTagBox" class="fb-box tags_field property-value">
+            <div id="showTagBox" class="outlined-box tags_field property-value">
                 <textarea id="showTagTextArea" placeholder="Enter Tags Here" class="ui-autocomplete-input" autocomplete="off"></textarea>
             </div>
         </li>
@@ -374,11 +381,11 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 </div>
     <script>
     var tags = ${seqSample?.tags as grails.converters.JSON},
-            tagbox = d3.select("#showTagBox").on('click', function(){
-                $('#showTagTextArea').focus();
-            });
+        tagbox = d3.select("#showTagBox").on('click', function(){
+            $('#showTagTextArea').focus();
+        });
 
-    tags.forEach(function(tag){
+    tags.sort(function(a,b){return a.id - b.id}).forEach(function(tag){
         PathOS.tags.drawTag(tagbox, tag);
     });
     $("#showTagTextArea").autocomplete({source:<g:allTags/>});
@@ -449,7 +456,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathologist}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Pathologist Review</span>
+            <span class="property-label">Pathologist Review</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathologist}
             </span>
@@ -458,7 +465,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="seqrun-label" class="property-label"> </span>
+        <span class="property-label"> </span>
         <span class="property-value" aria-labelledby="sampleName-label">
             <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                 <g:submitButton id="updateHolly" name="first" value="Update Patient Data"/>
@@ -475,7 +482,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathComments}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Pathologist Comments</span>
+            <span class="property-label">Pathologist Comments</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathComments}
             </span>
@@ -486,7 +493,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     <g:if test="${seqSample?.patSample?.repMorphology}">
 
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Report Morphology</span>
+            <span class="property-label">Report Morphology</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.repMorphology}
             </span>
@@ -495,7 +502,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.pathMorphology}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Notes</span>
+            <span class="property-label">Notes</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.pathMorphology}
             </span>
@@ -505,7 +512,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.retSite}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Tissue Site</span>
+            <span class="property-label">Tissue Site</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.retSite}
             </span>
@@ -515,30 +522,18 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <g:if test="${seqSample?.patSample?.tumourPct}">
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Tumour %</span>
+            <span class="property-label">Tumour %</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 ${seqSample.patSample.tumourPct}
             </span>
         </li>
     </g:if>
 
-   <%-- <g:if test="${seqSample?.sample?.hollyLastUpdated}">
-        <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Last Update Details</span>
-            <span class="property-value" aria-labelledby="sampleName-label">
-                ${seqSample.sample.hollyLastUpdated}
-            </span>
-        </li>
-    </g:if>--%>
-
-
-
-
 
 </g:if>
 <g:else>
         <li class="fieldcontain">
-            <span id="seqrun-label" class="property-label">Patient Details</span>
+            <span class="property-label">Patient Details</span>
             <span class="property-value" aria-labelledby="sampleName-label">
                 <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                     <g:submitButton id="updateHolly" name="first" value="Check Patient Details"/>
@@ -552,7 +547,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="seqrun-label" class="property-label"> </span>
+        <span class="property-label"> </span>
         <span class="property-value" aria-labelledby="sampleName-label">
             <g:form action="updateHolly" id="${seqSample?.patSample?.id}" name="refreshHollyForm">
                 <g:submitButton id="updateHolly" name="first" value="Update Patient Data"/>
@@ -566,17 +561,15 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <li class="fieldcontain">
 
-        <span id="seqrun-label" class="property-label">Clinical Context</span>
+        <span id="clinContext-label" class="property-label">Clinical Context</span>
         <span class="property-value" aria-labelledby="sampleName-label">
-            <g:form action="updateClinContext" id="${seqSample?.id}" name="refreshHollyForm">
+            <g:form action="updateClinContext" id="${seqSample?.id}" name="updateClinContextForm">
 
-
-                <g:select id="clinContext" name="clinContext" from="${clinContextList}"  noSelection="${['None':'None']}" optionKey="code"  value="${seqSample.clinContext? seqSample.clinContext.code : 'None'}" />
-                <g:submitButton id="updateClinContext" name="updateClinClontext" disabled="true" value="Change" style="margin-top:4px;"/>
-                <g:hiddenField name="patsampleid" id="patsampleid" value="${seqSample?.patSample?.id}"/>
+                <g:select id="clinContext" name="clinContext" from="${clinContextList.sort{a,b -> a.code <=> b.code}}"  noSelection="${['None':'None']}" optionKey="code" value="${seqSample.clinContext? seqSample.clinContext.code : 'None'}" />
+                <g:submitButton id="updateClinContext" name="updateClinContext" disabled="true" value="Save Change" style="margin-top:4px;"/>
                 <g:hiddenField name="seqsampleid" id="seqsampleid" value="${seqSample?.id}"/>
-                <g:hiddenField name="hollylastupdate" id="hollylastupdate" value="${seqSample?.patSample?.hollyLastUpdated}"/>
             </g:form>
+            <span id="get-a-curator">To change the Clinical Context, please contact a Curator.</span>
         </span>
 
     </li>
@@ -595,9 +588,9 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <li><a href="#tabs-2">SeqCNVs</a></li>
     </ul>
 </g:if>
-<div id="tabs-1" style="padding: 0px;">
+<div id="tabs-1" style="padding: 0;">
 
-<div style="margin: 2em; overflow: auto;" id="gridContainerDiv">
+<div style="margin: 2em; overflow: auto;" id="snvGridContainerDiv">
 
     <div id="filterNotification">
         A <span id="appliedfiltertype"></span>filter has been applied. <span id="postfilter_count">0</span> of <span id="prefilter_count">${svSize}</span> records pass filter. <span id="filterShowMessage">Show filter details</span> <br/>
@@ -608,7 +601,8 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     <grid:grid  name="curation">
         <grid:set caption='${seqSample.seqVariants.size()} Total Sequenced Variants'/>
-        <grid:set col='curated'         width="130" formatter='f:variantFormatter' editable='false'/>
+        <grid:set col='matchingCurVariant' formatter="f:matchingCVFormatter" cellattr='f:matchingCVcellattr' width="130" editable='false' sortable="false"/>
+        <grid:set col='allCuratedVariants' formatter="f:allCVFormatter" cellattr="f:allCVcellattr" width="45" editable="false"/>
         <grid:set col='gene'            width="70"  formatter='f:geneFormatter' editable='false'/>
         <grid:set col='siftCat'         width="45"  formatter='f:classFormatter' editable='false'/>
         <grid:set col='mutTasteCat'     width="45"  formatter='f:classFormatter' editable='false'/>
@@ -621,7 +615,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='variant'         width="130" editable='false'/>
         <grid:set col='sampleName'      width="65"  hidden='f:true' editable='false' />
         <grid:set col='clin_sig'        width="70"  editable='false'/>
-        <grid:set col='filterFlag'      width="100" editable='false'/>
+        <grid:set col='filterFlag'      width="100" editable='false' cellattr='f:filterFlagTooltip'/>
         <grid:set col='hgvsc'           width="170" editable='false'/>
         <grid:set col='hgvsp'           width="150" editable='false'/>
         <grid:set col='consequence'     width="150" editable='false'/>
@@ -638,7 +632,8 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='readDepth'       width="55"  editable='false' formatter='integer'/>
         <grid:set col='cosmicOccurs'    width="150" hidden='f:true'  editable='false'/>
         <grid:set col='pubmed'          width="70"  hidden='f:true'  editable='false'/>
-        <grid:set col='varPanelPct'     width="70"  hidden='f:false'  editable='false' formatter='number'/>
+        <grid:set col='varPanelPct'     width="80"  hidden='f:false'  editable='false' />
+        <grid:set col='varPanelPctFormula'     width="80"  hidden='f:false'  editable='false' />
         <grid:set col='ens_transcript'  width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='ens_gene'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='ens_protein'     width="70"  hidden='f:true'  editable='false'/>
@@ -650,8 +645,6 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='genedesc'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='omim_ids'        width="70"  hidden='f:true'  editable='false'/>
         <grid:set col='biotype'         width="70"  hidden='f:true'  editable='false'/>
-        <grid:set col='curated'         cellattr='f:curatedTooltip' editable='false'/>
-        <grid:set col='filterFlag'      cellattr='f:filterFlagTooltip' editable='false'/>
         <grid:set col='cosmic'          cellattr='f:cosmicTooltip' editable='false'/>
         <grid:set col='siftVal'         width="45"  hidden='f:true' editable='false'/>
         <grid:set col='mutTasteVal'     width="45"  hidden='f:true' editable='false'/>
@@ -673,6 +666,7 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
         <grid:set col='numamps'         width="70"  hidden='f:false' editable='false'/>
         <grid:set col='ampbias'         width="70"  hidden='f:false'  editable='false'/>
         <grid:set col='homopolymer'     width="45"  hidden='f:false' editable='false'/>
+        <grid:set col='tags' width="200" editable="false" title="false" search="false" formatter="f:tagsFormatter" label="Tags" sortable="false"/>
     </grid:grid>
 
     <grid:exportButton name="curation" formats="['csv', 'excel']" exportId="123456"/>
@@ -713,74 +707,17 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
 
     </grid:grid>
     <grid:exportButton name="cnv" formats="['csv', 'excel']" exportId="123457"/>
-
-        <br/><br/>
-        <g:if test="${cnvUrl}">
-        <span id="hideshowcnv" class="hideshowbutton" onclick="hideshowcnv('cnvImageDiv');">Show CNV image</span>
-
-        <div id="cnvImageDiv"  style="display:none">
-
-            <br/><br/>
-            <a href='${cnvViewerUrl}/?file=${seqSample?.seqrun}.txt&sample=${seqSample}' target="_blank">CNV Viewer (experimental)</a>
-            <br/><br/>
-            <img src="${cnvUrl}"/> <%--
-            <g:img dir='payload/cnv_images' file="${cnvUrl}" alt="Logo" border="0" /> --%>
-
-        </div>
-            <br/><br/>
-        </g:if>
     </div>
 </div>
 </g:if>
 
 
 
-
-<%--<g:if test="${viewReports.size() > 0}"> Disabled as reports are not saving properly on Rpod--%>
-<g:if test="${false}">
-    <span id="hideshowreports" class="hideshowbutton reportsection" onclick="hideshowreports('reports');">Show previously generated reports</span>
-    <div id="reports" class="reportsection" style="display:none;">
-        <p>Generated Reports:</p>
-    <g:each in="${viewReports}" var="aReport">
-        <p>
-         Created ${aReport.dateCreated} by ${aReport.user?.displayName}
-            <%-- get path for link: everything past payload directory --%>
-            <%-- cut everything off before payload --%>k
-            <g:if test="${aReport.reportFilePath.split('/payload/').size() > 1}">
-                <a href="${basepath}/payload/${aReport.reportFilePath.split('/payload/')[1]}" target="_blank">Download</a>
-            </g:if>
-
-
-        </p>
-    </g:each>
-    </div>
-    <br/>
-</g:if>
 
 </div>
 </body>
 
 <r:script>
-<%-- window.onload = loadSavedUserGrid(); --%>
-
-
-        function hideshowcnv(element)
-        {
-            var which = document.getElementById(element)
-            if (!which)
-                return
-            if (which.style.display=="inline") {
-                which.style.display="none";
-                $('#hideshowcnv').text('Show CNV image');
-                }
-            else {
-                which.style.display="inline";
-                $('#hideshowcnv').text('Hide CNV image');
-            }
-
-            return false;
-
-        }
 
         function hideshowreports(element)
         {
@@ -804,15 +741,18 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     function afterEdit()
     {
     //    jQuery.jgrid.info_dialog('Info', 'Record changed !', jQuery.jgrid.edit.bClose, {buttonalign: 'right'});
-    reloadGrid();
-        $.jGrowl("Record changed")
-    return true;
+        reloadGrid();
+       $.jGrowl("Record changed")
+
+        return true;
     }
 
     function reloadGrid()
     {
-    jQuery('#curation_table').trigger('reloadGrid');
-    return true;
+        jQuery('#curation_table')
+            .setGridParam({sortname:'allCuratedVariants',sortorder:'desc'})
+            .trigger('reloadGrid');
+        return true;
     }
 
 
@@ -852,26 +792,6 @@ div.jGrowl div.jGrowl-closer{padding-top:4px;padding-bottom:4px;cursor:pointer;f
     return 'title="' + ttl + '"';
 }
 
-/**
-* Add evidence tooltip for curated variant
-*
-* @param rowId      the id of the row
-* @param val        the value which will be added in the cell
-* @param rawObject  the raw object of the data row
-* @param cm         all the properties of this column listed in the colModel
-* @param rdata      the data row which will be inserted in the row
-*
-* @returns {string} Cell title attribute title="tooltip description"
-*/
-function curatedTooltip(rowId, val, rawObject, cm, rdata)
-{
-//    console.log("Testing: "+JSON.stringify(rdata))
-
-    if ( val == '' ) return '';
-    var ttl = rdata['curated_evd'];
-
-    return 'title="' + ttl + '"';
-}
 
 /**
 * Add cosmic details tooltip for curated variant
@@ -892,6 +812,7 @@ function cosmicTooltip(rowId, val, rawObject, cm, rdata)
     return 'title="' + ttl + '"';
 }
 
+
 /**
 * Formatter for colouring and linking to a curated CurVariant
 *
@@ -900,16 +821,191 @@ function cosmicTooltip(rowId, val, rawObject, cm, rdata)
 * @param rowObject      Array of cell values: expecting the first value to be the ID of the linked CurVariant
 * @returns {string}     Link to curated CurVariant nicely coloured by pathogenicity
 */
-function variantFormatter( cellvalue, options, rowObject )
+function matchingCVFormatter( cellvalue, options, rowObject )
 {
-    if ( cellvalue == null || cellvalue.length == 0 ) return '';
 
-    var fld = classFormatter( cellvalue, options, rowObject );
+    /*
+    We use the number 8 here because in is defined in SeqVariantController/curationGrid
+    it is the 9th variable that list. Easygrid injects code into svlist which is how the
+    grid knows what column does what.
+    Unfortunately this information is not accessible in javascript so we have a magic number here.
+    DKGM 8-December-2016
+     */
+    var allContexts = JSON.parse(rowObject[8]);
+    var current_cc_match = null;
 
-    //  Todo: this is a maintenance risk - hard wired link and positional parameter to pass an object linkage through to Javascript
-    //
+    allContexts.forEach(function(d){
+        if(PathOS.svlist.ccc(d.clinContext, seqSample.clinContext)) {
+            current_cc_match = d;
+        }
+    });
 
-    return "<a href='/PathOS/curVariant/sampleLink?id=" + rowObject[0] + "'>" + fld + '</a>';
+    if( current_cc_match && PathOS.svlist.ccc(current_cc_match.clinContext, seqSample.clinContext) ) {
+        return drawCV(current_cc_match, options.rowId);
+    } else {
+        return "";
+    }
+}
+function matchingCVcellattr(rowId, val, rawObject, cm, rdata)
+{
+}
+
+/**
+* DKGM 8-December-2016
+*
+*
+*
+*/
+function tagsFormatter( cellvalue, options, rowObject )
+{
+    var output = '';
+
+
+    if(cellvalue != '[]') {
+        var data = JSON.parse(cellvalue);
+        var id = rowObject[2]
+
+        var sandbox = d3.select("body").append("div");
+
+        var box = sandbox.append("div")
+            //.classed("tags_field", true)
+            .attr("id","svlist-tags-"+id);
+
+        data.sort(function(a,b){return a.id - b.id;})
+            .forEach(function(tag){
+                box.append("span")
+                    .classed("tag-"+id, true)
+                    .classed("inline-tag", true)
+                    .attr("title", tag.description || "No Description")
+                    .text(tag.label);
+            });
+
+        output = sandbox.html();
+        sandbox.remove();
+    }
+
+
+
+
+    return output;
+}
+
+
+
+
+var seqSample = ${seqSample as JSON}
+
+function allCVFormatter( cellvalue, options, rowObject )
+{
+    var data = JSON.parse(cellvalue),
+        result = "",
+        worstClass = 0,
+        pmClasses = ['Unclassified', 'C1', 'C2', 'C3', 'C4', 'C5'],
+        number = 1,
+        title = [];
+    if(data.length >= 1) {
+        data.forEach(function(cv){
+            var pmClass = cv.pmClass.split(":")[0];
+            var code = cv.clinContext ? cv.clinContext.code : "Generic";
+            title.push(pmClass+":"+code);
+            if(pmClasses.indexOf(pmClass) > worstClass) {
+                worstClass = pmClasses.indexOf(pmClass);
+            }
+        });
+        result = "<a href='#cv-"+options.rowId+"' class='cv-"+pmClasses[worstClass]+"' title='"+title.join("\n")+"' onclick='PathOS.svlist.showCVs("+options.rowId+")'>"+data.length+"</a>"
+    }
+    return result;
+}
+
+
+function allCVcellattr(rowId, val, rawObject, cm, rdata)
+{
+    if (val === "null"){
+        console.log("val is a string that says null");
+    } else {
+
+    }
+    return "";
+}
+
+function drawCV(cv, sv) {
+    var name = "Generic",
+        id = cv.id,
+        pmClass = "Unclassified",
+        ssClassText = "";
+
+    if ( seqSample.clinContext === null ) {
+        if( cv.clinContext === null ) {
+            ssClassText = "ssClass ";
+        }
+    } else {
+        if( cv.clinContext !== null ) {
+            if ( seqSample.clinContext.id === cv.clinContext.id ) {
+                ssClassText = "ssClass ";
+            }
+        }
+    }
+
+    if(cv.pmClass.indexOf(":") > -1) {
+        pmClass = cv.pmClass.split(":")[0];
+    } else {
+        pmClass = cv.pmClass;
+    }
+    if(cv.clinContext) {
+        name = cv.clinContext.code;
+    }
+     return "<a href='/PathOS/curVariant/show?id="+id+"' class='"+ssClassText+"cvlabel cv-"+pmClass+"'>"+pmClass+":"+name+"</a> "
+}
+
+
+
+
+
+/**
+* Add evidence tooltip for curated variant
+*
+* @param rowId      the id of the row
+* @param val        the value which will be added in the cell
+* @param rawObject  the raw object of the data row
+* @param cm         all the properties of this column listed in the colModel
+* @param rdata      the data row which will be inserted in the row
+*
+* @returns {string} Cell title attribute title="tooltip description"
+*/
+function curatedTooltip(rowId, val, rawObject, cm, rdata)
+{
+    //console.log("Testing: "+JSON.stringify(rdata))
+
+    //var curated_cell = d3.select('#'+rowId+" [aria-describedby='curation_table_curated']").html('');
+    //console.log(d3.select(this));
+
+
+    if ( val == '' ) return '';
+    var ttl = rdata['curated_evd'];
+
+    return 'title="' + ttl + '"';
+}
+
+
+
+
+/**
+*
+* @param cellvalue
+* @param options
+* @param rowObject
+* @returns {string}     HTML that gets written in the cell
+*
+*/
+
+function curVariantsFormatter ( cellvalue, options, rowObject )
+{
+    //console.log(rowObject);
+    return cellvalue;
+}
+function curVarAttrs ( rowId, val, rawObject, cm, rdata )
+{
+    return '';
 }
 
 /**
@@ -1171,6 +1267,9 @@ function saveCurateFilterPrefs()
 
 }
 
+/////////////////////////
+// FILTER TEMPLATES    //
+/////////////////////////
 
 //  Actionable CNVs
 //
@@ -1395,10 +1494,8 @@ var targetGenes =
         }
     ]
 };
+///////////////////////////////////
 
-//$('#curation_table').jqGridAfterGridComplete = loadSavedUserGrid();
-
-// jQuery("#curation_table").jqGrid.jqGridAfterGridComplete = loadSavedUserGrid();
 
 
 $( document ).ready(function() {
@@ -1423,12 +1520,60 @@ $( document ).ready(function() {
         };
 
 
+<sec:ifAnyGranted roles="ROLE_ADMIN, ROLE_DEV, ROLE_CURATOR, ROLE_LAB">
+    original_context = $("#clinContext").val();
+    $('#get-a-curator')
+        .css('display', 'none');
+    $('#updateClinContext')
+        .prop('disabled',false);
 
-       $('#clinContext').change(function(){  //enable change mut context button
-                 $('#updateClinContext').prop('disabled',false);
+    d3.select("#clinContext")
+        .append("option")
+        .attr("value", "NewCC")
+        .html("Create New Clinical Context");
+
+    $('#updateClinContextForm').submit(function(e){
+            var self = this,
+                current_context = $("#clinContext").val();
+            e.preventDefault();
+            if(current_context == "NewCC") {
+                window.location = "/PathOS/ClinContext/create";
+            } else if(original_context == current_context) {
+                alert("You haven't changed the Clinical Context");
+            } else {
+
+                %{--/*
+                * DKGM 24-November-2016
+                * Adding some logic here to check if the reportable column has been ticked.
+                * Easygrid is really weird, and there are 4 possible values for that checkbox:
+                * "true", "false", "Yes", "on"
+                * "true" means true
+                * "false" means false
+                * "Yes" means true, but the user has clicked that row in this session
+                * "on" means false, but the user has clicked that row in this session
+                *
+                * If any of the checkboxes are true:
+                * we should give the user a warning before allowing them to change contexts
+                */--}%
+
+                var giveWarning = false;
+                $('td[aria-describedby="curation_table_reportable"] input').each(function(i, d){
+                    var value = $(d).val();
+                    console.log(value);
+                    if(value == "Yes" || value == "true") {
+                        giveWarning = true;
+                    }
+                });
+                if(giveWarning) {
+                    if(confirm("Some 'Sequenced Variants' from this 'Sequenced Sample' have already been marked as reportable in this 'Clinical Context', are you sure you want to change context? The new context might not have 'Curated Variant' entries yet, please remember to create them if needed for reports.")) {
+                        this.submit();
+                    }
+                } else {
+                    this.submit();
+                }
+            }
         });
-
-
+</sec:ifAnyGranted>
 
 
      $("#finalReviewForm").submit(function() {
@@ -1637,7 +1782,8 @@ function addToIGV(sample, dataUrl, id){
     var downsample = null;
     $("#curation_table").on('click', function(){
         setTimeout(function(){
-            if (current_id != $(".ui-row-ltr.ui-state-highlight").attr('id')) {
+            if ($(".ui-row-ltr.ui-state-highlight").length > 0 &&
+            current_id != $(".ui-row-ltr.ui-state-highlight").attr('id')) {
                 current_id = $(".ui-row-ltr.ui-state-highlight").attr('id');
                 PathOS.tags.update_object(current_id);
                 $("#footer-message").remove();
@@ -1704,8 +1850,77 @@ function addToIGV(sample, dataUrl, id){
             }
         }, 200);
     });
+
+
+/**
+*   This function keeps the easygrid header on the page, even when you scroll down.
+*   -DKGM, 23-Feb-2017
+*/
+    $(document).ready(function(){
+        var offset = $("#gview_curation_table").offset().top,
+            padding = $("#gview_curation_table div.ui-jqgrid-hdiv").height(),
+            reasonableDistanceFromSide = 430,
+            width = $(window).width() - reasonableDistanceFromSide,
+            magicExtraSpaceFix = 44,
+            gridHeader = d3.select("#gview_curation_table div.ui-jqgrid-hdiv")
+
+        d3.select("#curationPager")
+            .style('width', width+'px')
+            .style('position', 'fixed')
+            .style('bottom', 0);
+
+        $(window).resize(refreshVariables);
+
+		$('body').on("keydown.resize", function(e){
+			if(e && e.keyCode && e.keyCode == 192 && !$(document.activeElement).is("input") && !$(document.activeElement).is("textarea") && !e.altKey && !e.metaKey && !e.ctrlKey){
+                refreshVariables();
+			}
+		});
+
+        $(window).scroll(adjustGridHeader);
+
+        function adjustGridHeader(){
+            var windowTop = $(window).scrollTop(),
+                navHeight = $(".navbar-header").height();
+
+            var floatTop = windowTop - offset + navHeight;
+
+            if (windowTop + navHeight > offset + 17 - magicExtraSpaceFix) {
+                gridHeader.style('position', 'absolute')
+                    .style('z-index', 100)
+                    .style('top', floatTop + 'px');
+
+                // Bump the body a little?
+                d3.select(".ui-jqgrid-bdiv")
+                    .style("padding-top", padding + "px");
+
+                // magic padding for no reason
+                d3.select(".ui-jqgrid-hbox").style("padding-top", magicExtraSpaceFix + "px");
+
+            } else {
+                gridHeader
+                    .style('position', '')
+                    .style('top', 0 );
+
+                d3.select(".ui-jqgrid-bdiv")
+                    .style("padding-top", 0);
+
+                // magic padding for no reason
+                d3.select(".ui-jqgrid-hbox").style("padding-top", 0);
+            }
+        }
+
+        function refreshVariables(){
+            offset = $("#gview_curation_table").offset().top;
+            magicExtraSpaceFix = 0;
+            adjustGridHeader();
+
+            width = $(window).width() - reasonableDistanceFromSide;
+            d3.select("#curationPager").style('width', width+'px');
+        }
+    });
+
 </r:script>
-${seqSample.clinContext}
 </html>
 
 

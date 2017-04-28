@@ -5,8 +5,10 @@ package org.petermac.util
  */
 class JiraNotifierTest extends GroovyTestCase
 {
+    //TODO what to do with this test?
     void testMakeJiraCurlCall()
     {
         def n = new JiraNotifier()
+        assert n instanceof  JiraNotifier
     }
 }

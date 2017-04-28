@@ -5,7 +5,7 @@ package org.petermac.util
  */
 class Vcf2TsvTest extends GroovyTestCase
 {
-
+    //TODO we need more assert functions in here
     void testComapre()
     {
         String resource = "Vcf/Examples"
@@ -22,7 +22,7 @@ class Vcf2TsvTest extends GroovyTestCase
 
         def converter = new Vcf2Tsv()
         // define parameters: String sample = '', String seqrun = '', String panel = ''
-        converter.vcf2Tsv(cvff, tsvf, '','','', cvff)
+        converter.vcf2Tsv(cvff, tsvf, '','','', cvff,true)
 
 
     }

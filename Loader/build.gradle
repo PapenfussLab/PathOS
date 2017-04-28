@@ -8,11 +8,9 @@
 apply plugin: 'groovy'
 apply plugin: 'com.github.johnrengelman.shadow'
 
-
-
 //  Release version
 //
-version = '1.2.5'
+version = '1.3'
 
 //  Get install root from PATHOS_HOME environment variable
 //
@@ -44,8 +42,6 @@ shadowJar {
 //
 //  Deployment task
 //
-
-//  Todo: delete old versions of jars
 uploadArchives {
     repositories
     {
@@ -68,12 +64,15 @@ copyJars <<
 {
     println "Deploying " + "Loader-all-${version}.jar" + " to " + libpath
 
+    delete fileTree( dir: libpath , include: '**/Loader-*.jar' )
+    delete fileTree( dir: libpath , include: '**/Loader-*.jar.sha1' )
+
     ant.copy( toDir: libpath  )
     {
-                fileset(dir: './build/libs')
-                        {
-                            include(name: "Loader-all-${version}.jar")
-                        }
+        fileset(dir: './build/libs')
+        {
+            include(name: "Loader-all-${version}.jar")
+        }
     }
 }
 

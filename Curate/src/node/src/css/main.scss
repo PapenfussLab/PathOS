@@ -23,7 +23,10 @@
  *      19-August-2016
  */
 
-$font-family-base: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, sans-serif;
+// Declare the Font Family before importing scss
+$font-family-base: "HelveticaNeue-Light", "Helvetica Neue Light", "Open Sans", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, sans-serif;
+// We're including "Open Sans" for Firefox users
+// Get it from Google like this: <link href="https://fonts.googleapis.com/css?family=Open+Sans:300" rel="stylesheet">
 
 
 // Bower
@@ -61,12 +64,19 @@ $SeqSample:			#14A88E;
 $Seqrun:			#258BB5;
 $SeqCnv:			#6568B4;
 $SeqSv:				#A4506C;
-$RefGene:			#67402C;
+$Tag:				#67402C;
 $Transcript:		#3C6526;
 $RefExon:			#084558;
 $CurVariant:		#BC2E11;
 $neutral:			#eee;
 
+
+$pm-un: #fff;
+$pm-c1: #fffdc1;
+$pm-c2: #f4d374;
+$pm-c3: #e89e53;
+$pm-c4: #d65430;
+$pm-c5: #ae2334;
 
 // Mixins!
 
@@ -230,11 +240,15 @@ body {
 
 	// This overlay is so we can show module settings or something.
 	// It isn't used yet.
+	.ui-autocomplete {
+		z-index: 99999;
+	}
 	#overlay {
+		overflow: scroll;
 		width: 100%;
 		height: 100%;
 		background: rgba(0,0,0,0.5);
-		z-index: 999999;
+		z-index: 99998;
 		position: fixed;
 		top: 0px;
 		right: 0px;
@@ -291,10 +305,115 @@ body {
 			background-color: rgba(0,0,0,0.1);
 			margin-bottom: 0;
 		}
+
+		#show-cv {
+			min-height: 90%;
+			width: calc(100% - 40px);
+			margin: auto;
+			margin-top: 30px;
+			h1 {
+				text-align: center;
+				font-size: 36px;
+			}
+			#cv-infobox-div {
+				padding: 10px;
+
+			}
+
+			#cv-buttons {
+				text-align: center;
+			}
+
+			#cv-list {
+				table {
+					margin-top: -17px;
+					border-top: 0 solid rgba(0,0,0,0);
+					border-radius: 5px;
+					tr {
+						margin: 5px;
+					}
+					td, th {
+						line-height: 1.1em;
+						border: 1px solid lightgrey;
+
+						.cvlabel {
+							border: 1px solid #ddd;
+							padding: 3px;
+							border-radius: 3px;
+							margin-bottom: 0;
+						}
+						.cv-Unclassified {
+							color: #000;
+							background-color: $pm-un;
+						}
+						.cv-C1 {
+							color: #000;
+							background-color: $pm-c1;
+						}
+						.cv-C2 {
+							color: #000;
+							background-color: $pm-c2;
+						}
+						.cv-C3 {
+							color: #000;
+							background-color: $pm-c3;
+						}
+						.cv-C4 {
+							color: #fff;
+							background-color: $pm-c4;
+						}
+						.cv-C5 {
+							color: #fff;
+							background-color: $pm-c5;
+						}
+					}
+					ul.hidden {
+						display: none;
+					}
+				}
+				.current-context-cv {
+					//background: rgba(0,0,0,0.2);
+					border: 5px dashed darkblue;
+				}
+
+				//.cv-header {
+				//	height: 30px;
+				//}
+				//.cc-header {
+				//	height: 30px;
+				//}
+				//.report {
+				//	width: 100%;
+				//	height: 300px;
+				//}
+				//.evidence {
+				//	width: 100%;
+				//	height: 300px;
+				//}
+				//.cv-td {
+				//	width:300px;
+				//}
+				//div {
+				//	margin-bottom: 10px;
+				//}
+				//.vb-box div:nth-child(odd) {
+				//	background: rgba(0,0,0,0.1);
+				//}
+			}
+
+
+
+
+
+
+
+
+		}
+
 	}
 }
 
-.fb-box {
+.outlined-box {
 	border: 1px solid;
 	border-color: #e5e6e9 #dfe0e4 #d0d1d5;
 	border-radius: 3px;
@@ -539,7 +658,6 @@ $sidebar-easing: 300px;
 	#page-content-wrapper {
 		margin-top: 100px;
 		width: 100%;
-		overflow: scroll;
 		position: relative;
 	}
 
@@ -628,6 +746,7 @@ $sidebar-easing: 300px;
 // The sidebar has a bunch of stuff too
 
 #sidebar {
+	padding-bottom: 15px;
 	margin-bottom: 120px;
 	.sidebar-module {
 		width: $sidebar-width - 14px;
@@ -683,7 +802,7 @@ $sidebar-easing: 300px;
 				min-width: 30%;
 				max-width: $sidebar-width;
 			}
-			.fb-box {
+			.outlined-box {
 				padding: 2px;
 			}
 
@@ -807,8 +926,8 @@ $sidebar-easing: 300px;
 			&.SeqSv {
 				@include colordot($SeqSv);
 			}
-			&.RefGene {
-				@include colordot($RefGene);
+			&.Tag {
+				@include colordot($Tag);
 			}
 			&.Transcript {
 				@include colordot($Transcript);
@@ -1082,7 +1201,7 @@ $sidebar-easing: 300px;
 		resize: none;
 		background: rgba(0,0,0,0);
 	}
-	.fb-box {
+	.outlined-box {
 		max-width: 400px;
 		padding: 2px;
 	}
@@ -1330,12 +1449,13 @@ $sidebar-easing: 300px;
 		overflow: hidden;
 		&.expandable {
 			max-height: 180px;
+			padding-bottom: 15px;
 			.expando {
 				height: 40px;
 				width: 100%;
 				position: absolute;
 				top: 140px;
-				left: 0px;
+				left: 0;
 				display: block;
 				cursor: pointer;
 				background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
@@ -1343,7 +1463,11 @@ $sidebar-easing: 300px;
 			&.expanded {
 				max-height: inherit;
 				.expando {
-					display: none;
+					top: initial;
+					bottom: 0;
+					i.fa-chevron-down:before{
+						content: "\f077"
+					}
 				}
 			}
 		}
@@ -1377,7 +1501,7 @@ $sidebar-easing: 300px;
 		}
 
 		&.patSample {
-			.fb-box {
+			.outlined-box {
 				padding: 10px;
 			}
 			table {
@@ -1406,27 +1530,27 @@ $sidebar-easing: 300px;
 			.C1 {
 				color: #000;
 				padding: 2px;
-				background-color: #fffdc1;
+				background-color: $pm-c1;
 			}
 			.C2 {
 				color: #000;
 				padding: 2px;
-				background-color: #f4d374;
+				background-color: $pm-c2;
 			}
 			.C3 {
 				color: #000;
 				padding: 2px;
-				background-color: #e89e53;
+				background-color: $pm-c3;
 			}
 			.C4 {
 				color: #fff;
 				padding: 2px;
-				background-color: #d65430;
+				background-color: $pm-c4;
 			}
 			.C5 {
 				color: #fff;
 				padding: 2px;
-				background-color: #ae2334;
+				background-color: $pm-c5;
 			}
 		}
 
@@ -1514,7 +1638,26 @@ $sidebar-easing: 300px;
 	}
 }
 
-
+#show-curVariant {
+	li.fieldcontain {
+		.hidden {
+			display: none;
+		}
+		#linked-seqVariants {
+			list-style: none;
+		}
+		ul {
+			list-style: square;
+			margin-left: 20px;
+			h3 {
+				margin: 0;
+			}
+			li:not(:last-child){
+				margin-bottom: 10px;
+			}
+		}
+	}
+}
 
 #show-seqrun {
 	a.disabled {
@@ -1547,6 +1690,94 @@ $sidebar-easing: 300px;
 	}
 }
 
+// This is for the old svlist page.
+#gview_curation_table {
+
+	.cvlabel {
+		border: 1px solid #ddd;
+		padding: 3px;
+		border-radius: 3px;
+		&:hover {
+			box-shadow: 0 1px 2px 0 rgba(0,0,0,0.1), 0 4px 8px 0 rgba(0,0,0,0.2);
+		}
+	}
+
+	.ssClass {
+		border: 2px solid black;
+		padding: 2px;
+		//text-transform: uppercase;
+		//font-weight: 900;
+	}
+
+	.cv-Unclassified {
+		color: #000;
+		background-color: $pm-un;
+		&:hover {
+			background-color: darken($pm-un, 15%);
+		}
+	}
+	.cv-C1 {
+		color: #000;
+		background-color: $pm-c1;
+		&:hover {
+			background-color: darken($pm-c1, 15%);
+		}
+	}
+	.cv-C2 {
+		color: #000;
+		background-color: $pm-c2;
+		&:hover {
+			background-color: darken($pm-c2, 15%);
+		}
+	}
+	.cv-C3 {
+		color: #000;
+		background-color: $pm-c3;
+		&:hover {
+			background-color: darken($pm-c3, 15%);
+		}
+	}
+	.cv-C4 {
+		color: #fff;
+		background-color: $pm-c4;
+		&:hover {
+			background-color: darken($pm-c4, 15%);
+		}
+	}
+	.cv-C5 {
+		color: #fff;
+		background-color: $pm-c5;
+		&:hover {
+			background-color: darken($pm-c5, 15%);
+		}
+	}
+
+	td[aria-describedby="curation_table_matchingCurVariant"], td[aria-describedby="curation_table_allCuratedVariants"] {
+		text-align: center;
+		a {
+			border: 1px solid #ddd;
+			padding: 3px 10px;
+			border-radius: 3px;
+			&:hover {
+				box-shadow: 0 1px 2px 0 rgba(0,0,0,0.1), 0 4px 8px 0 rgba(0,0,0,0.2);
+			}
+		}
+	}
+
+	.inline-tag {
+		padding: 5px;
+		margin: 5px;
+		line-height: 2px;
+		background: rgba(0,0,0,0.3);
+		border-radius: 5px;
+	}
+
+	.ui-jqgrid-bdiv {
+		&::-webkit-scrollbar {
+			height: 0;
+		}
+	}
+}
 
 
 // This is for the new SeqSample page, it has an svlist on it.
@@ -1573,7 +1804,121 @@ $sidebar-easing: 300px;
 			}
 		}
 	}
+	#updateClinContext:disabled {
+		background: rgba(0,0,0,0.15);
+		color: grey;
+		cursor: not-allowed;
+	}
 
+}
+
+#seqSampleInfo, #seqrunInfo, #cv-infobox-div, #sv-infobox-div {
+	h2 {
+		margin-top: 10px;
+	}
+	.infoTable {
+		margin: 10px 0px;
+		tr {
+			background: rgba(0,0,0,0);
+			td {
+				padding: 5px;
+			}
+			td:first-child {
+				width: 25%;
+				text-align: right;
+				padding-right: 5px;
+				background: rgba(200,200,200,0.2);
+			}
+			&:nth-child(odd) {
+				background: rgba(200,200,200,0.2);
+			}
+		}
+	}
+}
+
+#seqrunSamplesList {
+	h2 {
+		margin: 15px 0px 0px 15px;
+	}
+	.infoTable {
+		white-space: nowrap;
+		font-size: 12px;
+		line-height: 0;
+	}
+}
+
+#seqrunQcCharts {
+	#qc-fb-box {
+		padding: 20px;
+	}
+	#qualityControlCharts {
+		display: none;
+		h3 {
+			margin-top: 15px;
+		}
+		&.show {
+			display: inherit;
+		}
+	}
+}
+
+#seqrunSamplesTable_wrapper {
+	padding-bottom: 5px;
+}
+
+#SequencedVariantsList.loaded {
+  min-height: 1000px;
+}
+
+#SequencedVariantsList .outlined-box{
+	margin: 0px 15px 50px 15px;
+	padding: 10px;
+
+	#loading_box {
+		width: 200px;
+		margin: auto;
+	}
+
+	table {
+		border: 1px solid #ddd;
+		border-radius: 6px;
+		thead, tfoot {
+			//border: 1px solid #aed0ea;
+			background: #d7ebf9 url("/PathOS/dist/images/ui-bg_glass_80_d7ebf9_1x400.png") 50% 50% repeat-x;
+			font-weight: bold;
+			color: #2779aa;
+		}
+		th, td {
+			border-left: 1px solid #ddd;
+		}
+	}
+	#svTable_wrapper {
+		.row:nth-child(2) {
+			overflow: scroll;
+			margin: 0;
+			line-height: 1em;
+
+			/* Custom Scrollbar Stuff, keep the horizontal visible all the times */
+			&::-webkit-scrollbar {
+				width: 0px;
+				height: 12px;
+			}
+			&::-webkit-scrollbar-track:horizontal {
+				-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+				-webkit-border-radius: 10px;
+				border-radius: 10px;
+			}
+			&::-webkit-scrollbar-thumb:horizontal {
+				-webkit-border-radius: 10px;
+				border-radius: 10px;
+				background: $primary-color;
+				-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+			}
+			&::-webkit-scrollbar-thumb:window-inactive {
+				background: $link-color;
+			}
+		}
+	}
 }
 
 
@@ -1592,11 +1937,17 @@ $sidebar-easing: 300px;
 // DKGM 01-09-2016
 
 .ui-jqgrid .loading.ui-state-default.ui-state-active {
-	left: 300px;
-	width: 200px;
+	position: fixed;
+	left: 25%;
+	top: 300px;
+	text-align: center;
+	width: 50%;
+	max-width: 400px;
 	padding: 5px;
-	&::after {
-		content: url(/PathOS/dist/img/pathos_logo_animated.svg)
+	color: rgba(0,0,0,0);
+	font-size: 1px;
+	&::before {
+		content: url(/PathOS/dist/img/pathos_logo_animated.svg);
 	}
 }
 
@@ -1650,5 +2001,84 @@ $sidebar-easing: 300px;
 #viewmodpubmed_table tr td:first-child {
 	width: 160px !important;
 }
+
+#edit-variant {
+	textarea {
+		min-height: 500px;
+	}
+}
+
+#edit-refGene {
+	input:disabled {
+		cursor: not-allowed;
+	}
+	input#genedesc {
+		width: 70%;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

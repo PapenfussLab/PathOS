@@ -9,7 +9,7 @@
     "bourbon": "^4.2.6",
     "neat": "^1.7.4",
     "bootstrap-sass": "^3.3.6",
-    "d3": "^3.5.16",
+    "d3": "^4",
     "font-awesome": "^4.6.3",
     "datatables.net": "^1.10.12",
     "jquery-ui": "^1.12.0"

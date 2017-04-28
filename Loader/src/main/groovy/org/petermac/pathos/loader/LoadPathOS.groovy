@@ -43,6 +43,10 @@ class LoadPathOS
     //
     private def mergePhases   = [ 'extract', 'transform', 'load', 'mergegorm' ]
 
+    //  File name to preserve date
+    //
+    static private def runDateFileName = 'LastRunDate.txt'
+
     static void main( args )
     {
         Boolean crash = false
@@ -52,7 +56,7 @@ class LoadPathOS
         //
         def cli = new CliBuilder(   usage: "LoadPathOS [options]",
                 header: '\nAvailable options (use -h for help):\n',
-                footer: '\nLoad Path-OS Database from raw data files\n')
+                footer: '\nLoad PathOS Database from raw data files\n')
 
         //	Options to LoadPathOS
         //
@@ -98,15 +102,30 @@ class LoadPathOS
         def orm = opt.orm
         new DbConnect(orm)
 
+        //  Set date of load
+        //
+        def sdf = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy")
+        def runDateFile = new File(etlFile.parent ?: '.', runDateFileName )
+
         //  Default start date to use 1 Jan 2000 eg ALL files
         //
         def cal = Calendar.instance
         cal.set( 2000, 0, 1)
         Date fromDate = cal.time
 
+        if ( opt.from )
+        {
+            fromDate = new Date() - (opt.from as int)
+        }
+
         //  Remove spaces
         //
         def phase = opt?.phase?.replace( ' ','')
+
+        //  Save this run date for next time
+        //
+        runDateFile.delete()
+        runDateFile <<  sdf.format(fromDate)
 
         log.info( "Start Data Load from [${fromDate}]" + args )
 
@@ -362,7 +381,7 @@ class LoadPathOS
                         {
                             //  create mp_seqrun from infile from config
                             //
-                            createSeqrun( samples, outFile )
+                            createSeqrun( samples, outFile, false )
                         }
                         else
                         {
@@ -417,11 +436,11 @@ class LoadPathOS
      * @param samples   List<Map> of samples from the pipeline driver file
      * @param outf      mp_seqrun.tsv file to populate
      */
-    static void createMinimalSeqrun( List<Map> samples, File outf, boolean head )
+    static void createMinimalSeqrun( List<Map> samples, File outf, boolean header )
     {
         //  Output header if required
         //
-        if ( head )
+        if ( header )
         {
             def headers = ['seqrun','platform','sepe','library','experiment','scanner','readlen','sample','reference','analysis','username','useremail','laneno']
             outf << "##  Created by LoadPathOS.createMinimalSeqrun()\n##\n#"
@@ -458,6 +477,7 @@ class LoadPathOS
             //
             if ( match.count == 1)
             {
+                log.info( "Parse Seqrun: ${sam.seqrun} " + match[0])
                 fldmap.scanner  = match[0][1]
                 fldmap.readlen  = 76
                 fldmap.platform = 'NextSeq'
@@ -469,8 +489,6 @@ class LoadPathOS
         }
     }
 
-    static boolean header = false
-
     /**
      * Create a mp_seqrun.tsv file of seqrun / samples from the pipeline driver file
      * Todo: this will be replaced by the REST interface to Holly
@@ -478,7 +496,7 @@ class LoadPathOS
      * @param samples   List<Map> of samples from the pipeline driver file
      * @param outf      mp_seqrun.tsv file to populate
      */
-    static void createSeqrun( List<Map> seqrunSamples, File outf )
+    static void createSeqrun( List<Map> seqrunSamples, File outf, Boolean header = true )
     {
         if ( seqrunSamples.size() == 0 )
         {
@@ -500,7 +518,7 @@ class LoadPathOS
         //
         if ( ! limsf )
         {
-            createMinimalSeqrun( seqrunSamples, outf, true )
+            createMinimalSeqrun( seqrunSamples, outf, header )
             return
         }
 
@@ -513,7 +531,7 @@ class LoadPathOS
             //  invalid LIMS file
             //
             log.warn( "Couldn't parse LIMS XML ${limsf}")
-            createMinimalSeqrun( seqrunSamples, outf, true )
+            createMinimalSeqrun( seqrunSamples, outf, header )
             return
         }
 
@@ -546,12 +564,11 @@ class LoadPathOS
 
         //  Output header
         //
-        if ( ! header )
+        if ( header )
         {
             def headers = ['seqrun','platform','sepe','library','experiment','scanner','readlen','sample','reference','analysis','username','useremail','laneno']
             outf << "##  Created by LoadPathOS.createSeqrun() on ${new Date()}\n##\n#"
             outf << headers.join("\t") + "\n"
-            header = true
         }
 
         //  Process all sequenced samples

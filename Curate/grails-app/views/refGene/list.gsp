@@ -13,7 +13,6 @@
 <div class="nav" role="navigation">
     <ul>
         <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-      <%--  <li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li> --%>
     </ul>
 </div>
 <div id="list-refGene" class="content scaffold-list" role="main" style="white-space: nowrap; overflow-x:auto">
@@ -35,9 +34,7 @@
             <g:sortableColumn property="accession" title="${message(code: 'refGene.accession.label', default: 'Accession')}"  params="${filterParams}"/>
             
             <g:sortableColumn property="genedesc" title="${message(code: 'refGene.genedesc.label', default: 'Genedesc')}"  params="${filterParams}"/>
-            
-            <g:sortableColumn property="refseq" title="${message(code: 'refGene.refseq.label', default: 'Refseq')}"  params="${filterParams}"/>
-            
+
         </tr>
         </thead>
         <tbody>
@@ -51,9 +48,7 @@
                 <td>${fieldValue(bean: refGeneInstance, field: "accession")}</td>
                 
                 <td>${fieldValue(bean: refGeneInstance, field: "genedesc")}</td>
-                
-                <td>${fieldValue(bean: refGeneInstance, field: "refseq")}</td>
-                
+
             </tr>
         </g:each>
         </tbody>

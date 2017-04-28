@@ -137,14 +137,13 @@ if ( loc.useADAuthentication == true ) {
     // This loads a config file with LDAP properties and tells us to use LDAP for spring auth provider
     // note that loc.useADAuthentication is true by default in Locator.groovy if unset in the pa_xxx.properties file
 
-    grails.config.locations = [  "file:/pathology/NGS/PathOS/etc/pathos_ldap_conf.groovy", "file:/pathology/NGS/PathOS/etc/pathos_credentials.groovy"  ]
+    grails.config.locations = [  "file:${loc.ADConfigurationFile}" ]
 
 } else {
     // This specifically tells us to NOT use LDAP and to use standard db auth instead
     //
 
     grails.plugin.springsecurity.providerNames = [ 'daoAuthenticationProvider' ]
-    grails.config.locations = [  "file:/pathology/NGS/PathOS/etc/pathos_credentials.groovy"  ]
 
 }
 
@@ -210,8 +209,7 @@ grails {
     }
 }
 remove this line */
-
-weakssl.trustedhosts = ['115.146.86.118'] //our Atlassian stuff lives here, and the cert is self-signed. need this for Jira's REST API to work.
+weakssl.trustedhosts = ['vm-115-146-91-157.melbourne.rc.nectar.org.au'] //our Atlassian stuff lives here, and the cert is self-signed. need this for Jira's REST API to work.
 
 // Added by the Spring Security Core plugin
 //
@@ -255,9 +253,11 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/**/fonts/**':                 ['permitAll'],
             '/**/images/**':                ['permitAll'],
             '/**/favicon.ico':              ['permitAll'],
+            '/dist/**':  ['permitAll'],
+            '/hotfix.js':  ['permitAll'],
+            '/hotfix.css':  ['permitAll'],
+            '/igv/**':  ['permitAll'],
 
-            '/search/**':                    ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/search/reindex':              ['ROLE_ADMIN', 'ROLE_DEV'],
 
             //  Security and Administration
             //
@@ -274,73 +274,51 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/register/**':                 ['denyAll'],
             '/admin/**':                    ['ROLE_ADMIN','ROLE_DEV'],
 
-            //  Todo: remove this table
+            // Utility pages
             //
-            '/metatable/*':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/metatable/create':            ['ROLE_ADMIN','ROLE_DEV'],
-            '/metatable/save':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/metatable/edit':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/metatable/update':            ['ROLE_ADMIN','ROLE_DEV'],
-            '/metatable/delete':            ['ROLE_ADMIN','ROLE_DEV'],
+            '/payload/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+
+            '/filtertemplate/**':           ['ROLE_ADMIN','ROLE_DEV'],
+
+            '/vcfUpload/*':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+
+            '/search/**':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/search/reindex':              ['permitAll'],
+
+            '/tag/create/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
+            '/tag/save/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
+            '/tag/edit/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
+            '/tag/update/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
+            '/tag/delete/**':               ['ROLE_ADMIN','ROLE_DEV'],
+            '/tag/list/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/tag/variantRows/**':          ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB',],
+            '/tag/**':                      ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_LAB'],
 
             //  Domain tables
             //
-            '/sample/list':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/sample/show/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/sample/create':               ['ROLE_ADMIN','ROLE_DEV'],
-            '/sample/save':                 ['ROLE_ADMIN','ROLE_DEV'],
-            '/sample/edit':                 ['ROLE_ADMIN','ROLE_DEV'],
-            '/sample/update':               ['ROLE_ADMIN','ROLE_DEV'],
-            '/sample/delete':               ['ROLE_ADMIN','ROLE_DEV'],
-            '/sample/**':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patsample/show/**':           ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patsample/list':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/patsample/list':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/patsample/show/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/patsample/create':               ['ROLE_ADMIN','ROLE_DEV'],
-            '/patsample/save':                 ['ROLE_ADMIN','ROLE_DEV'],
-            '/patsample/edit':                 ['ROLE_ADMIN','ROLE_DEV'],
-            '/patsample/update':               ['ROLE_ADMIN','ROLE_DEV'],
-            '/patsample/delete':               ['ROLE_ADMIN','ROLE_DEV'],
-            '/patsample/**':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patient/show':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patient/list':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/patient/list':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/patient/show/**':             ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/audit/show':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/audit/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/patient/create':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/patient/save':                ['ROLE_ADMIN','ROLE_DEV'],
-            '/patient/edit':                ['ROLE_ADMIN','ROLE_DEV'],
-            '/patient/update':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/patient/delete':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/patient/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/roi/**':                      ['ROLE_ADMIN','ROLE_DEV'],
 
-            '/audit/**':                    ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/panel/show':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/panel/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/roi/**':                      ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-
-            '/amplicon/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-
-            '/panel/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/panel/show/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/panel/*':                     ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/panel/create/*':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/panel/save/*':                ['ROLE_ADMIN','ROLE_DEV'],
-            '/panel/edit/*':                ['ROLE_ADMIN','ROLE_DEV'],
-            '/panel/update/*':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/panel/delete/*':              ['ROLE_ADMIN','ROLE_DEV'],
-
-            '/patassay/create':           ['ROLE_ADMIN','ROLE_DEV'],
-            '/patassay/save':             ['ROLE_ADMIN','ROLE_DEV'],
-            '/patassay/edit':             ['ROLE_ADMIN','ROLE_DEV'],
-            '/patassay/update':           ['ROLE_ADMIN','ROLE_DEV'],
-            '/patassay/delete':           ['ROLE_ADMIN','ROLE_DEV'],
-            '/patassay/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patassay/show':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patassay/list':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
             '/seqrun/create':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/save':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/edit':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/update':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/delete':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/seqrun/authoriseRun/**':        ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/seqrun/authoriseRun/**':      ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/**':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/seqsample/create':            ['ROLE_ADMIN','ROLE_DEV'],
@@ -350,11 +328,11 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/seqsample/delete':            ['ROLE_ADMIN','ROLE_DEV'],
             '/seqsample/**':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
-            '/seqvariant/create':            ['ROLE_ADMIN','ROLE_DEV'],
-            '/seqvariant/save':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/seqvariant/edit':              ['ROLE_ADMIN','ROLE_DEV'],
-            '/seqvariant/update':            ['ROLE_ADMIN','ROLE_DEV'],
-            '/seqvariant/delete':            ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqvariant/create':           ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqvariant/save':             ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqvariant/edit':             ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqvariant/update':           ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqvariant/delete':           ['ROLE_ADMIN','ROLE_DEV'],
             '/seqvariant/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/curvariant/create/**':            ['ROLE_ADMIN','ROLE_DEV'],
@@ -369,7 +347,9 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/evidence':                    ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/evidence/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/grpVariant/**':           ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/grpVariant/**':               ['ROLE_ADMIN','ROLE_DEV'],
+
+            '/pubmed/**':  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             //  Reference tables
             //
@@ -379,50 +359,25 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/refIarc/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
             '/refClinvar/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
             '/refEmory/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/refGene/delete/**':           ['ROLE_ADMIN','ROLE_DEV'],
-            '/refGene/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
             '/refExon/create/**':           ['denyAll'],
             '/refExon/delete/**':           ['denyAll'],
             '/refExon/edit/**':             ['denyAll'],
             '/refExon/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
+
+            '/refGene/list':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/refGene/show':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/refGene/**':                  ['ROLE_ADMIN', 'ROLE_DEV'],
+            '/refGene/create':              ['denyAll'],
+
             '/transcript/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
-            '/payload/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/annoVariant/**':              ['ROLE_ADMIN','ROLE_DEV'],
 
-            '/annoVariant/**':   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/icdO/list':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
-            '/icdO/list':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/clinContext/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/pubmed/**':  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/igv/**':  ['permitAll'],
-
-            '/tag/create/**':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-            '/tag/save/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-            '/tag/edit/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-            '/tag/update/**':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-            '/tag/delete/**':            ['ROLE_ADMIN','ROLE_DEV'],
-            '/tag/list/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/tag/variantRows/**':         ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/tag/**':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_LAB'],
-
-            '/clinContext/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-
-            '/morphology/create/**':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-            '/morphology/save/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-            '/morphology/edit/**':              ['denyAll'],
-            '/morphology/update/**':            ['denyAll'],
-            '/morphology/delete/**':            ['denyAll'],
-            '/morphology/list/**':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/morphology/variantRows/**':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
-            '/morphology/**':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_LAB'],
-
-            '/seqRelation/**':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
-
-            '/dist/**':  ['permitAll'],
-            '/hotfix.js':  ['permitAll'],
-            '/hotfix.css':  ['permitAll'],
-
-            '/vcfUpload/*':   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/seqRelation/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR']
         ]
 

@@ -34,7 +34,7 @@ class TagTagLib
         out << """
             <li class="fieldcontain" id="showTags">
                 <span class="property-label">Tags</span>
-                <div id="showTagBox" class="fb-box tags_field property-value">
+                <div id="showTagBox" class="outlined-box tags_field property-value">
                     <textarea id="showTagTextArea" placeholder="Enter Tags Here" class="ui-autocomplete-input" autocomplete="off"></textarea>
                 </div>
             </li>

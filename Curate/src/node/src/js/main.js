@@ -1,6 +1,6 @@
 var PathOS = PathOS || {};
 
-PathOS.version = "PathOS.js build: 26th of May 2016";
+PathOS.version = "PathOS.js build: 29th of March 2017";
 
 
 // Simple way for PathOS to store data
@@ -25,18 +25,33 @@ PathOS.data = {
 	},
 	clean: function() {
 		delete localStorage['PathOS-history'];
-		delete localStorage.PathOSHistory;
 		delete localStorage['PathOS-modules'];
 	}
 };
 
+PathOS.pmClasses = {
+	0: "Unclassified",
+	1: "C1: Not pathogenic",
+	2: "C2: Unlikely pathogenic",
+	3: "C3: Unknown Pathogenicity",
+	4: "C4: Likely pathogenic",
+	5: "C5: Pathogenic"
+};
 
-/*
+/**
+ * Process the date on the front end, so we don't waste server time.
+ * Expects a string like: "2016-12-13T13:00:00Z"
+ */
+PathOS.formatDate = function(string) {
+	return string ? new Date(string).toLocaleDateString("en-GB", {day: 'numeric', month: 'long', year: 'numeric'}) : "No date in system";
+};
+
+/**
  * This function adds a module to the sidebar.
  *
  *
  *
- *
+ * @param config
  *
  */
 
@@ -51,7 +66,7 @@ PathOS.module = function(config) {
 
 	// Get the div or create one.
 	var div = d3.select('#'+config.name);
-	if(div[0][0] === null) {
+	if(div.empty()) {
 		div = this.div = d3.select("#sidebar")
 			.append("div")
 			.classed("module", true)
@@ -60,20 +75,28 @@ PathOS.module = function(config) {
 
 	// Get the title or create one.
 	var title = div.select(".moduletitle");
-	if(title[0][0] === null) {
+	if(title.empty()) {
 		title = div.append('table').classed("moduletitle", true).append('tr');
 
-		title.append('td').classed("modulelabel", true).datum(config).on("click", that.toggle).append("a").attr({
-			href: "#" + config.name
-		}).append("h1").text(config.title);
+		title.append('td')
+			.classed("modulelabel", true)
+			.datum(config)
+			.on("click", that.toggle)
+		.append("a")
+			.attr('href', "#" + config.name)
+		.append("h1")
+			.text(config.title);
 	} else {
 		title.select('td').classed("modulelabel", true).datum(config).on("click", that.toggle);
 	}
 
-	title.insert('td','td').datum(config).on("click", that.toggle).append("a").attr({
-		href: "#"+config.name
-	}).append("i")
-	.classed("fa fa-minus-square minimise", true);
+	title.insert('td','td')
+		.datum(config)
+		.on("click", that.toggle)
+	.append("a")
+		.attr('href', "#"+config.name)
+	.append("i")
+		.classed("fa fa-minus-square minimise", true);
 
 	//buttons = title.append('td').classed('buttons', true);
 
@@ -114,9 +137,8 @@ PathOS.module = function(config) {
 		switch (config.type) {
 			case 'tags':
 
-				var edit = title.append('td').attr({
-					id: 'tags_edit_button'
-				}).on('click',function(){
+				var edit = title.append('td').attr('id', 'tags_edit_button')
+					.on('click',function(){
 						$("#tags").toggleClass("editing");
 
 						$('#tags_edit_button i').toggleClass('fa-pencil-square-o');
@@ -124,17 +146,14 @@ PathOS.module = function(config) {
 
 
 					})
-					.append("a").attr({
-					href: "#"+config.name
-				});
+					.append("a").attr('href', "#"+config.name);
 
 				//edit.append('p').text("(Editing)");
 				edit.append('span').html("(Editing)&nbsp;");
 				edit.append("i").classed("button fa fa-pencil-square-o", true);
 
-				title.append('td').append("a").attr({
-					href: "#"+config.name
-				}).append("i")
+				title.append('td').append("a").attr('href', "#"+config.name)
+					.append("i")
 					.classed("fa fa-times", true)
 					.style("padding-bottom", '1px')
 					.on('click', function(d){
@@ -149,7 +168,7 @@ PathOS.module = function(config) {
 				row.append('th').text(config.data.object);
 				row.append('th').text("").attr("id","object_id").style('text-align','right');
 
-				var box = content.append('div').classed('fb-box tags_field', true)
+				var box = content.append('div').classed('outlined-box tags_field', true)
 					.attr("id", 'moduleTagBox')
 					.on('click', function(){
 						$('#tag_text_area').focus();
@@ -159,10 +178,11 @@ PathOS.module = function(config) {
 					PathOS.tags.drawTag(box, tag, true);
 				});
 
-				$(box.append('textarea').attr({
-					id: 'tag_text_area',
-					placeholder: 'Enter Tags Here'
-				})).autocomplete({
+				box.append('textarea')
+					.attr('id', 'tag_text_area')
+					.attr('placeholder', 'Enter Tags Here');
+
+				$("#tag_text_area").autocomplete({
 				    source: config.data.availableTags
 				});
 
@@ -195,6 +215,9 @@ PathOS.module = function(config) {
 										success: function (result) {
 											if(result != 'fail') {
 												$('.tag-'+data.id).remove();
+												if(reloadGrid) {
+													reloadGrid();
+												}
 											}
 										},
 										cache: false,
@@ -216,6 +239,9 @@ PathOS.module = function(config) {
 										success: function (result) {
 											if(result != 'fail') {
 												$('.tag-'+data.id).remove();
+												if(reloadGrid) {
+													reloadGrid();
+												}
 											}
 										},
 										cache: false,
@@ -240,9 +266,8 @@ PathOS.module = function(config) {
 				config.data.forEach(buildHistoryRow);
 
 
-				body.append('span').append('a').attr({
-					href:'#'
-				}).text("See more").on('click', function(){
+				body.append('span').append('a').attr('href', '#')
+					.text("See more").on('click', function(){
 					PathOS.history.more().forEach(buildHistoryRow);
 
 					$(this).remove();
@@ -253,9 +278,7 @@ PathOS.module = function(config) {
 				break;
 			default:
 				var ul = content.append("ul")
-					.style({
-						clip: "rect(0px, 1000px, 0px, 0px)"
-					});
+					.style('clip', "rect(0px, 1000px, 0px, 0px)");
 
 				if(config.data instanceof Array) {
 					config.data.forEach(function(d){
@@ -313,6 +336,11 @@ PathOS.module.prototype.data = function(){
 	var d = d3.select(this).datum();
 	console.log(d);
 };
+
+/**
+ *
+ * @type {{menuVisible: boolean, settings: {}, map: {}, init: PathOS.modules.init, menu: {show: PathOS.modules.menu.show, hide: PathOS.modules.menu.hide}}}
+ */
 
 PathOS.modules = {
 	menuVisible: false,
@@ -380,42 +408,39 @@ PathOS.modules = {
 
 
 
-		d3.select("#sidebar-footer").append('span')
-			.append('a').attr({
-			href: '#'
-		}).on('click', function(d){
-
-			if(PathOS.modules.menuVisible) {
-				PathOS.modules.menu.hide();
-			} else {
-				PathOS.modules.menu.show();
-			}
-		}).append('i').attr({
-			class: 'fa-lg fa fa-cog',
-			'aria-hidden': true
-		});
+		d3.select("#sidebar-footer")
+		.append('span')
+		.append('a')
+			.attr('href', '#')
+			.on('click', function(){
+				if(PathOS.modules.menuVisible) {
+					PathOS.modules.menu.hide();
+				} else {
+					PathOS.modules.menu.show();
+				}
+			}).append('i')
+			.attr('class', 'fa-lg fa fa-cog')
+			.attr('aria-hidden', 'true');
 	},
 	menu: {
 		show: function(){
 			console.log("showing settings!");
 
-			var menubox = d3.select('body').append('div').attr({
-					id: 'overlay'
-				}).on('click', PathOS.modules.menu.hide)
+			var menubox = d3.select('body')
+				.append('div')
+				.attr('id', 'overlay')
+				.on('click', PathOS.modules.menu.hide)
 			.append('div').on('click', function() { d3.event.stopPropagation(); })
-				.attr({
-					id: 'moduleMenu',
-					class: 'fb-box'
-				});
+				.attr('id', 'moduleMenu')
+				.classed('outlined-box', true);
 
 			menubox.append('a').attr('href', '#').on('click', PathOS.modules.menu.hide)
 				.append("i").classed("fa fa-close fa-lg", true);
 
 			menu = menubox.append("div");
 
-			header = menu.attr({
-				id: 'mmHeader'
-			}).append('h1').text("PathOS Options");
+			header = menu.attr('id', 'mmHeader')
+				.append('h1').text("PathOS Options");
 
 
 			function deselectIGV(){
@@ -423,30 +448,42 @@ PathOS.modules = {
 			}
 
 			if(PathOS.user) {
-				var igv = menu.append("p").attr({
-					id: "IGV-options"
-				}).text("IGV.js Options: ");
+				var igv = menu.append("p")
+					.attr('id', "IGV-options")
+					.text("IGV.js Options: ");
 
 				igv.append("p").text("In-browser IGV (also known as IGV.js) can load in the background while you browse PathOS. It can also downsample reads, which will make larger runs easier for your computer to handle.");
 
-				igv.append("a").attr({href:"#", id:"svlist-igv-auto"}).text("Auto Load (no downsampling)").on("click", function(){
-					deselectIGV();
-					d3.select(this).classed("selected", true);
-					PathOS.modules.settings[PathOS.user].svlistIGV = "auto";
-					PathOS.data.save("modules", PathOS.modules.settings);
-				});
-				igv.append("a").attr({href:"#", id:"svlist-igv-downsample"}).text("Auto Load (downsample to 2500)").on("click", function(){
-					deselectIGV();
-					d3.select(this).classed("selected", true);
-					PathOS.modules.settings[PathOS.user].svlistIGV = "downsample";
-					PathOS.data.save("modules", PathOS.modules.settings);
-				});
-				igv.append("a").attr({href:"#", id:"svlist-igv-ask"}).text("Ask Before Loading IGV.js").on("click", function(){
-					deselectIGV();
-					d3.select(this).classed("selected", true);
-					PathOS.modules.settings[PathOS.user].svlistIGV = "ask";
-					PathOS.data.save("modules", PathOS.modules.settings);
-				});
+				igv.append("a")
+					.attr('href',"#")
+					.attr('id', "svlist-igv-auto")
+					.text("Auto Load (no downsampling)")
+					.on("click", function(){
+						deselectIGV();
+						d3.select(this).classed("selected", true);
+						PathOS.modules.settings[PathOS.user].svlistIGV = "auto";
+						PathOS.data.save("modules", PathOS.modules.settings);
+					});
+				igv.append("a")
+					.attr('href', "#")
+					.attr('id',"svlist-igv-downsample")
+					.text("Auto Load (downsample to 2500)")
+					.on("click", function(){
+						deselectIGV();
+						d3.select(this).classed("selected", true);
+						PathOS.modules.settings[PathOS.user].svlistIGV = "downsample";
+						PathOS.data.save("modules", PathOS.modules.settings);
+					});
+				igv.append("a")
+					.attr('href',"#")
+					.attr('id', "svlist-igv-ask")
+					.text("Ask Before Loading IGV.js")
+					.on("click", function(){
+						deselectIGV();
+						d3.select(this).classed("selected", true);
+						PathOS.modules.settings[PathOS.user].svlistIGV = "ask";
+						PathOS.data.save("modules", PathOS.modules.settings);
+					});
 
 
 				if(PathOS.modules.settings[PathOS.user]) {
@@ -461,22 +498,25 @@ PathOS.modules = {
 				}
 
 
-				menu.append("p").text("PathOS History: ").append("a").text("Clear History").attr({
-					"href": "#",
-					"id": "clearHistory"
-				}).on("click", function(){
-					PathOS.data.clear("history");
-					alert("History Cleared!");
-				});
+				menu.append("p")
+					.text("PathOS History: ")
+				.append("a")
+					.text("Clear History")
+					.attr("href", "#")
+					.attr('id', 'clearHistory')
+					.on("click", function(){
+						PathOS.data.clear("history");
+						alert("History Cleared!");
+					});
 			}
 
 			var links = menu.append('p').attr('id','pathos-menu-links').text("Links to: ");
 
-			links.append("a").attr({
-				href: "https://115.146.86.118/jira/secure/Dashboard.jspa"
-			}).text("Jira");
+			links.append("a")
+				.attr('href', "https://vm-115-146-91-157.melbourne.rc.nectar.org.au/jira/secure/Dashboard.jspa")
+				.text("Jira");
 			links.append("span").text(" - ");
-			links.append('a').attr('href', 'https://115.146.86.118/confluence/display/PVS/PathOS+Variant+System').text("Confluence");
+			links.append('a').attr('href', 'https://vm-115-146-91-157.melbourne.rc.nectar.org.au/confluence/display/PVS/PathOS+Variant+System').text("Confluence");
 			links.append("span").text(" - ");
 			links.append('a').attr('href', 'http://pathos.co/help').text("Help");
 
@@ -502,6 +542,503 @@ PathOS.modules = {
 };
 
 
+/**
+ * This bundle is for the svlist page and showing Curated Variants
+ *
+ * DKGM 21-October-2016
+ *
+ * @type {{showCV: PathOS.svlist.showCV, closeCV: PathOS.svlist.closeCV}}
+ */
+
+PathOS.svlist = {
+	evidence: {
+		'pathAloneTruncating':"Truncating variant (nonsense, frameshift, canonical splice site, initiation codon) in a known tumour suppressor gene",
+		'pathAloneKnown':"Same missense change as a previously established pathogenic variant",
+		'pathStrongFunction':"Well-established in vitro or in vivo functional studies support a deleterious effect on the gene or gene product",
+		'pathStrongCase':"Case-control studies show enrichment in cases",
+		'pathStrongCoseg':"<b><i>For familial cancer only:</i></b> Proband's family study shows co-segregation with cancer",
+		'pathSupportHotspot':"Located near a known mutational hot-spot or within a well-characterised functional domain",
+		'pathSupportGene':"Occurs in a gene with high clinical specificity and sensitivity for the cancer",
+		'pathSupportInsilico':"Multiple types of computational evidence support a deleterious effect on the gene or gene product (PolyPhen, SIFT, Mutation Taster ,conservation, evolution, splicing)",
+		'pathSupportSpectrum':"Type of variant fits known mutation spectrum for the gene",
+		'pathSupportGmaf':"Absent from ESP and 1000 Genomes data, or frequency is below highest global minor allele frequency (GMAF) expected for autosomal dominant disease (0.4%)",
+		'pathSupportIndel':"In-frame deletion/insertion in a well characterised functional domain",
+		'pathSupportNovelMissense':"Novel missense change at an amino acid where a different missense change is pathogenic",
+		'pathSupportLsdb':"Noted as pathogenic in a curated locus specific database",
+		'pathSupportCoseg':"<b><i>For familial cancer only:</i></b> Proband's family study shows co-segregation with disease",
+		'benignAloneGmaf':"Exists in ESP and 1000 Genomes >= 0.4% GMAF",
+		'benignAloneHealthy':"<b><i>For familial cancer only:</i></b> For a fully penetrant cancer syndrome, observed in a healthy adult individual",
+		'benignStrongFunction':"Well-established in vitro or in vivo functional studies shows no deleterious effect on protein function or splicing",
+		'benignStrongCase':"Case control studies show comparable frequencies",
+		'benignStrongCoseg':"<b><i>For familial cancer only:</i></b> Variant fails to co-segregate with disease in a family study",
+		'benignSupportVariable':"Located in a region without a characterised function or away from known mutation hot-spots",
+		'benignSupportInsilico':"Multiple types of computational evidence suggest no impact on gene or gene product (PolyPhen, SIFT, Mutation Taster, conservation, evolution, splicing)",
+		'benignSupportSpectrum':"Type of variant does not fit known mutation spectrum for the gene",
+		'benignSupportLsdb':"Noted as benign in a curated locus specific database",
+		'benignSupportPath':"<b><i>For familial cancer only:</i></b> For a fully penetrant cancer syndrome, observed with another pathogenic variant in the same individual"
+	},
+	// Clin Context Comparitor
+	// DKGM 18-Nov-2016
+	// Rewrite this better. This is just hacked for a demo.
+	ccc: function(a, b) {
+		var result = false;
+		if (a === null || b === null) {
+			if (a === null && b === null) {
+				result = true;
+			}
+		} else {
+			if (a.id == b.id) {
+				result = true;
+			}
+		}
+		return result;
+	},
+	createCV: function ( sv ) {
+		console.log("Ok, I guess we're making a CV now...");
+		console.log("Your sv is: "+sv);
+		console.log(this);
+
+		var cc = $("#newCVcc").val();
+
+		var params = {
+			id: sv,
+			cc: cc
+		};
+		$.ajax({
+			type: "POST",
+			url: "/PathOS/CurVariant/newCV?" + $.param(params),
+			success: function (d) {
+				if (typeof d == "string") {
+					alert(d);
+				} else {
+					console.log(d);
+				}
+			},
+			cache: false,
+			contentType: false,
+			processData: false
+		});
+	},
+	saveCV: function ( cv ) {
+		var report = 'fail';
+		var evidence = 'lol';
+
+		report = $("#cv-"+cv+" .report").val();
+		evidence = $("#cv-"+cv+" .evidence").val();
+
+
+		var params = {
+			id: cv,
+			report: report,
+			evidence: evidence
+		};
+		$.ajax({
+			type: "POST",
+			url: "/PathOS/CurVariant/updateCV?" + $.param(params),
+			success: function (d) {
+				if (typeof d == "string") {
+					alert(d);
+				} else {
+					console.log(d);
+					//if (div.select(".tag-"+ d.id).empty()) {
+					//	PathOS.tags.drawTag(div, d, true);
+					//	$('#tag_text_area').val('');
+					//}
+				}
+			},
+			cache: false,
+			contentType: false,
+			processData: false
+		});
+
+		console.log("Trying to save: "+cv);
+		console.log("report is: "+report);
+		console.log("evidence is: "+evidence);
+	},
+
+	/**
+	 * DKGM 21-November-2016
+	 *
+	 * Call this function from the svlist page to build an overlay.
+	 * The overlay will show all Curated Variants for a specified Sequenced Variant.
+	 *
+	 * Build the overlay, then do an ajax call for the information.
+	 * Key info:
+	 * - SeqVariant info
+	 * - List of Curated Variants
+	 *
+	 * @param sv
+     */
+
+	showCVs: function( sv ) {
+		console.log("Showing all Curated Variants for this Sequenced Variant");
+
+
+// Build the Overlay
+		var cvbox = d3.select('body')
+			.append('div')
+			.attr('id', 'overlay')
+			.on('click', PathOS.svlist.closeCV)
+			.append('div').on('click', function() { d3.event.stopPropagation(); })
+			.attr('id', 'show-cv')
+			.classed('outlined-box', true)
+			.classed("container", true);
+
+		cvbox.append('a').attr('href', '#').on('click', PathOS.svlist.closeCV)
+			.append("i").classed("fa fa-close fa-lg", true);
+
+		var cvdiv = cvbox.append("div");
+
+		cvdiv.append("img")
+			.classed("loading_logo", true)
+			.attr("id", "cv-loading")
+			.attr("src", "/PathOS/dist/img/pathos_logo_animated.svg");
+
+		$.ajax("/PathOS/SeqVariant/lookUpCVs?id="+sv, {success:function(d){
+			d3.select("#cv-loading").remove();
+			console.log(d);
+
+			var header = cvdiv.attr('id', 'cvHeader')
+				.append('h1').text("Sequenced Variant: "+ d.sv.hgvsc);
+
+			console.log( "SV id is: " + sv );
+
+			var infobox = cvdiv.append("div")
+				.attr("id", "sv-info")
+				.classed("row", true);
+
+			//infobox.append("div")
+			//	.classed("outlined-box", true)
+			//	.append("h2")
+			//	.text("Info to go in here");
+// Add info about the seqvariant
+//
+			var seqVarBox = infobox.append("div")
+				.classed("outlined-box", true)
+				.classed("col-xs-5 col-xs-offset-1", true)
+				.attr("id", "sv-infobox-div");
+
+			seqVarBox.append("h2").text("Sequenced Variant information:");
+
+			svClinContext = "None";
+			if (d.sv.clinContext) {
+				svClinContext = d.lookup.context(d.sv.context.id);
+			}
+			var box1 = {
+				"Gene": d.sv.gene,
+				"HGVSC": d.sv.hgvsc,
+				"HGVSG": d.sv.hgvsg,
+				"HGVSP": d.sv.hgvsp,
+				"Clinical Context (from sample)": svClinContext,
+				"Consequences": d.sv.consequence,
+				"Variant Caller": d.sv.varcaller,
+				"Amplicon Count": d.sv.numamps,
+				"Amplicon Bias": d.sv.ampbias
+			};
+			var box2 = {
+				"Variant Frequency": d.sv.varFreq,
+				"Variant Depth": d.sv.varDepth,
+				"Panel Var %": d3.format(".4")(d.sv.varPanelPct)+"%",
+				"dbSNP": d.sv.dbsnp,
+				"GMAF %": d.sv.gmaf,
+				"ESP %": d.sv.esp,
+				"ExAC %": d.sv.exac,
+				"Cosmic": d.sv.cosmic ? "<a target='_blank' href='/PathOS/seqVariant/cosmicAction?id='"+ d.sv.id+" title='"+ d.sv.cosmicOccurs+"'>COSM"+ d.sv.cosmic+"</a>" : "",
+				"Exon": d.sv.exon,
+				"Cytoband": d.sv.cytoband,
+				"CADD Raw": d3.format("(.2f")(d.sv.cadd),
+				"CADD Scaled": d3.format("(.2f")(d.sv.cadd_phred)
+			};
+
+			drawTable(box1, seqVarBox);
+
+			var otherBox = infobox.append("div")
+				.classed("outlined-box", true)
+				.classed("col-xs-5", true)
+				.attr("id", "cv-infobox-div");
+
+			drawTable(box2, otherBox);
+
+// Add info about the Preferred Curated Variant
+//			var preferredCVbox = infobox.append("div")
+//				.classed("outlined-box", true)
+//				.classed("col-xs-3", true)
+//				.attr("id", "cv-infobox-div");
+//			preferredCVbox.append("h2").text("Curated Variant Information:");
+//
+//			svClinContext = "None";
+//			if (d.sv.clinContext) {
+//				svClinContext = d.lookup.context(d.sv.context.id);
+//			}
+//
+//			var tempPmClass = null;
+//			if (d.preferred && d.preferred.pmClass) {
+//				tempPmClass = d.preferred.pmClass;
+//			}
+//
+//			var preferredData = {
+//				"Classification": tempPmClass,
+//				"Classified By": d.lookup.classified,
+//				"Authorised By": d.lookup.authorised,
+//				"Or maybe": "The person who classified this variant",
+//				"And also": "The people who verified it"
+//			};
+//			drawTable(preferredData, preferredCVbox);
+//
+//
+//
+//			var buttons = infobox.append("div")
+//				.attr("id", "cv-buttons")
+//				.classed("xs-col-4", true)
+//				.classed("outlined-box", true);
+//
+//
+//			var newCV = buttons.append("div").classed("outlined-box", true);
+//
+//			newCV.append("h4").text("Add a new CV");
+//			newCV.append("input")
+//				.attr("id", "newCVcc")
+//				.attr("placeholder", "Pick a Clinical Context");
+//
+//			var ccArray = [];
+//			d.lookup.listOfCC.forEach(function(cc){
+//				ccArray.push(cc.description);
+//			});
+//			console.log(ccArray);
+//
+//			$("#newCVcc").autocomplete({source: ccArray});
+//
+//			newCV.append("a")
+//				.attr("href","#none")
+//				.attr("onclick", "PathOS.svlist.createCV("+ d.sv.id+")")
+//				.text("Create a new CV");
+//
+//
+//
+//
+//
+//
+//			buttons.append("a").attr("href","#na").text("Add new CV").classed("cv-button", true);
+//			buttons.append("br");
+//			buttons.append("a").attr("href","#na").text("Another button to do another thing").classed("cv-button", true);
+//			buttons.append("br");
+//			buttons.append("a").attr("href","#na").text("More buttons!").classed("cv-button", true);
+
+
+
+			cvdiv.append("h1").text("Curated Variants:");
+			var row = cvdiv.append("div")
+				.classed("row", true)
+				.attr("id", "cv-list");
+
+			var table = row.append('table');
+
+			var thead = table.append("thead").append("tr");
+
+			thead.append("th").text("Context").style("width", "15%");
+			thead.append("th").text("Report Description");
+			thead.append("th").text("Evidence Description");
+			thead.append("th").text("Classification");
+
+			var tbody = table.append("tbody");
+			var cv = null;
+			var evidence = null;
+			if(d.generic) {
+				if(d.currentCV && d.currentCV.id != d.generic.id) {
+					addCVrow(d.generic, false);
+					addCVrow(d.currentCV, true);
+				} else {
+					addCVrow(d.generic, true);
+				}
+			}
+			d.otherCVs.forEach(function(data){
+				addCVrow(data, false);
+			});
+
+			function addCVrow(data, highlight){
+				var label = "Generic",
+					id = data.id;
+				if(data.clinContext) {
+					label = d.lookup.context[data.clinContext.id];
+				}
+				cv = tbody.append("tr")
+					.classed("current-context-cv", highlight);
+				if(highlight){
+					cv.append("td").append("h2").html("Current Context<br>")
+						.append("a")
+						.attr("href", "/PathOS/curVariant/show?id=" + data.id)
+						.text(label);
+				} else {
+					cv.append("td")
+						.append("a")
+						.attr("href", "/PathOS/curVariant/show?id=" + data.id)
+						.text(label);
+				}
+				cv.append("td").append("textarea").attr("readonly", true).style("width", "100%").text(data.reportDesc);
+				cv.append("td").append("textarea").attr("readonly", true).style("width", "100%").text(data.evidence.justification);
+
+				evidence = cv.append("td");
+
+				var pmClass = data.pmClass.split(":")[0];
+				evidence.append("p")
+					.text(data.pmClass)
+					.classed("cvlabel cv-"+pmClass, true);
+
+				var count = 0;
+
+				var button = evidence.append("a")
+					.attr("href", "#none")
+					.on("click", function(d){
+						console.log("cliccckinggggg");
+						$("#evidence-list-"+id).toggleClass("hidden");
+					});
+
+				var list = evidence.append("ul")
+					.attr("id", "evidence-list-"+id)
+					.classed("hidden", true);
+
+				Object.keys(PathOS.svlist.evidence).forEach(function(key){
+					if(data.evidence[key]) {
+						count++;
+						list.append('li').html(PathOS.svlist.evidence[key]);
+					}
+				});
+				button.text("Show Evidence ("+count+")");
+			}
+
+
+
+
+
+
+
+
+            //
+            //
+            //
+			//var name = row.append("div").classed("col-xs-1 outlined-box", true);
+            //
+			//var left = row.append("div").classed("col-xs-3 outlined-box", true);
+            //
+			//var middle = row.append("div").classed("col-xs-3 outlined-box", true);
+            //
+			//var right = row.append("div").classed("col-xs-5 outlined-box", true);
+            //
+			//name.append("h4").text("Name")
+			//	.classed("cv-header", true);
+			//left.append("h4").text("Generic Curated Variant")
+			//	.classed("cv-header", true);
+			//middle.append("h4").text("Preferred Curated Variant")
+			//	.classed("cv-header", true);
+            //
+			//right.append("h4").text("Other Curated Variants")
+			//	.classed("cv-header", true);
+            //
+            //
+            //
+			//name.append("div").append("p").text("Clinical Context").classed("cc-header", true);
+			//name.append("div").append("p").text("Report Description").classed("report", true);
+			//name.append("div").append("p").text("Evidence").classed("evidence", true);
+            //
+            //
+            //
+			//drawCVs(
+			//	left, //.append("table").append("tbody").append("trow").append("td").append("div"),
+			//	d.generic,
+			//	d.lookup
+			//);
+            //
+			//drawCVs(
+			//	middle, //.append("table").append("tbody").append("trow").append("td").append("div"),
+			//	d.preferred,
+			//	d.lookup
+			//);
+            //
+			//var otherCVs = right.append("table").append("tbody").append("trow");
+			//d.otherCVs.forEach(function(cv){
+			//	drawCVs(
+			//		otherCVs.append("td").classed("cv-td", true).append("div"),
+			//		cv,
+			//		d.lookup
+			//	);
+			//});
+            //
+
+
+
+		}});
+
+		function drawCVs(div, cv, lookup) {
+			console.log(cv);
+
+			div.attr("id", "cv-"+cv.id);
+
+			var cc = "Generic";
+			if (cv.clinContext !== null) {
+				cc = lookup.context[cv.clinContext.id];
+			}
+
+			// Clinical Context...
+			div.append("div")
+				.append("p")
+				.text(cc);
+
+			div.append("a")
+				.attr("href","#na")
+				.attr("onclick", "PathOS.svlist.saveCV("+ cv.id +")")
+				.text("Save CV")
+				.classed("cv-button", true);
+
+			// Report Description...
+			div.append("div")
+				.append("textarea")
+				.classed("report", true)
+				.html(cv.reportDesc);
+
+			// Evidence Justification...
+			div.append("div")
+				.append("textarea")
+				.classed("evidence", true)
+				.html(cv.evidence.justification);
+		}
+
+		function drawTable(info, infobox){
+			infobox.select("table").remove();
+
+			var table = infobox.append("table")
+				.attr("id", "svInfoTable")
+				.classed("infoTable", true);
+
+			var tbody = table.append("tbody");
+
+			Object.keys(info).forEach(function(row){
+				var r = tbody.append("tr");
+				r.append("td").html(row).classed("property-label", true);
+				r.append("td").html(info[row]).classed("property-value", true);
+			});
+		}
+
+
+
+
+		//Turn off hotkeys, and make "esc" hide the menu
+		PathOS.hotkeys.off();
+		$('body').on('keydown', function(e){
+			if(e && e.keyCode && e.keyCode == 27 && !$(document.activeElement).is("input") && !$(document.activeElement).is("textarea") && !e.altKey && !e.metaKey && !e.ctrlKey){
+				PathOS.svlist.closeCV();
+			}
+		});
+	},
+	closeCV: function(){
+		console.log("closing CV!");
+
+		// Get rid of the menu
+		d3.select("#overlay").remove();
+		// Bring back the hotkeys...
+		PathOS.hotkeys.init();
+
+	}
+};
 
 
 
@@ -537,14 +1074,19 @@ PathOS.buildBlock = function (div, data){
 PathOS.classify = function (d){
 	return d.toLowerCase().replace(" ", "-");
 };
+
 PathOS.params = function() {
-	params = {};
+	var params = {};
 	var string = window.location.search.substring(1);
 	var arr = string.split("&");
+
 	arr.forEach(function(q){
 		if(q.indexOf("=") > 0) {
-			var thing = q.split("=");
-			params[thing[0]] = thing[1].indexOf(',') >= 0 ? thing[1].split(',') : thing[1];
+			var stuff = q.split("="),
+				name = stuff[0],
+				data = decodeURIComponent(stuff[1].replace(/\+/g, " "));
+
+			params[name] = data;
 		}
 	});
 
@@ -617,23 +1159,6 @@ PathOS.evidence = {
  };
 
 
-// Deprecated? This was originally used for the front page, but parsing the date on the front end leads to off-by-one errors due to system time vs. local time. vs. UTC and all sorts of stupid stuff. It's better to just parse the date on the server using something like: formatDate(date:obj.requestDate , format:'dd-MMM-yyyy')
-// DKGM 28-10-2016
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-
-PathOS.date = function(d, size) {
-	var date = '';
-	if (Date.parse(d) > 0) {
-		var arr = d.split('T')[0].split('-');
-		if(size && size == 'full') {
-			date = arr[2] + '\xa0' + months[parseInt(arr[1])-1] + '\xa0' + arr[0];
-		} else {
-			date = arr[2] + '\xa0' + months[parseInt(arr[1])-1];
-		}
-	}
-	return date;
-};
-
 PathOS.timeSince = function (date) {
 	var val = "",
 		d = Date.parse(date),
@@ -671,11 +1196,9 @@ PathOS.timeSince = function (date) {
 PathOS.addOption = function(div, label, key, value){
 	var checkbox = div.append('label');
 	checkbox.append('input')
-		.attr({
-			class: 'option',
-			id: 'option-'+key,
-			type: 'checkbox'
-		});
+		.attr('class', 'option')
+		.attr('id', 'option-'+key)
+		.attr('type', 'checkbox');
 	checkbox.html(checkbox.html()+" "+label+"<br>");
 	checkbox.on('change', function(){
 		$('.'+key).toggleClass(key+'-toggle');
@@ -729,7 +1252,6 @@ PathOS.history = {
 			PathOS.history.json = PathOS.history.json.slice(20);
 		}
 		PathOS.data.save("history", PathOS.history.json);
-		localStorage.PathOSHistory = JSON.stringify(PathOS.history.json);
 	},
 	clear: function() {
 		PathOS.history.json = [];
@@ -808,10 +1330,10 @@ PathOS.tags = {
 					d3.selectAll("#tags .tagdiv").remove();
 					if(d.tags) {
 						d.tags.forEach(function(tag){
-							PathOS.tags.drawTag(d3.select("#tags .fb-box"), tag, true);
+							PathOS.tags.drawTag(d3.select("#tags .outlined-box"), tag, true);
 						});
 					} else {
-						PathOS.tags.nullObject(d3.select("#tags .fb-box"));
+						PathOS.tags.nullObject(d3.select("#tags .outlined-box"));
 						//alert("Can't find tags on an unsaved object");
 					}
 				},
@@ -846,9 +1368,9 @@ PathOS.tags = {
 		} else {
 			var div = data.isAuto ? box.insert('div', ':first-child'): box.insert('div', 'textarea');
 
-			div.attr({
-				class: "tagdiv tag-"+data.id
-			}).datum(data).classed("isAuto", data.isAuto)
+			div.attr('class', "tagdiv tag-"+data.id)
+				.datum(data)
+				.classed("isAuto", data.isAuto)
 				.on('click', function(d){
 					var that = this;
 
@@ -866,6 +1388,9 @@ PathOS.tags = {
 							success: function (result) {
 								if(result != 'fail') {
 									$(that).remove();
+									if(reloadGrid) {
+										reloadGrid();
+									}
 								}
 							},
 							cache: false,
@@ -878,12 +1403,11 @@ PathOS.tags = {
 					}
 				});
 
-			div.append('span').attr({
-			}).text(data.label);
+			div.append('span').text(data.label);
 
 
 			var text = data.description || "Enter Description Here.";
-			var tooltip = div.append('div').classed('tooltip fb-box', true);
+			var tooltip = div.append('div').classed('tooltip outlined-box', true);
 
 			tooltip.append("button").text("Search").on("click",function(d){
 				d3.event.stopPropagation();
@@ -920,6 +1444,9 @@ PathOS.tags = {
 							success: function (result) {
 								if(result != 'fail') {
 									$('.tag-'+data.id).remove();
+									if(reloadGrid) {
+										reloadGrid();
+									}
 								}
 							},
 							cache: false,
@@ -937,9 +1464,7 @@ PathOS.tags = {
 
 			//var text = data.description === "" ? "Enter Description Here." : data.description;
 			tooltip.append('p').classed("tt_description", true).text(text);
-			tooltip.append('input').attr({
-				value: text
-			}).on("keydown", function(){
+			tooltip.append('input').attr('value', text).on("keydown", function(){
 					var e = d3.event;
 					if(e && e.keyCode && e.keyCode == 13) {
 						var params = {
@@ -952,6 +1477,9 @@ PathOS.tags = {
 								$(".tag-"+data.id+" p").text(params.description);
 								tooltip.classed("edit", false);
 								tooltip.classed("dismiss", true);
+								if(reloadGrid) {
+									reloadGrid();
+								}
 							}
 						});
 					}
@@ -986,9 +1514,12 @@ PathOS.tags = {
 					if (typeof d == "string") {
 						alert(d);
 					} else {
-						if (div.select(".tag-"+ d.id)[0][0] === null) {
+						if (div.select(".tag-"+ d.id).empty()) {
 							PathOS.tags.drawTag(div, d, true);
 							$('#tag_text_area').val('');
+							if(reloadGrid) {
+								reloadGrid();
+							}
 						}
 					}
 				},
@@ -1011,7 +1542,7 @@ PathOS.printQC = function(data) {
 	var label = data.div.append("h4")
 				.classed("flag", true);
 
-	if(data.authorised === null) {
+	if(!data.authorised) {
 		label.text("QC Not Set").classed("unknown", true);
 	} else if (data.passfailFlag) {
 		label.text("QC Passed").classed("passed", true);
@@ -1061,6 +1592,7 @@ PathOS.igv = {
 		PathOS.igv.options = {
 			showKaryo: "hide",
 			showNavigation: true,
+			showCenterGuide: true,
 			reference: {
 				fastaURL: "//dn7ywbm9isq8j.cloudfront.net/genomes/seq/hg19/hg19.fasta", //perhaps we should change this to a peter mac hosted hg19?
 				indexFile: "/PathOS/igv/hg19.fasta.fai",
@@ -1097,11 +1629,13 @@ PathOS.igv = {
 	search: function(locus) {
 		if(!PathOS.igv.loaded) { // First load! Let's do init stuff
 			PathOS.igv.loaded = true;
+			PathOS.igv.options.locus = locus;
 			igv.createBrowser(PathOS.igv.div, PathOS.igv.options);
 			$("#footer-message").remove();
+		} else {
+			// Browse to the locus that the user wants to see
+			igv.browser.search(locus);
 		}
-		// Browse to the locus that the user wants to see
-		igv.browser.search(locus);
 	},
 	addBAM: function(sample, dataUrl, samplingDepth) {
 		if(sample && dataUrl) {
@@ -1144,6 +1678,21 @@ PathOS.igv = {
 	}
 };
 
+
+
+
+
+
+
+
+PathOS.pubmed = {
+	// This function applies a highlight to textareas that have a certain class
+	applyHighlight: function(highlightClass){
+		$('textarea.'+highlightClass).highlightWithinTextarea(function() {
+			return /\[PMID: (?:\d+(?:, )?)+\]/g;
+		});
+	}
+};
 
 
 

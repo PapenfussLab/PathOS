@@ -22,4 +22,39 @@ class PubmedTagLib
                 out << """<a href="${url}" target="_blank">PMC${attr.pubmed}</a>"""
             }
     }
+
+    def displayPMIDs =
+    { attr ->
+        def result = ""
+        if ( attr.cv ) {
+            CurVariant cv = CurVariant.get(attr.cv)
+
+            ArrayList<Long> PMIDs = PubmedService.allPMIDsFromCurVariant( cv )
+
+            PMIDs.each {
+                Pubmed article = Pubmed.findByPmid(it)
+                if (article) {
+                    result += """<li><h3>${article.title}</h3>${PubmedService.buildCitation(article)} <a href="/PathOS/pubmed?pmid=${it}"><br>[PMID: ${it}]</a></li>"""
+                } else {
+                    result += """<li>Article [PMID: ${it}] not found in PathOS database, <a href="/PathOS/pubmed?pmid=${it}">click here to add it.</a></li>"""
+                }
+            }
+        }
+        out << result
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

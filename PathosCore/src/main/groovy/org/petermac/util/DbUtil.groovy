@@ -235,6 +235,29 @@ class DbUtil
                 }
 
 
+        //  Before deleting variants, clear Originating IDs
+        //
+        def orig =  """
+                    update cur_variant
+                    set originating_id=NULL
+                    where originating_id IN
+                    (SELECT sv.id FROM seq_variant as sv,
+                            seq_sample  as sa,
+                            seqrun      as sr
+                            where	sr.seqrun = ${seqrun}
+                            and		sa.sample_name = ${sample}
+                            and		sr.id = sa.seqrun_id
+                            and		sa.id = sv.seq_sample_id)
+                    """
+        sql.execute( orig )
+        sql.eachRow( "select row_count()" )
+                {
+                    nrows = it['row_count()'] as Integer
+                    log.info "Cleared CurVariant Originating fields = ${nrows}"
+                }
+
+
+
         //  Setup delete variants command
         //
         del = 	    """
@@ -245,7 +268,7 @@ class DbUtil
                     where	sr.seqrun = ${seqrun}
                     and		sa.sample_name = ${sample}
                     and		sr.id = sa.seqrun_id
-                    and		sa.id = sv.seq_sample_id
+                    and		sa.id = sv.seq_sample_id;
                     """
         sql.execute( del )
 
@@ -268,7 +291,7 @@ class DbUtil
     static Integer deleteSample( String seqrun, String sample )
     {
         Integer nrows = 0
-
+       
         log.info "Processing ${seqrun} ${sample}"
 
         //  Setup delete sample report command
@@ -323,6 +346,21 @@ class DbUtil
                         and sr.id = sa.seqrun_id)
                        """
         sql.execute(delTags)
+
+        sql.eachRow( "select row_count()" )
+                {
+                    nrows = it['row_count()'] as Integer
+                    log.info "Deleted Seqsample Tag linking table rows = ${nrows}"
+                }
+
+        //  Delete alignstats records for this sample
+        //
+        def delStats = """
+                        delete
+                        from align_stats
+                        where seqrun=${seqrun} and sample_name=${sample}
+                        """
+        sql.execute(delStats)
 
         sql.eachRow( "select row_count()" )
                 {

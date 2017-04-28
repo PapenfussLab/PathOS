@@ -37,7 +37,6 @@
 
             </li>
         </g:if>
-
         <g:if test="${seqVariantInstance?.ens_variant}">
             <li class="fieldcontain">
                 <span id="ens_variant-label" class="property-label"><g:message code="seqVariant.ens_variant.label"
@@ -60,17 +59,6 @@
             </li>
         </g:if>
 
-        <g:if test="${seqVariantInstance?.curated}">
-            <li class="fieldcontain">
-                <span id="curated-label" class="property-label"><g:message code="seqVariant.curated.label"
-                                                                           default="Curated"/></span>
-
-                <span class="property-value" aria-labelledby="curated-label"><g:link controller="curVariant"
-                                                                                     action="show"
-                                                                                     id="${seqVariantInstance?.curated?.id}">${seqVariantInstance?.curated?.encodeAsHTML()}</g:link></span>
-
-            </li>
-        </g:if>
 
         <g:if test="${seqVariantInstance?.filtered}">
             <li class="fieldcontain">

@@ -217,6 +217,29 @@ class AlignStatsToTsv
         return nlines
     }
 
+    static private final List<String> keepField =
+                                            [
+                                            'mean coverage',
+                                            '%_bases_above_1',
+                                            '%_bases_above_50',
+                                            '%_bases_above_100',
+                                            '%_bases_above_300',
+                                            '%_bases_above_500',
+                                            'Total reads',
+                                            'Mapped reads',
+                                            '% Reads mapped',
+                                            '% Mapped reads duplicates',
+                                            'Total reads minus duplicates',
+                                            'Mapped reads minus duplicates',
+                                            '% Reads OnTarget',
+                                            '% Target bases >=1-fold Coverage',
+                                            '% Target bases >=10-fold Coverage',
+                                            '% Target bases >=20-fold Coverage',
+                                            '% Target bases >=100-fold Coverage',
+                                            'Mean coverage for target bases',
+                                            'Median Fragment Length'
+                                            ]
+
     /**
      * Convert hybrid stats files into an AlignStats format for backwards compatibility with Amplicon stats
      * Todo: this needs to be removed and replaced with a uniform pipeline QC interface
@@ -278,7 +301,14 @@ class AlignStatsToTsv
 
             assert header.size() == data.size(), "Header columns ${header.size()} doesn't match data columns  ${data.size()} in ${fname}"
 
-            header.eachWithIndex { String entry, int i -> sampleStats += "|${entry}:${data[i]}" }
+            header.eachWithIndex
+                    {
+                        String entry, int i ->
+                            if ( keepField.contains(entry))
+                            {
+                                sampleStats += "|${entry}:${data[i]}"
+                            }
+                    }
             header.eachWithIndex { String entry, int i -> tsvData << [(entry): data[i]] }
         }
 

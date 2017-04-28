@@ -30,11 +30,12 @@ class Mutalyzer
 {
     static JsonSlurper slurper = new JsonSlurper()
 
-    private static final    def         baseURL   = 'https://mutalyzer.nl'
-    private static final    def         mutURL    = baseURL + '/json/'
+    private static          def         baseURL   = 'https://mutalyzer.nl'
+    private static          def         mutURL    = baseURL + '/json/'
     private static          String      proxyHost = null
     private static          Integer     proxyPort = null
     private static          Integer     waitTime  = 180000    //  3 Minute default wait time for batch
+    private static          boolean     insecure  = false     //  allow insecure https connections
 
     /**
      * Constructor:
@@ -55,8 +56,19 @@ class Mutalyzer
      * and PATHOS_MUTALYZER_WAITTIME=1000 to speed the test
      *
      */
-    Mutalyzer()
+    Mutalyzer( String mutHost = 'https://mutalyzer.nl' )
     {
+        //  Allow insecure https connections if within PeterMac
+        //
+        if ( mutHost.endsWith('.petermac.org.au')) insecure = true
+
+        //  Set mutalyzer host
+        //
+        baseURL = mutHost
+        mutURL  = baseURL + '/json/'
+
+        //  Get proxy and waittime
+        //
         List proxyEnv = getProxyConfFromEnv()
 
         if( proxyEnv[0] )
@@ -74,6 +86,7 @@ class Mutalyzer
 
 
     /**
+     * Todo: this needs to be removed and waittime and proxy passed through to constructor
      *
      * This function is called by the constructor to read the content of
      *  PATHOS_MUTALYZER_PROXY and PATHOS_MUTALYZER_WAITTIME
@@ -93,10 +106,11 @@ class Mutalyzer
 
         //  Set wait time for Mutalyzer batch() call to prevent early http call
         //
-        def waitTimeStr = System.getenv('PATHOS_MUTALYZER_WAITTIME')
-        if ( waitTimeStr != null )
+        String waitTimeStr = System.getenv('PATHOS_MUTALYZER_WAITTIME')
+        if ( waitTimeStr )
         {
             waitTime = waitTimeStr as Integer
+            log.debug( "Mutalyzer wait time changed to (${waitTime/1000.0} s.)")
         }
 
         //  Look for explicit environment variable PATHOS_MUTALYZER_PROXY for proxy info
@@ -132,9 +146,10 @@ class Mutalyzer
      *
      * @return      true if server available
      */
-    public Boolean ping()
+    public static Boolean ping()
     {
         def http = new HTTPBuilder( baseURL )
+        if ( insecure ) http.ignoreSSLIssues()
 
         //  Set proxy if needed
         //
@@ -152,7 +167,7 @@ class Mutalyzer
         }
         catch( Exception ex )
         {
-            log.fatal( "Exception when trying to connect to mutalyzer.nl: " + ex )
+            log.fatal( "Exception when trying to connect to ${baseURL}: " + ex )
             return false
         }
 
@@ -305,6 +320,7 @@ class Mutalyzer
         //   Setup HTTPBuilder with proxy and destination host
         //
         def http = new HTTPBuilder( baseURL )
+        if ( insecure ) http.ignoreSSLIssues()
 
         //  Called statically so need to get proxy settings first, if any
         //
@@ -349,7 +365,7 @@ class Mutalyzer
     static Integer monitorBatch( String job )
     {
         def http = new HTTPBuilder( baseURL )
-
+        if ( insecure ) http.ignoreSSLIssues()
 
         //  Called statically so need to get proxy settings first, if any
         //
@@ -385,6 +401,7 @@ class Mutalyzer
         log.debug( "About to retrieve ${url}")
 
         def http = new HTTPBuilder( baseURL )
+        if ( insecure ) http.ignoreSSLIssues()
 
         //  Called statically so need to get proxy settings first, if any
         //
@@ -398,24 +415,6 @@ class Mutalyzer
 
         return res.join('\n')
     }
-
-//
-//    /**
-//     * Get batch results for a job
-//     * To test use % curl 'https://mutalyzer.nl/batch-job-result/batch-job-80faf83d-7bb0-463f-bbb7-404049e395a8.txt'
-//     *
-//     * @param job
-//     * @return
-//     */
-//    static String getBatch( String job )
-//    {
-//        def url = baseURL + "/batch-job-result/batch-job-${job}.txt"
-//        log.debug( "About to retrieve ${url}")
-//        def ret = url.toURL()
-//        log.debug( "Got ${url}")
-//
-//        return ret.getText( connectTimeout: urlTime, readTimeout: urlTime, useCaches: false, allowUserInteraction: false )
-//    }
 
     /**
      * Parse a typical variant string
@@ -499,7 +498,12 @@ class Mutalyzer
         //  Check we're really finished
         //
         sleep 1000                 // 1 sec.
-        assert 0 == monitorBatch( job )
+        remain = monitorBatch( job )
+        if ( remain )
+        {
+            log.fatal( "Exceeded wait time (${waitTime/1000.0} s.) to process variants, remaining/total: ${remain}/${muts.size()}")
+            System.exit(1)
+        }
 
         //  Download results file: format depends on batch task
         //

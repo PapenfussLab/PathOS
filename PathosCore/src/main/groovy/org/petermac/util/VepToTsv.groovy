@@ -109,8 +109,10 @@ class VepToTsv
                         {
                             //  Data line: find novel columns in Extra field
                             //
-                            cols += addExtraKeys( cols, line[extraidx])
-                            lines << line
+                            if  (extraidx < line.size()) {
+                                cols += addExtraKeys(cols, line[extraidx])
+                                lines << line
+                            }
                         }
                     }
                 }

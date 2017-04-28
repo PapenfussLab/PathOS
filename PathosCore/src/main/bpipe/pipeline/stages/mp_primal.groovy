@@ -112,7 +112,13 @@ mp_alignStatsRun =
             //
             check( "mp_alignStatsRun_${SAMPLE}" ) {
                 exec    "aligncustom_runstats.pl ${output.dir} $panel $samples ; exit 0"
-            } otherwise { succeed "Only one sample found in mp_alignStatsRun ${globPanel[panel]}" }
+            } otherwise {
+                println "Only one sample found in mp_alignStatsRun ${globPanel[panel]}"
+
+                //  Create dummy QC files to keep this stage happy
+                //
+                exec    "touch ../${panel}_PoorMapping.csv ../${panel}_ReadStatsBySample.csv ../${panel}_Stats.csv ../${panel}_TotalReadsUsed.csv"
+            }
         }
     }
 

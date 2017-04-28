@@ -13,7 +13,7 @@
 			<ul>
 				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
-			<%--	<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li> --%>
+				%{--<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>--}%
 			</ul>
 		</div>
 		<div id="show-refGene" class="content scaffold-show" role="main">
@@ -58,24 +58,12 @@
 					
 				</li>
 				</g:if>
-			
-				<g:if test="${refGeneInstance?.refseq}">
-				<li class="fieldcontain">
-					<span id="refseq-label" class="property-label"><g:message code="refGene.refseq.label" default="Refseq" /></span>
-					
-						<span class="property-value" aria-labelledby="refseq-label"><g:fieldValue bean="${refGeneInstance}" field="refseq"/></span>
-					
-				</li>
-				</g:if>
-			
+
 			</ol>
 			<g:form>
 				<fieldset class="buttons">
 					<g:hiddenField name="id" value="${refGeneInstance?.id}" />
 					<g:link class="edit" action="edit" id="${refGeneInstance?.id}"><g:message code="default.button.edit.label" default="Edit" /></g:link>
-				<%--	PATHOS-493 DISABLING DELETE
-				    <g:actionSubmit class="delete" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
-				--%>
 				</fieldset>
 			</g:form>
 		</div>

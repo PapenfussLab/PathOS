@@ -29,39 +29,16 @@ class DateUtil
      * @param   rawdate     date to parse
      * @return              parsed date or null if it failed
      */
-    static String safeParse( SimpleDateFormat sdf, String rawDate )
-    {
-        String parseDate = null
-        try
-        {
-            parseDate = sdf.parse( rawDate )
-        }
-        catch (Exception ex )
-        {
-            log.error( "Couldn't parse data [${rawDate}] " + ex )
-            parseDate = null
-        }
-
-        return parseDate
-    }
-
-    /**
-     * Parse a date safely catching exceptions
-     *
-     * @param   sdf         SimpleDateFormat object with date format
-     * @param   rawdate     date to parse
-     * @return              parsed date or null if it failed
-     */
     static Date dateParse( SimpleDateFormat sdf, String rawDate )
     {
-        Date parseDate = null
+        Date parseDate
         try
         {
             parseDate = sdf.parse( rawDate )
         }
         catch (Exception ex )
         {
-            log.error( "Couldn't parse data [${rawDate}] " + ex )
+            log.error( "Couldn't parse date [${rawDate}] " + ex )
             parseDate = null
         }
 

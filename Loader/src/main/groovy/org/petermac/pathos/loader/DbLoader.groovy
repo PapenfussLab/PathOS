@@ -6,7 +6,6 @@
  */
 
 
-
 package org.petermac.pathos.loader
 
 import groovy.util.logging.Log4j
@@ -15,10 +14,8 @@ import org.petermac.annotate.VarDataSource
 import org.petermac.pathos.curate.*
 import org.petermac.pathos.pipeline.MakePanel
 import org.petermac.pathos.pipeline.SampleName
-import org.petermac.util.Classify
 import org.petermac.util.DateUtil
 import org.petermac.util.DbConnect
-import org.petermac.pathos.pipeline.HGVS
 import java.text.MessageFormat
 import java.text.SimpleDateFormat
 
@@ -43,7 +40,6 @@ import java.text.SimpleDateFormat
 @Log4j
 class DbLoader
 {
-    List newvars = []
     def  sql
 
     //  Number of records added before a flush is called
@@ -57,14 +53,9 @@ class DbLoader
     {
         log.info( "Starting Database Merge ${dbase}" )
 
-        //  Annotation object for DB
-        //
-        def vds = new VarDataSource( dbase )
-
         def cnt = 0
         def db  = new DbConnect( dbase )
         sql     = db.sql()
-        newvars = []
 
         cnt = addUsers()
         log.info( "Added ${cnt} Users")
@@ -75,7 +66,7 @@ class DbLoader
         cnt = addSamples( true )
         log.info( "Added ${cnt} Patient Samples")
 
-        cnt = addSampleTests( true )
+        cnt = addPatAssays( true )
         log.info( "Added ${cnt} Patient Sample Tests")
 
         cnt = addSeqrun( true )
@@ -90,8 +81,8 @@ class DbLoader
         cnt = addSeqSamples( true )
         log.info( "Added ${cnt} SeqSamples")
 
-        cnt = addSeqVariants( vds, true )
-        log.info( "Added ${cnt} SeqVariants")
+        int svcnt = LoadSeqVariant.addSeqVariants( sql, dbase )
+        log.info( "Added ${svcnt} SeqVariants")
 
         cnt = addAudits( true )
         log.info( "Added ${cnt} Audit logs")
@@ -102,7 +93,7 @@ class DbLoader
         cnt = addAlignStats( true )
         log.info( "Added ${cnt} Alignment stats")
 
-        if ( newvars )
+        if ( svcnt )
         {
             SeqVariant.withSession
             {
@@ -269,10 +260,7 @@ class DbLoader
         def qry = 	'''
                     select	distinct
                             md.sample,
-                            ifnull(mba.isca2015,'N')   as ca2015,
                             ifnull(md.location,'none') as pathlab,
-                            ifnull(mba.tumour,'T')     as tumour,
-                            if(mba.tumour = 'N', 'germline', 'tumour') as type,
                             md.urn,
                             md.requester,
                             md.collect_date,
@@ -282,9 +270,6 @@ class DbLoader
                             tt.formalstage,
                             tt.tumourstage
                     from	mp_detente as md
-                    left
-                    join	mp_batch as mba
-                    on		md.sample = mba.sample
                     left
                     join	mp_tumourtype as tt
                     on		md.sample = tt.sample
@@ -335,8 +320,6 @@ class DbLoader
             //
             sam = new PatSample(sample:         row.sample,
                                 patient:        pat,
-                                ca2015:         (row.ca2015 == 'Y'),
-                                tumour:         row.tumour,
                                 owner:	        user,
                                 collectDate:    collect_date,
                                 rcvdDate:       rcvd_date,
@@ -360,7 +343,7 @@ class DbLoader
      *
      * @return  Count of rows added
      */
-    int addSampleTests( boolean merge )
+    int addPatAssays(boolean merge )
     {
         log.info( 'Adding Patient Sample Tests')
 
@@ -415,8 +398,8 @@ class DbLoader
             //
             st  = new PatAssay(	patSample:         sam,
                                     authDate:       auth_date,
-                                    testSet:        row.test_set,
-                                    testName:       row.test_desc,
+                                    testSet:        (row.test_set).trim(),
+                                    testName:       (row.test_desc).trim(),
                                     genes:          row.genes
             )
 
@@ -457,10 +440,12 @@ class DbLoader
             //
             if ( merge && Seqrun.findBySeqrun( row.seqrun )) continue
 
-            //	Convert date to American format
+            //	Convert Seqrun date prefix (YYMMDD) to Date object
             //
             def sdf = new SimpleDateFormat("yyMMdd")
-            Date runDate = DateUtil.dateParse( sdf, (row.seqrun as String)[0..5] )
+            String seqrun = row.seqrun
+            Date runDate = new Date()
+            if ( seqrun =~ /\d{6}/ ) runDate = DateUtil.dateParse( sdf, seqrun[0..5] )
 
             //	Create Seqrun as domain class
             //
@@ -633,16 +618,11 @@ class DbLoader
                     		sr.seqrun,
                     		sr.sample,
                     		sr.panel,
-                    		ifnull(mba.dnaconc,0) as dnaconc,
                     		sr.analysis,
                             sr.username,
                             sr.useremail,
                             sr.laneno
                     from	mp_seqrun as sr
-                    left
-                    join	mp_batch as mba
-                    on		mba.seqrun = sr.seqrun
-                    and		mba.sample = sr.sample
     		        '''
 
         def rows  = sql.rows(qry)
@@ -699,7 +679,6 @@ class DbLoader
             def ss = new SeqSample(	seqrun:		seqrun,
                                     patSample:	patSample,
                                     panel:		panel,
-                                    dnaconc:	row.dnaconc,
                                     sampleName:	row.sample,
                                     analysis:	row.analysis,
                                     userName:	row.username,
@@ -817,361 +796,6 @@ class DbLoader
         }
 
         Seqrun.findAll()
-        return cnt
-    }
-
-    /**
-     * Add the sequenced variants to GORM
-     *
-     * @param   vds     Annotation database
-     * @param   merge   True if merging with existing records
-     * @return          Count of rows added
-     */
-    int addSeqVariants( VarDataSource vds, boolean merge )
-    {
-        log.info( 'Adding Sequenced Variants')
-
-        int cnt    = 0              // number of rows added
-        int rowcnt = 0              // row number
-
-        //  Gene filtering values
-        //
-        List<String>   filterGenes       = []
-        String         filterAssay       = 'noAssay'
-
-        //  Count the total number of records to retrieve
-        //
-        def qry  = 'select count(*) as norows from mp_vcf'
-        def rows = sql.rows(qry)
-        int recs = rows[0].norows as int
-        int page = 0
-        int psiz = 100000          // chunk size in records
-        log.info( "VCF variant rows : ${recs}")
-
-        //  Chunk through the records in chunks of ${psiz} records
-        //  Needed to avoid memory exhaustion
-        //
-        while ( page < recs )
-        {
-            //  Query RDB for all variants
-            //  NOTE: totalreaddepth is VCF file DP
-            //  NOTE: varreaddepth   is VCF file AD
-            //  NOTE: freq           is VCF file FREQ
-            //
-            def qryVar = 	"""
-                            select	vcf.ens_variant,
-                                    vcf.seqrun,
-                                    vcf.sample         as sampleName,
-                                    vcf.hgvsg,
-                                    vcf.hgvsc,
-                                    vcf.hgvsp,
-                                    vcf.totalreaddepth as readDepth,
-                                    vcf.varreaddepth   as varDepth,
-                                    vcf.freq           as vcfVaf,
-                                    vcf.chr,
-                                    vcf.pos,
-                                    vcf.rdf            as fwdReadDepth,
-                                    vcf.adf            as fwdVarDepth,
-                                    vcf.rdr            as revReadDepth,
-                                    vcf.adr            as revVarDepth,
-                                    vcf.status         as mutStatus,
-                                    vcf.muterr         as mutError,
-                                    vcf.numamps,
-                                    vcf.amps,
-                                    vcf.ampbias,
-                                    vcf.homopolymer,
-                                    vcf.varcaller
-                            from	mp_vcf as vcf
-                            limit   ${page},${psiz}
-                            """
-
-            page += psiz
-            rows = sql.rows( qryVar )
-            log.info( "Variants retrieved: ${rows.size()}")
-            SeqSample runs = null               //  Last SeqSample processed
-
-            for ( row in rows )
-            {
-                ++rowcnt
-
-                String variant = row.hgvsg
-                if ( variant == '' )
-                {
-                    log.error( "Missing hgvsg variant at ${row.ens_variant}")
-                    continue
-                }
-
-                String msg = "Row: ${rowcnt} Processing SeqVariant [${row.seqrun}:${row.sampleName}:${variant}]"
-                if ( rowcnt % 10000 == 0 )
-                {
-                    log.info( msg )
-                    /***
-                    def mem          = ManagementFactory.memoryMXBean
-                    def heapUsage    = mem.heapMemoryUsage
-                    def nonHeapUsage = mem.nonHeapMemoryUsage
-                    String memUsage  =  """
-                                        MEMORY:
-                                        HEAP STORAGE:
-                                        \tcommitted = $heapUsage.committed
-                                        \tinit      = $heapUsage.init
-                                        \tmax       = $heapUsage.max
-                                        \tused      = $heapUsage.used
-                                        NON-HEAP STORAGE:
-                                        \tcommitted = $nonHeapUsage.committed
-                                        \tinit      = $nonHeapUsage.init
-                                        \tmax       = $nonHeapUsage.max
-                                        \tused      = $nonHeapUsage.used
-                                        """
-                    log.info( memUsage )
-                    ***/
-                }
-
-                //  Skip lookups if the same sample name
-                //
-                if ( runs?.sampleName != row.sampleName )
-                {
-                    //	Lookup Seqrun
-                    //
-                    def seqr = Seqrun.findBySeqrun(row.seqrun)
-                    if (!seqr)
-                    {
-                        log.warn("Row: ${rowcnt} Couldn't find Seqrun [${row.seqrun}] Couldn't add SeqVariant [${row.hgvsg}:${row.hgvsc}]")
-                        continue
-                    }
-
-                    //	Lookup SeqSample
-                    //
-                    runs = SeqSample.findBySeqrunAndSampleName(seqr, row.sampleName)
-                    if (!runs)
-                    {
-                        log.warn("Row: ${rowcnt} Couldn't find SeqSample [${row.seqrun}:${row.sampleName}] Couldn't add SeqVariant [${row.hgvsg}:${row.hgvsc}]")
-                        continue
-                    }
-
-                    //  Reset filtering values with a change in SeqSample
-                    //
-                    filterGenes = []
-                    filterAssay = 'noAssay'
-
-                    //  Look at all assays for this sample (may be more than one)
-                    //
-                    SeqSample ss = SeqSample.findById(runs.id, [fetch: [patSample: 'eager']])
-
-                    //  If we have a Patient, find the PasAssays
-                    //
-                    if ( ss.patSample )
-                    {
-                        //  Get the patient Sample (eagerly so we can get its patAssays
-                        //
-                        PatSample ps = PatSample.findById(ss.patSample.id, [fetch: [patAssays: 'eager']])
-
-                        //  Get the patAssay names
-                        //
-                        List<String> patAssays = ps.patAssays.collect { it.testName }
-                        log.info("Found ${patAssays} in ${ps}")
-
-                        //  For each patAssay, find the genes in the assay
-                        //
-                        for ( pa in patAssays )
-                        {
-                            List genes = ReportService.sampleTestGenes(pa)
-
-                            //  Filtering only applies if we have an Assay that needs filtering
-                            //
-                            if (genes)
-                            {
-                                //  Save the genes used by the assay - make a union of all genes
-                                //
-                                log.debug( "filt ${filterGenes} genes ${genes}")
-                                filterGenes = (filterGenes + genes).unique()
-                                filterAssay = pa   //  Save the assay name
-                            }
-                        }
-                    }
-                }
-
-                //  Check if SeqVariant exists: look for specific SeqSample object and variant string
-                //
-                if ( SeqVariant.findBySeqSampleAndVariant( runs, variant )) continue
-
-                //  Retrieve VEP parameters for variant
-                //
-                Map vep = vds.getValueMap( 'VEP', variant )
-                if ( ! vep )
-                {
-                    //  Try an alias if variant doesn't exists in VEP cache eg dups
-                    //  Todo: get rid of this, getValueMap() looks up alias anyway
-                    //
-                    def alias = HGVS.ensToHgvsg( row.ens_variant )
-                    vep = vds.getValueMap( 'VEP', alias )
-                    if ( ! vep )
-                    {
-                        log.error( "Missing VEP annotation for ${variant}")
-                        continue
-                    }
-                }
-
-                //  Set VEP properties
-                //
-                row.gene                = vep.SYMBOL
-                row.consequence         = vep.Consequence
-                row.vepHgvsc			= vep.HGVSc
-                row.vepHgvsp			= vep.HGVSp
-                row.cosmic				= getCosmic( vep.Existing_variation )
-                row.dbsnp				= getDbsnp(  vep.Existing_variation )
-                row.exon				= vep.EXON ? 'ex' + vep.EXON : ''
-                row.gmaf				= vep.GMAF
-                if ( row.gmaf && row.gmaf.contains(':'))
-                {
-                    int i     = row.gmaf.lastIndexOf(':')
-                    double gd = row.gmaf.substring(i+1) as double
-                    row.gmaf  = gd * 100.0 as String
-                }
-                row.ens_transcript		= vep.Feature
-                row.ens_gene			= vep.Gene
-                row.ens_protein			= vep.ENSP
-                row.ens_canonical		= vep.CANONICAL
-                row.refseq_mrna			= vep.RefSeq_mRNA
-                row.refseq_peptide		= vep.RefSeq_peptide
-                row.existing_variation	= vep.Existing_variation
-                row.domains				= vep.DOMAINS
-                row.genedesc			= vep.GeneDesc
-                row.cytoband			= vep.Cytoband
-                row.omim_ids			= vep.OMIM_ids
-                row.clin_sig			= vep.CLIN_SIG
-                row.biotype				= vep.BIOTYPE
-                row.pubmed				= vep.PUBMED
-                row.cadd				= vep.CADD_RAW
-                row.cadd_phred			= vep.CADD_PHRED
-                row.exac				= vep.ExAC_AF
-
-                //  Filter out genes not in PatAssay before loading
-                //
-                if ( filterGenes && ! (row.gene in filterGenes))
-                {
-                    log.warn( "Filtered variant ${row.vepHgvsc} by gene ${row.gene} for PatAssay ${filterAssay} with ${filterGenes.size()} genes")
-                    continue
-                }
-
-                //  Add transcripts to VEP HGVS
-                //
-                if ( row.refseq_mrna && row.vepHgvsc )
-                    row.vepHgvsc = row.refseq_mrna    + ':' + row.vepHgvsc  //  may have multiple eg nm1|nm2|nm3
-                if ( row.refseq_peptide && row.vepHgvsp )
-                    row.vepHgvsp = row.refseq_peptide + ':' + row.vepHgvsp  //  may have multiple eg np1|np2|np3
-
-                //  Retrieve Annovar parameters for variant
-                //
-                Map anv = vds.getValueMap( 'ANV', variant )
-                if ( ! anv )
-                {
-                    //  Try an alias if variant doesn't exists in Annovar cache eg dups
-                    //
-                    def alias = HGVS.ensToHgvsg( row.ens_variant )
-                    anv = vds.getValueMap( 'ANV', alias )
-                    if ( ! anv )
-                    {
-                        log.error( "Missing ANV annotation for ${variant}")
-                        continue
-                    }
-                }
-
-                //  Set Annovar parameters - insilico predictors
-                //
-                row.cosmicOccurs	=	anv.cosmic68
-                def esp	            =	anv.esp6500si_all
-                def clinvarVal	    =	anv.clinvar_20140211
-                def siftCat	        =	anv.SIFT_pred
-                def polyphenCat	    =	anv.Polyphen2_HVAR_pred
-                def lrtCat	        =	anv.LRT_pred
-                def mutTasteCat	    =	anv.MutationTaster_pred
-                def mutAssessCat	=	anv.MutationAssessor_pred
-                def fathmmCat	    =	anv.FATHMM_pred
-                def metaSvmCat	    =	anv.RadialSVM_pred
-                def metaLrCat	    =	anv.LR_pred
-
-                //  Add additional properties to the SQL extracted ones
-                //
-                String clinvar = clinvarVal
-                if ( clinvar?.length() > 250 ) clinvar = clinvar.substring(0,250)
-                row <<  [
-                        seqSample:      runs,
-                        filtered:       false,
-                        reportable:     false,
-                        gmaf:           row.gmaf ? row.gmaf as Double : 0.0,
-                        esp:            esp  ? (esp  as Double) * 100.0 : 0.0,
-                        exac:           row.exac ? (row.exac as Double) * 100.0 : 0.0,
-                        cadd:           row.cadd ? row.cadd as Double : null,
-                        cadd_phred:     row.cadd_phred ? row.cadd_phred as Double : null,
-                        clinvarVal:     clinvar,
-                        clinvarCat:     Classify.clinvar( clinvar ),
-                        lrtVal:         lrtCat,
-                        lrtCat:         Classify.lrt(       lrtCat ),
-                        mutTasteVal:    mutTasteCat,
-                        mutTasteCat:    Classify.mutTaste(  mutTasteCat ),
-                        mutAssessVal:   mutAssessCat,
-                        mutAssessCat:   Classify.mutAssess( mutAssessCat ),
-                        fathmmVal:      fathmmCat,
-                        fathmmCat:      Classify.fathmm(    fathmmCat ),
-                        metaSvmVal:     metaSvmCat,
-                        metaSvmCat:     Classify.metaSvm(   metaSvmCat ),
-                        metaLrVal:      metaLrCat,
-                        metaLrCat:      Classify.metaLr(    metaLrCat ),
-                        siftVal:        siftCat,
-                        siftCat:        Classify.sift(      siftCat ),
-                        polyphenVal:    polyphenCat,
-                        polyphenCat:    Classify.polyphen(  polyphenCat ),
-                        variant:        variant,
-                        hgvsg:          variant
-                ]
-
-                //  Set variant frequency from varDepth and readDepth if they exist, otherwise use VCF VAF
-                //
-                if ( row.varDepth && row.readDepth )
-                    row.varFreq = row.varDepth * 100 / row.readDepth
-                else
-                    row.varFreq = row.vcfVaf
-
-                //  Validate gene and transcript  added kdd 03-aug-15
-                //
-                String transcript = HGVS.geneToTranscript( row.gene )
-                String hgvsc      = row.hgvsc
-                if ( ! transcript || ! hgvsc.startsWith( transcript ))
-                {
-                    log.error( "Transcript mismatch for gene=${row.gene} preferred=${transcript} HGVSc=${hgvsc} HGVSg=${row.hgvsg}")
-                    continue
-                }
-
-                //  Set link to CurVariant table if this variant has been curated
-                //  Todo: find curVariant by hgvsg and mutContext as well
-                //
-                row.curated = CurVariant.findByHgvsg( row.hgvsg )
-
-                //  Add 1 letter AA format
-                //
-                if ( row.hgvsp ) row.hgvspAa1 = HGVS.toAA1(row.hgvsp)       // add 1 letter AA HGVSp variant
-
-                //  Remove extra parameters
-                //
-                row.remove( 'seqrun' )
-                row.remove( 'vcfVaf' )
-
-                //  Create new SeqVariant and bind properties via enriched map of properties from SQL
-                //
-                def sv = new SeqVariant( row as Map )
-
-                //  Save the new SeqVariant instance
-                //
-                if ( ! saveRecord( sv, cnt % MAXFLUSH == 0)) continue
-
-                newvars << sv.variant
-                ++cnt
-            }
-
-            //  Remove duplicates
-            //
-            newvars = newvars.unique()
-        }
         return cnt
     }
 
