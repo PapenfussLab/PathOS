@@ -2,7 +2,7 @@
 PathOS is a decision support tool to manage, analyse and report on high throughput DNA sequencing variants.
 PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
 
-Authors: Ken Doig, Andre Seleznev, David Ma, Luis Lara, Tom Conway, Chris Love Date: February 2017 
+Authors: Ken Doig, Andre Seleznev, David Ma, Luis Lara, Tom Conway, Chris Love Date: April 2017 
 
 ## Introduction
 Clinical diagnostics is being transformed by DNA sequencing technology capable of analysing patient samples at the nucleotide level.
