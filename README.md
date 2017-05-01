@@ -2,7 +2,7 @@
 PathOS is a decision support tool to manage, analyse and report on high throughput DNA sequencing variants.
 PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
 
-Authors: Ken Doig, Andre Seleznev, David Ma, Luis Lara, Tom Conway, Chris Love Date: April 2017 
+Authors: Ken Doig, Andrei Seleznev, David Ma, Luis Lara, Tom Conway, Chris Love Date: April 2017 
 
 ## Introduction
 Clinical diagnostics is being transformed by DNA sequencing technology capable of analysing patient samples at the nucleotide level.
@@ -21,7 +21,7 @@ PathOS carries out these tasks within a clinical laboratory setting where many p
 
 The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
 
-There are two ways to virtualise PathOS for easy deployment, Docker containers or a Virtual Machine. [Docker](http://www.docker.com) is the more powerful method as it allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Lunix,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployments have been on Macs and Linux.
+There are two ways to virtualise PathOS for easy deployment, Docker containers or a Virtual Machine. [Docker](http://www.docker.com) is the more powerful method as it allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployments have been on Macs and Linux.
 The instructions and config files for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS).
 
 To trial the system locally as a VM, a demonstration virtual machine has been implemented as an easy way to experiment with an operational PathOS instance. See [here](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine).	
