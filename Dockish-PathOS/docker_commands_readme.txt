@@ -5,8 +5,8 @@
 #	Note this path must be able to be bind mounted into Docker containers.
 #	On MacOS, /Users /Volumes /tmp and /private are available by default
 #
-% mkdir -p /Users/Docker/PathOS
-% cd /Users/Docker/PathOS
+% mkdir -p /Users/PathOS
+% cd /Users/PathOS
 % git init
 % git remote add origin https://github.com/PapenfussLab/PathOS.git
 % git pull origin master
@@ -27,15 +27,15 @@
 
 #	Run image
 #
-% mkdir /Users/Docker/PathOS/Dockish-PathOS/docker/pathos/   # Needs to be visible to docker shared volumes
+% mkdir /Users/PathOS/Dockish-PathOS/docker/pathos/   # Needs to be visible to docker shared volumes
 
 #	Run image, populate pathos-build-cache (Mac ~45 min) and build artefacts (6 min) (Nectar PathosCore 2 min, Curate 24 min)
 #
-% docker run --rm -it -v /Users/Docker/PathOS/Dockish-PathOS/docker/pathos/:/pathos/ --volumes-from pathos-build-cache pathos-build
+% docker run --rm -it -v /Users/PathOS/Dockish-PathOS/docker/pathos/:/pathos/ --volumes-from pathos-build-cache pathos-build
 
 # check results
 #
-% ls -l /Users/Docker/PathOS/Dockish-PathOS/docker/pathos
+% ls -l /Users/PathOS/Dockish-PathOS/docker/pathos
 total 221328
 -rw-r--r--   1 kdd  1378455705  113316850 11 May 08:44 PathOS.war
 drwxr-xr-x   3 kdd  1378455705        102 11 May 08:42 Pipeline
@@ -46,19 +46,19 @@ drwxr-xr-x   7 kdd  1378455705        238 11 May 08:42 lib
 
 #	Setup image for pathos-tomcat 
 #
-% cd /Users/Docker/PathOS/Dockish-PathOS/docker
+% cd /Users/PathOS/Dockish-PathOS/docker
 % cp -v pathos/PathOS.war pathos-tomcat
 
 #	Setup image for pathos-tools
 #
-% cd /Users/Docker/PathOS/Dockish-PathOS/docker/pathos
+% cd /Users/PathOS/Dockish-PathOS/docker/pathos
 % tar cvzf tools.tgz bin/ etc/ lib/ Pipeline/ Report/
-% cp -v tools.tgz /Users/Docker/PathOS/Dockish-PathOS/docker/pathos-tools
+% cp -v tools.tgz /Users/PathOS/Dockish-PathOS/docker/pathos-tools
 
 #	Create a composite image of all dependent pathos images
 #
-% cd /Users/Docker/PathOS/Dockish-PathOS/docker
-% vi .env   ## edit the file .env and change PATHOS_DATA to be the root of the pipeline repository eg /Users/Docker/PathOS/docker/pathology
+% cd /Users/PathOS/Dockish-PathOS/docker
+% vi .env   ## edit the file .env and change PATHOS_DATA to be the root of the pipeline repository eg /Users/PathOS/docker/pathology
 % docker-compose build
 
 #	Check results
@@ -97,7 +97,7 @@ drwxr-xr-x   7 kdd  1378455705        238 11 May 08:42 lib
 #
 #	Note: curl may redirect
 #
-% cd /Users/Docker/PathOS
+% cd /Users/PathOS
 % curl -L -o pipeline.repository.tgz https://github.com/PapenfussLab/PathOS/releases/download/v1.3.0RC12-beta/pipeline.repository.tgz
 % tar xvf pipeline.repository.tgz
 
