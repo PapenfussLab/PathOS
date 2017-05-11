@@ -1,9 +1,5 @@
 FROM openjdk:7-jdk
 
-# Proxy hacks
-ENV http_proxy http://10.126.160.170:3128/
-ENV https_proxy http://10.126.160.170:3128/
-
 # Setup Grails
 ENV GRAILS_VERSION 2.3.7
 WORKDIR /usr/lib/jvm

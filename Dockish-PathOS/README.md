@@ -9,7 +9,7 @@ system. This is shown schematically [here](https://github.com/PapenfussLab/PathO
 
 ## To bring up an instance
 
-Follow these [commands](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/docker_commands_readme.txt) for Linux or MacOS.
+Follow these [commands](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/docker_commands_readme.txt) for building on Linux or MacOS without a proxy in the way.
 In summary:
 - clone/download this repository
 - build a WAR file for PathOS
@@ -23,6 +23,8 @@ In summary:
 To get data into an instance, you can use an invocation like:
 
     gzcat dbalt.170125.sql.gz | docker exec -i docker_pathos-mariadb_1 mysql -ubioinformatics -ppathos -D dblive -B
+
+Dealing with proxies can be tricky and is covered in 
 
 ## Using Docker Machine
 

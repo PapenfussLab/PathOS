@@ -10,7 +10,12 @@ export PATHOS_HOME=/pathos
 export PATHOS_GIT=${PATHOS_GIT:-"ssh://git@vm-115-146-91-157.melbourne.rc.nectar.org.au:7999/pat/pathos.git"}
 
 export GRAILS_ENV=${GRAILS_ENV:-pa_local}
-export GRAILS_OPTS="-Dhttp.proxyHost=10.126.160.170 -Dhttp.proxyPort=3128 -Dhttps.proxyHost=10.126.160.170 -Dhttps.proxyPort=3128 -Dgrails.dependency.cache.dir=/cache/grails"
+export GRAILS_OPTS="-Dgrails.dependency.cache.dir=/cache/grails"
+
+if test "$PATHOS_PROXY_HOST" != ""
+then
+    export GRAILS_OPTS="$GRAILS_OPTS -Dhttp.proxyHost=$PATHOS_PROXY_HOST -Dhttp.proxyPort=$PATHOS_PROXY_PORT -Dhttps.proxyHost=$PATHOS_PROXY_HOST -Dhttps.proxyPort=$PATHOS_PROXY_PORT"
+fi
 
 if ! test -d pathos
 then
@@ -19,12 +24,15 @@ fi
 cd pathos
 
 pushd PathosCore
+if test "$PATHOS_PROXY_HOST" != ""
+then
 cat >> gradle.properties << EOF
 systemProp.http.proxyHost=10.126.160.170
 systemProp.http.proxyPort=3128
 systemProp.https.proxyHost=10.126.160.170
 systemProp.https.proxyPort=3128
 EOF
+fi
 gradle --gradle-user-home /cache/gradle --stacktrace uploadArchives
 popd
 
