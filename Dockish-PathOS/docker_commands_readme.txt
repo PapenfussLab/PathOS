@@ -58,46 +58,52 @@ drwxr-xr-x   7 kdd  1378455705        238 11 May 08:42 lib
 #	Create a composite image of all dependent pathos images
 #
 % cd /Users/PathOS/Dockish-PathOS/docker
-% vi .env   ## edit the file .env and change PATHOS_DATA to be the root of the pipeline repository eg /Users/PathOS/docker/pathology
+% vi .env   ## edit the file .env and change PATHOS_DATA to be the root of the pipeline repository eg /Users/PathOS/Dockish-PathOS/docker/pathology
 % docker-compose build
 
 #	Check results
 #
 % docker images
 
-#	Populate DB  (copy example DB from this repository - From Release Downloads https://github.com/PapenfussLab/PathOS/releases/tag/v1.3.0RC12-beta)
-#
-#	Note: curl may redirect
-#
-% curl -L -o dbalt.170125.sql.gz https://github.com/PapenfussLab/PathOS/releases/download/v1.3.0RC12-beta/dbalt.170125.sql.gz
-% gzcat dbalt.170125.sql.gz | docker exec -i docker_pathos-mariadb_1 mysql -ubioinformatics -ppathos -D dblive -B
-
-#	Start up docker pathos (50s !)
+#	Start up docker pathos (~50s !)
 #
 % docker-compose up [-d]   ## -d to run as daemon
 
-## Go to browser (Mac)    https://localhost/PathOS/
-
-#####################################################################
-#
-#	A d d i t i o n a l   c o m m a n d s   
-#
-#	Check that they came up and have the right ports
+#	From a new terminal window
+#	Check that the Docker containers came up and have the right ports
 #
 % docker container ls
 % docker ps
 
-#	To restart tomcat 
-#
-% docker restart docker_pathos-tomcat  # may need docker_pathos-tomcat_1
-
-#	To populate an example pipeline data repository (VCFs BAMs etc)
-#
-#	From Release Downloads https://github.com/PapenfussLab/PathOS/releases/tag/v1.3.0RC12-beta
+#	Populate DB Copy example DB from this repository 
+#	From Release Downloads https://github.com/PapenfussLab/PathOS/releases/tag/v1.3.0RC12-beta)
 #
 #	Note: curl may redirect
+#	Note: container must be running to load DB
 #
-% cd /Users/PathOS
+% curl -L -o dbalt.170125.sql.gz https://github.com/PapenfussLab/PathOS/releases/download/v1.3.0RC12-beta/dbalt.170125.sql.gz
+% gunzip < dbalt.170125.sql.gz | docker exec -i docker_pathos-mariadb_1 mysql -ubioinformatics -ppathos -D dblive -B
+
+#	To restart tomcat after the DB load (or UI errors)
+#
+% docker restart docker_pathos-tomcat_1
+
+## Go to browser (Mac)    https://localhost/PathOS/
+
+#	PathOS has an inbuilt IGV browser (www.igv.org) which can display sample VCFs and BAMs
+#
+#	To populate an example pipeline data repository (VCFs BAMs etc) follow the steps below
+#	Because of the size of BAM files, only a few samples have VCF and BAMs for viewing.
+#	Navigate to the following Sequencing Runs using Search
+#	170104_M00139_0111_000000000-B327T
+#	170105_M01053_0480_000000000-B327P
+#	170106_M00139_0112_000000000-B3285
+#	170106_M01053_0481_000000000-AVVKE
+#
+#	Load BAMs and VCFs from Release Downloads https://github.com/PapenfussLab/PathOS/releases/tag/v1.3.0RC12-beta
+#	Note: curl may redirect
+#
+% cd /Users/PathOS/Dockish-PathOS/docker/
 % curl -L -o pipeline.repository.tgz https://github.com/PapenfussLab/PathOS/releases/download/v1.3.0RC12-beta/pipeline.repository.tgz
 % tar xvf pipeline.repository.tgz
 

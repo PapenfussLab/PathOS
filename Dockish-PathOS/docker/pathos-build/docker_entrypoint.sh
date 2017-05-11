@@ -7,7 +7,7 @@ set -e
 export BUILD_HOME=/build/pathos
 export PATHOS_HOME=/pathos
 
-export PATHOS_GIT=${PATHOS_GIT:-"ssh://git@vm-115-146-91-157.melbourne.rc.nectar.org.au:7999/pat/pathos.git"}
+export PATHOS_GIT=${PATHOS_GIT:-"https://github.com/PapenfussLab/PathOS.git"}
 
 export GRAILS_ENV=${GRAILS_ENV:-pa_local}
 export GRAILS_OPTS="-Dgrails.dependency.cache.dir=/cache/grails"
@@ -17,11 +17,12 @@ then
     export GRAILS_OPTS="$GRAILS_OPTS -Dhttp.proxyHost=$PATHOS_PROXY_HOST -Dhttp.proxyPort=$PATHOS_PROXY_PORT -Dhttps.proxyHost=$PATHOS_PROXY_HOST -Dhttps.proxyPort=$PATHOS_PROXY_PORT"
 fi
 
-if ! test -d pathos
+if ! test -d PathOS
 then
     git clone ${PATHOS_BRANCH:+-b "$PATHOS_BRANCH"} "$PATHOS_GIT"
 fi
-cd pathos
+
+cd PathOS
 
 pushd PathosCore
 if test "$PATHOS_PROXY_HOST" != ""

@@ -22,19 +22,14 @@ RUN wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-
 
 RUN mkdir /pathos           && \
     mkdir /build            && \
+    mkdir /root/.grails     && \
     mkdir -p /cache         && \
     mkdir -p /cache/gradle  && \
     mkdir -p /cache/grails  && \
-    mkdir -p /root/.ssh     && \
-    mkdir -p /root/.grails  && \
     echo grails.dependency.cache.dir = \"/cache/grails\" > /root/.grails/settings.groovy
 
-COPY pathos-ssh-config /root/.ssh/config
-COPY pathos-git-rsa_id /root/.ssh/id_rsa
 COPY docker_entrypoint.sh /
-RUN chmod 0400 /root/.ssh/config    && \
-    chmod 0400 /root/.ssh/id_rsa    && \
-    chmod +x /docker_entrypoint.sh
+RUN chmod +x /docker_entrypoint.sh
 WORKDIR /build
 CMD /docker_entrypoint.sh
 
