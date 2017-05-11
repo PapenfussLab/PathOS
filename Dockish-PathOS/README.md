@@ -16,15 +16,15 @@ In summary:
 - invoke: docker-compose build
   This will download the necessary docker images and build the
   required derived images.
+- populate a demonstration database
 - invoke: docker-compose up
   This will create the necessary containers.
   It may take a minute or two to start up.
+- browse to http://localhost/PathOS
 
-To get data into an instance, you can use an invocation like:
-
-    gzcat dbalt.170125.sql.gz | docker exec -i docker_pathos-mariadb_1 mysql -ubioinformatics -ppathos -D dblive -B
-
-Dealing with proxies can be tricky and is covered in 
+Dealing with proxies can be tricky and is covered [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/docker/pathos-build) 
+and below. It is recomended to perform the build process outside an organisation's proxy to reduce any networking problems. We are in the process
+of making pre-built images available to simplify deployments.
 
 ## Using Docker Machine
 
