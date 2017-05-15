@@ -90,6 +90,16 @@ drwxr-xr-x   7 kdd  1378455705        238 11 May 08:42 lib
 
 ## Go to browser (Mac)    https://localhost/PathOS/
 
+#	To login to PathOS use the following table of credentials
+#	ROLE_ADMIN may create users via the LHS navigation pane/Users menu
+#
+#	The following role/user/pass combinations have been setup 
+#	Role          User          Password
+	ROLE_VIEWER   pathosviewer  pathos
+	ROLE_LAB      pathoslab     pathos
+	ROLE_CURATOR  pathoscurator pathos
+	ROLE_ADMIN    pathosadmin   pathos
+
 #	PathOS has an inbuilt IGV browser (www.igv.org) which can display sample VCFs and BAMs
 #
 #	To populate an example pipeline data repository (VCFs BAMs etc) follow the steps below
