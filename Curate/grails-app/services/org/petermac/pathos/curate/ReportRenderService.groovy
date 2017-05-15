@@ -349,7 +349,7 @@ class ReportRenderService
             //
             CurVariant cv     = sv.allCurVariants().find({ cv -> cv.clinContext == null})
             String reportDesc = cv?.reportDesc ?: ''
-            String pmClass    = cv.pmClass
+            String pmClass    = cv?.pmClass
 
             //  Add the report description for the current disease context
             //
