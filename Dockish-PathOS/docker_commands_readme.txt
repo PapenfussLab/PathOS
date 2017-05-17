@@ -67,7 +67,7 @@ drwxr-xr-x   7 kdd  1378455705        238 11 May 08:42 lib
 
 #	Start up docker pathos (~50s !)
 #
-% docker-compose up [-d]   ## -d to run as daemon
+% docker-compose up   ## add -d to run as daemon
 
 #	From a new terminal window
 #	Check that the Docker containers came up and have the right ports
