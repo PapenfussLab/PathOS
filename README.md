@@ -17,6 +17,15 @@ The resulting few variants are then rendered into a clinical diagnostic report s
 
 PathOS carries out these tasks within a clinical laboratory setting where many patients must be reported on in a reliable, consistent and efficient manner.
 
+## Citation
+Please consider citing [PathOS](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-017-0427-z) if you use it in your analysis.
+
+> **PathOS: a decision support system for reporting high throughput sequencing of cancers in clinical diagnostic laboratories** <br/>
+> _Kenneth D. DoigEmail author, Andrew Fellowes, Anthony H. Bell, Andrei Seleznev, David Ma, Jason Ellul, Jason Li, Maria A. Doyle, Ella R. Thompson, Amit Kumar, Luis Lara, Ravikiran Vedururu, Gareth Reid, Thomas Conway, Anthony T. Papenfuss and Stephen B. Fox_ <br/>
+> Genome Medicine (2017) <br/>
+> doi: [10.1186/s13073-017-0427-z](https://doi.org/10.1186/s13073-017-0427-z) <br/>
+> PMID: [28438193](http://www.ncbi.nlm.nih.gov/pubmed/28438193)
+
 ## Quick Start
 
 The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
