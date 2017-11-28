@@ -28,7 +28,7 @@ Please consider citing [PathOS](https://genomemedicine.biomedcentral.com/article
 
 ## Quick Start
 
-The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.87.30:8746/PathOS) set up on the Nectar research cloud.
+The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.92.25:8123/PathOS) set up on the Nectar research cloud.
 
 There are two ways to virtualise PathOS for easy deployment, Docker containers or a Virtual Machine. [Docker](http://www.docker.com) is the more powerful method as it allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployments have been on Macs and Linux.
 The instructions and config files for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS).
