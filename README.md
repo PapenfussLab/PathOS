@@ -1,5 +1,5 @@
 # PathOS
-PathOS is a clinical decision support tool to manage, analyse and report on high throughput DNA sequencing variants.
+PathOS is a clinical decision support tool to manage, analyse and report on DNA sequencing variants.
 PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
 
 Authors: [Ken Doig](https://www.petermac.org/users/dr-kenneth-doig), Andrei Seleznev, David Ma, Luis Lara, Tom Conway, Chris Love, 2014-2019 
@@ -38,7 +38,7 @@ The backend database is implemented with MariaDB, a MySQL compatible relational 
 
 Build management uses Gradle to build system modules and create shared artifacts such as JARs, WARs and TAR files. Internally, Atlassian Bamboo is used for continuous integration to perform builds of system modules triggered by developer commits to the code repository.
 
-The PathOS search engine is implemented in Apache Lucene. This is a powerful search framework allowing customised search capabilities over any text field in the PathOS domain model.
+The PathOS search engine is implemented in Apache Lucene allowing customised search capabilities over any text field in the PathOS domain model.
 
 ## Installation
 PathOS has been deployed in a number of clinical environments but is a large complex application with a number of interfaces to external systems that need to be integrated for full featured operation. It has been built from the ground up to meet the clinical workflow needs of the Peter MacCallum Cancer Centre and this is reflected in some of the architectural decisions. 
