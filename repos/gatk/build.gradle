@@ -1,0 +1,19 @@
+apply from: '../../scripts/common.gradle'
+
+group = "org.broadinstitute"
+version = '1.0'
+
+jar {
+    baseName = 'gatk'
+}
+
+artifacts {
+    archives file('gatk-1.0.jar')
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+    	files('./gatk-1.0.jar')
+    }
+}
+

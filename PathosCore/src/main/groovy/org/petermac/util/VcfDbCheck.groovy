@@ -100,7 +100,7 @@ class VcfDbCheck
         if ( opt.errors )
             errFile = new File( opt.errors as String )
         errFile.delete()
-        errFile << Vcf.header( errFile.name.replaceFirst('.vcf',''))    // create a VCF header for easy fault finding
+        errFile << Vcf.header( 'VcfDbCheck', [], errFile.name.replaceFirst('.vcf',''))    // create a VCF header for easy fault finding
 
         //  Perform data load
         //
@@ -197,6 +197,10 @@ class VcfDbCheck
         for ( var in vars )
         {
             ++nvar
+
+            //  todo if var has been MASKED, do not CHECK!
+            //
+
 
             //  Set the variant to check, first try for VCF info annotation (HGVSg=chrn:g.nnnn)
             //  if that fails do a conversion of the raw variant

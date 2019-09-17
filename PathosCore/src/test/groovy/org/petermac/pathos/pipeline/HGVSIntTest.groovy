@@ -1,4 +1,5 @@
 package org.petermac.pathos.pipeline
+import org.petermac.util.Locator
 
 import org.petermac.pathos.pipeline.HGVS
 
@@ -11,15 +12,19 @@ import org.petermac.pathos.pipeline.HGVS
  */
 class HGVSIntTest extends GroovyTestCase
 {
-
+    static Locator  loc  = Locator.instance
     String DB
 
     void setUp()
     {
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB = loc.pathosEnv
 
+    }
+
+    void testAndrei() {
+        println System.getenv()
     }
 
     def muts = '''NM_000558.3:c.247_254C>A
@@ -45,6 +50,7 @@ class HGVSIntTest extends GroovyTestCase
     }
 
     // task needed to bootstrap DB
+
     void testGene()
     {
         def hg = new HGVS( DB )

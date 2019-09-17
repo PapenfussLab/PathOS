@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+#       ReloadSeqrun     Reload a sequencing run and samples
+#
+#       01      Tom Conway  04-Jun-18
+#       02      Ken Doig    06-Jun-18   Added getopts
+#       03      David Ma    09-Aug-18   Add version number for babble mario
+#
+
+set -e
+
+#   process -options
+#
+HELP=0
+pa_env=pa_dev
+seqrun=none
+nargs=$#
+version='1.5.3'
+
+while getopts r:s:h\? opt                    # Add additional options here
+
+do  case "$opt" in
+    r)      pa_env="$OPTARG";;
+    s)      seqrun="$OPTARG";;
+    h)      HELP=1;;
+    [?])    HELP=1;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
+#   output usage if required
+#
+if [ $nargs -eq 0 -o $seqrun == "none" -o $HELP -eq 1 ]; then    # Set number of required arguments here
+    echo "
+    Usage: `basename $0` [options]
+
+    Options:
+            -r <pa_env>     Database to load [pa_dev]
+            -s <seqrun>     Seqrun to use 
+
+    Seqrun loader command
+    " 1>&2
+
+    exit 1
+fi
+
+function reloadOne() {
+
+env=$1
+run=$2
+
+babbleScripLocation=$(mktemp /tmp/seqrun-reload-config.XXXXXXXX)
+seqrunYamlLocation=$(mktemp /tmp/seqrun-reload-data.XXXXXXXX)
+trap "rm -f ${babbleScripLocation} ${seqrunYamlLocation}" EXIT
+
+found=0
+for loc in Runs Archives Testing
+do
+    for seq in MiSeq NextSeq
+    do
+        fn="/pipeline/${loc}/${seq}/${run}/LIMS_${run}.xml"
+        if test -f ${fn}
+        then
+            found=1
+            break
+        fi
+    done
+    if [ $found -eq 1 ]
+    then
+        break
+    fi
+done
+
+if [ $found -ne 1 ]
+then
+    echo "could not find LIMS XML file for run ${run}" 1>&2
+    return 1
+fi
+
+cat > ${babbleScripLocation} << EOF
+dynamic:
+  translators:
+  - name: lims-expander
+    path: file:/pathology/NGS/$env/lib/babble-mario-${version}-all.jar
+    class: org.petermac.babble.mario.MarioLimsHandler
+
+channels:
+  - label: 'LIMS XML feed'
+    source:
+      pulse:
+        value: '${fn}'
+        interval: 1 
+        limit: 1 
+    translator:
+      lims-expander:
+        wanted-analysis-types:
+          - 'Pathology_hyb_CCP_1'
+          - 'Pathology_hyb_CCP_2'
+          - 'Pathology_hyb_CCP_2_dev'
+          - 'Pathology_hyb_DRCP_1'
+          - 'Pathology_hyb_FRCP_1.1'
+          - 'Pathology_hyb_FRCP_1.2'
+          - 'Pathology_hyb_PHCP_1.1'
+          - 'Pathology_hyb_PHCP_2'
+          - 'Pathology Amplicon Germline'
+          - 'Pathology Amplicon Haematology'
+          - 'Pathology Amplicon Other'
+          - 'Pathology Amplicon Somatic'
+          - 'Amplicon'
+    destination:
+      file:
+        name: '${seqrunYamlLocation}'
+        encoding: 'yaml'
+EOF
+
+babble -f ${babbleScripLocation}
+LoaderCli -r $env -y ${seqrunYamlLocation}
+
+return 0
+}
+
+reloadOne $pa_env $seqrun

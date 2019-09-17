@@ -30,7 +30,7 @@ class GrpVariant
     static mapping =
     {
         autoTimestamp true
-        accession     index: 'comb_index', unique: true
+        //accession     index: 'comb_index', unique: true
         //accession     indexColumn: [name:'grp_variant_accession', index:'comb_index', unique: true ]
     }
 

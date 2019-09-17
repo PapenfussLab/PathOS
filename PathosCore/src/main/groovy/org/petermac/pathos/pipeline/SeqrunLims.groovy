@@ -264,7 +264,7 @@ class SeqrunLims
 
             //  Parse Individual Samples
             //
-            samMap << [ sample:     cleanSampleName(samNode.@LibraryName) ]
+            samMap << [ sample:     SampleName.clean(samNode.@LibraryName) ]
             samMap << [ analysis:   samNode.@AnalysisType ]
             samMap << [ reference:  samNode.@ReferenceGenome ]
             samMap << [ useremail:  (samNode.@UserEmail)?.toLowerCase() ]
@@ -330,7 +330,7 @@ class SeqrunLims
             for( samNode in samNodes )
             {
                 Map samMap = [:]
-                samMap << [ sample:     cleanSampleName(samNode.@LibraryName) ]
+                samMap << [ sample:     SampleName.clean(samNode.@LibraryName) ]
                 samMap << [ analysis:   samNode.@AnalysisType ]
                 samMap << [ reference:  samNode.@ReferenceGenome ]
                 samMap << [ useremail:  (samNode.@UserEmail)?.toLowerCase() ]
@@ -385,20 +385,6 @@ class SeqrunLims
         if ( samples ) flat << [ samples: samples ]
 
         return flat
-    }
-
-    /**
-     * Replace non alphnum chars and '_' in sample name with '-'
-     *
-     * @param sample
-     * @return
-     */
-    static String cleanSampleName( String sample )
-    {
-        if ( sample )
-            return sample.replaceAll( /[\W_]/, '-')
-
-        return null
     }
 
     /**

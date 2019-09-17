@@ -1,0 +1,7 @@
+//  Release version
+//
+def version = '1.5.1'
+
+include 'YamlTools'
+include 'AmqpTools'
+include 'Hl7Tools'

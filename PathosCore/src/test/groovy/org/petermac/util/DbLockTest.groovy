@@ -5,14 +5,14 @@ package org.petermac.util
  */
 class DbLockTest extends GroovyTestCase
 {
-
+    static Locator loc  = Locator.instance
     String DB
 
     void setUp()
     {
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB = loc.pathosEnv
         assert DB != null : "[T E S T]: ${DB} does not look like a valid database"
 
     }

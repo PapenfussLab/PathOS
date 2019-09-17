@@ -23,14 +23,15 @@ class Tag {
 
     static mapping =
     {
-        isAuto default: false
+        isAuto                  ( default: false )
+        description             ( type: 'text' )
     }
 
     static constraints =
     {
-        label ( unique: true, nullable: false )
-        createdBy ( nullable: false )
-        description ( maxSize: 8000, nullable: true )
+        label                   ( unique: true, nullable: false )
+        createdBy               ( nullable: false )
+        description             ( nullable: true )
     }
 
     String	toString()

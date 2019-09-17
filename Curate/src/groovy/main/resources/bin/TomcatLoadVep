@@ -1,0 +1,11 @@
+#needed for tomcat to run vep, which it does via vcfloader. call this with source.
+
+export PATH=$PATH:/config/binaries/ensembl_api/90
+export PATH=$PATH:/config/binaries/ensembl_api/90/htslib
+export PATH=$PATH:/config/binaries/ensembl_api/90/bin
+export PERL5LIB=$PERL5LIB:/config/binaries/ensembl_api/90
+export PERL5LIB=$PERL5LIB:/config/binaries/ensembl_api/cache/Plugins_90
+export PERL5LIB=$PERL5LIB:/config/binaries/ensembl_api/90/lib64/perl5
+export PERL5LIB=$PERL5LIB:/config/binaries/ensembl_api/90/lib/perl5/x86_64-linux-thread-multi
+export PERL5LIB=$PERL5LIB:/config/binaries/ensembl_api/90/modules
+export PERL5LIB=$PERL5LIB:/config/binaries/perl-modules/other/lib/perl5

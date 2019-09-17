@@ -7,15 +7,15 @@ class HouseKeepingTest extends GroovyTestCase
 {
     //TODO Leave this test for later, wierd perfomance
     String DB
-
+    static Locator loc  = Locator.instance
     void setUp()
     {
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB = loc.pathosEnv
 
     }
-
+    /*  DEPRECATED
 //    void testCheckifup()
 //    {
 //        def hk = new HouseKeeping()
@@ -61,5 +61,5 @@ class HouseKeepingTest extends GroovyTestCase
 
     }
 
-
+    */
 }

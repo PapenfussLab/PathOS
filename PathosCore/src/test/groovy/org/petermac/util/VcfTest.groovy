@@ -106,7 +106,7 @@ class VcfTest extends GroovyTestCase
     {
         String sample = 'Sample'
         String s = "##fileformat=VCFv4.1\n" +
-                "##source=VarScan2\n" +
+                "##source=VcfTest\n" +
                 "##INFO=<ID=ADP,Number=1,Type=Integer,Description=\"Average per-sample depth of bases with Phred score >= 20\">\n" +
                 "##INFO=<ID=WT,Number=1,Type=Integer,Description=\"Number of samples called reference (wild-type)\">\n" +
                 "##INFO=<ID=HET,Number=1,Type=Integer,Description=\"Number of samples called heterozygous-variant\">\n" +
@@ -140,10 +140,10 @@ class VcfTest extends GroovyTestCase
 
 
         def vcf = new Vcf()
-        assert vcf.header() == s
+        assert vcf.header( 'VcfTest', []) == s
 
         s = "##fileformat=VCFv4.1\n" +
-                "##source=VarScan2\n" +
+                "##source=VcfTest\n" +
                 "##INFO=<ID=ADP,Number=1,Type=Integer,Description=\"Average per-sample depth of bases with Phred score >= 20\">\n" +
                 "##INFO=<ID=WT,Number=1,Type=Integer,Description=\"Number of samples called reference (wild-type)\">\n" +
                 "##INFO=<ID=HET,Number=1,Type=Integer,Description=\"Number of samples called heterozygous-variant\">\n" +
@@ -156,6 +156,7 @@ class VcfTest extends GroovyTestCase
                 "##INFO=<ID=ampbias,Number=1,Type=String,Description=\"is there a bias across amplicons for variant\">\n" +
                 "##INFO=<ID=fsRescue,Number=1,Type=String,Description=\"Can variant be rescued from a frameshift in phase\">\n" +
                 "##INFO=<ID=homopolymer,Number=1,Type=String,Description=\"Is variant next to a homopolymer run\">\n" +
+                "##INFO=<ID=dummy,Number=1,Type=String,Description=\"dummy INFO field\">\n" +
                 "##FILTER=<ID=str10,Description=\"Less than 10% or more than 90% of variant supporting reads on one strand\">\n" +
                 "##FILTER=<ID=indelError,Description=\"Likely artifact due to indel reads at this position\">\n" +
                 "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n" +
@@ -174,7 +175,7 @@ class VcfTest extends GroovyTestCase
                 "##FORMAT=<ID=ADR,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases on reverse strand (reads2minus)\">\n" +
                 "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tTEST\n"
 
-        assert vcf.header('TEST') == s
+        assert vcf.header( 'VcfTest', ['dummy'], 'TEST') == s
 
 
     }

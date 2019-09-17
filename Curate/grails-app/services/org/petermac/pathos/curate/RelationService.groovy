@@ -8,6 +8,9 @@
 package org.petermac.pathos.curate
 import groovy.util.logging.Log4j
 import org.petermac.util.Locator
+import org.petermac.pathos.pipeline.SampleName
+
+import java.text.MessageFormat
 
 
 /**
@@ -49,13 +52,17 @@ class RelationService {
         {
             def sr = SeqRelation.get(srid)
             log.info( "Deleting relation ${sr}")
-            def sss = sr.samples.collect { it.id }
+            def sss = sr.samples().collect { it.id }
             for ( ssid in sss )
             {
                 def ss = SeqSample.get(ssid)
                 ss.removeFromRelations(sr)
             }
-            sr.delete()
+            try {
+                sr.delete()
+            } catch (Exception e) {
+                println "Failed to delete sr ${sr} id ${sr.id} - possibly it references non-existing seqsamples. Please delete manually."
+             }
         }
     }
 
@@ -92,7 +99,7 @@ class RelationService {
                 {
                     //  Add a dup relationship if we don't have one
                     //
-                    if ( ! duprel.samples?.contains(ss))
+                    if ( ! duprel.samples()?.contains(ss))
                     {
                         ss.addToRelations( duprel ).save()
                         ++cnt
@@ -107,7 +114,7 @@ class RelationService {
     }
 
     /**
-     * Add duplicate relation records for a list of Seqrun
+     * Add replicate relation records for a list of Seqrun
      *
      * @param   seqruns     List of Seqrun
      * @param   check       Check for existing relations
@@ -121,8 +128,7 @@ class RelationService {
 
         //  Add SeqSample replicate relations
         //
-        for ( sr in seqruns )
-        {
+        for (sr in seqruns) {
 
             if (!sr.seqSamples) {
                 continue    //skip seqruns with no seqsamples
@@ -135,51 +141,42 @@ class RelationService {
             List  sampleList = sr.seqSamples.sampleName
             Map   replicates = [:]      // Map of sample basename to a List of replicates in a Seqrun
 
-            // Loop through samples and create a Map of Lists of samples with a
-            // common base sample name after any trailing suffix of  "-nnn" has been stripped off
+            // Group the samples according to their basename.
             //
-            for ( sample in sr.seqSamples )
-            {
-                //  Match sample-nnn
-                //
-                def match = ( sample.sampleName =~ /(.*)\-\d$/ )
-                if ( match.count == 1 )
-                {
-                    String base = match[0][1]
-
-                    //  Create a Map keyed on the sample base name
-                    //
-                    if ( ! replicates[base] )
-                    {
-                        replicates[base] = []
-                        if ( sampleList.contains(base))
-                            replicates[base] << sr.seqSamples.find{ it.sampleName == base }        //  add base name to replicates if in seqrun
-                    }
-                    replicates[base] << sample
+            for (sample in sr.seqSamples) {
+                def sn = SampleName.baseName(sample.sampleName)
+                if (!replicates[sn]) {
+                    replicates[sn] = []
                 }
+                replicates[sn] << sample
             }
 
             //  Create a replicate relation for each replicate of 2 or more samples
             //
-            for ( rep in replicates )
-            {
+            for (rep in replicates) {
                 List<SeqSample> sams = rep.value
-                if ( sams.size() < 2 ) continue
+                if (sams.size() < 2) {
+                    continue
+                }
+
+                // Name the replicate group with the seqrun and basename
+                // so that replicates of the same sample in different
+                // seqruns get separate records.
+                //
+                String repName = "${sr.seqrun}-${rep.key}"
 
                 //  Do we already have a SeqRelation for this SeqSample ? If not, create one
                 //
-                SeqRelation reprel = ( check ? SeqRelation.findByRelationAndBase( "Replicate", rep.key as String ) : null )
-                if ( ! reprel ) reprel = new SeqRelation( relation: 'Replicate', base: rep.key ).save()
+                SeqRelation reprel = (check ? SeqRelation.findByRelationAndBase( "Replicate", repName) : null)
+                if (! reprel) {
+                    reprel = new SeqRelation( relation: 'Replicate', base: repName).save()
+                }
 
-                for ( ss in sams )
-                {
-                    if ( ! reprel.samples?.contains(ss))
-                    {
-                        ss.addToRelations( reprel ).save()
+                for (ss in sams) {
+                    if (!reprel.samples()?.contains(ss)) {
+                        ss.addToRelations(reprel).save()
                         cnt++
                     }
-                    else
-                        log.warn("Already in relation ${reprel}")
                 }
             }
         }
@@ -187,78 +184,170 @@ class RelationService {
         return cnt
     }
 
-
-
     /**
-     *  Returns primary SeqSample of the SeqRelation
-     *  Primary is defined as latest SeqSample (by date) in a Duplicate relaitonship,  or first ('having the first number, lexicographically')  SeqSample if a Replicate relationship
-     *  null if not dup or rep as other relationships aren't hiearchical
-     * @param seqRelation
-     * @return
+     * Infer the replicate relations and duplicate relations to which this sample belongs.
+     *
+     * @param sample    The SeqSample
+     * @return nothing
      */
-    static SeqSample getPrimary(seqRelation) {
+    static void inferReplicatesAndDuplicates(SeqSample sample) {
+        String base = SampleName.baseName(sample.sampleName)
+        Map samplesBySeqrun = [:]
 
-        switch(seqRelation.relation) {
-            case ('Duplicate'):
-
-                // For duplicates, seqsample is primary if it's the earliest
-                // iterate over seqsamples, store earleirst
-                //
-                SeqSample oldestSample = null
-                for (ss in seqRelation.samples) {
-
-                    if (!oldestSample) {
-                        oldestSample = ss
-                    } else if (ss.seqrun.runDate.before(oldestSample.seqrun.runDate)) { //if this one is older than the current oldest
-                        oldestSample = ss
-                    }
+        // If the patSample is set, then gather up the SeqSamples with this PatSample.
+        //
+        if (sample.patSample) {
+            SeqSample.findAllByPatSample(sample.patSample).each { s ->
+                if (s.id == sample.id) {
+                    return
                 }
-
-                return oldestSample
-                break;
-
-             case ('Replicate'):
-                // Seqsample is primary if has first number lexicographically e.g. it has no '-<number>' or "-number" is lowest
-                // Note that behaviour is underfined for Replicate relationships with incorrect sample naming scheme
-
-                SeqSample primary = null
-
-                for (ss in seqRelation.samples) {
-                    if(!ss.toString().contains('-')) {      //if no '-' in here, it's going to be the primary
-                        primary = ss //if no '-<number>' then we're taking this as primary
-                        continue     //go on with loop
-                    }
-
-                    if(!primary) {  //first iteration of loop, set this one primary
-                        primary = ss
-                    } else {
-
-                        //see our lexo score for both our 'current primary' sample and for 'the ss we are looking at now'
-                        //and assign current ss as primary if it wins
-                        //
-                        def primScore = 0
-                        def ssScore = 0
-                        if (primary.sampleName.contains('-') && primary.sampleName.split('-').last().isNumber()) { //split it if it's goT a '-number' ending
-                                primScore = primary.sampleName.split('-').last().toInteger()
-                        }
-                        if (ss.sampleName.contains('-') && ss.sampleName.split('-').last().isNumber()) {
-                               ssScore = ss.sampleName.split('-').last().toInteger()
-                        }
-
-                        if (primScore > ssScore) {  //the SS we are looking at now is "earlier" lexiconagraphocally than our current primary - make it our prmiary
-                            if(primary.sampleName.count('-') >= ss.sampleName.count('-')) {   //if seqsample has more '-' than primary, it's lower lexicographically, don't assign in that case (i.e. 1-A-2-1 is lower than 1-A-2 and the latter is primary)
-                                primary = ss
-                            }
-                        }
-                    }
+                if (SampleName.baseName(s.sampleName) != base) {
+                    // TumourNormal samples hang off the same PatSample,
+                    // but are considered separately, so the sample had
+                    // better have the same baseName.
+                    return
                 }
-
-                return primary
-                break;
-
-             default:
-                return null
+                if (!samplesBySeqrun[s.seqrun.id]) {
+                    samplesBySeqrun[s.seqrun.id] = []
+                }
+                samplesBySeqrun[s.seqrun.id] << s
+            }
         }
 
+        // grovel over the seqrun and find the samples with the same basename
+        //
+        for (s in SeqSample.findAllBySeqrun(sample.seqrun)) {
+            if (s.id == sample.id) {
+                continue
+            }
+            if (SampleName.baseName(s.sampleName) != base) {
+                continue
+            }
+            if (!samplesBySeqrun[s.seqrun.id]) {
+                samplesBySeqrun[s.seqrun.id] = []
+            }
+            samplesBySeqrun[s.seqrun.id] << s
+        }
+
+        if (samplesBySeqrun.size() == 0) {
+            return
+        }
+
+        // If the base sample occurs in multiple seqruns,
+        // then we need to make duplicate relation entries for
+        // the seqrun from which this sample came too!
+        // 
+        Boolean makeDups = (samplesBySeqrun.size() > 1)
+        samplesBySeqrun.each { sid, sss ->
+            List<SeqSample> allTheSeqSamples = [sample] + sss
+
+            List rels = []
+            if (sample.seqrun.id == sid) {
+                // Find or create the base SeqRelation record.
+                //
+                String relName = "${sample.seqrun}-${base}"
+                SeqRelation rel = SeqRelation.findByRelationAndBase('Replicate', relName)
+                if (!rel) {
+                    rel = new SeqRelation(relation: 'Replicate', base: relName)
+                }
+                rels << rel
+            } 
+            if (sample.seqrun.id != sid || makeDups) {
+                String relName = base
+                SeqRelation rel = SeqRelation.findByRelationAndBase('Duplicate', relName)
+                if (!rel) {
+                    rel = new SeqRelation(relation: 'Duplicate', base: relName)
+                }
+                rels << rel
+            }
+
+            for (rel in rels) {
+                for (ss in allTheSeqSamples) {
+                    if (!rel.samples()?.contains(ss)) {
+                        ss.addToRelations(rel).save()
+                    }
+                }
+            }
+        }
     }
+
+    /**
+     * given a set of SeqSamples and a relation, return if there is a relation w/ these seqsamples exists
+     * @param relation
+     * @param ss
+     * @return
+     */
+    static boolean checkIfSeqRelationExists(Set<SeqSample> ss,String relation) {
+        def srs = SeqRelation.findAllByRelation(relation)
+        for (sr in srs) {
+            if (sr.samples() as Set == ss)  return true
+        }
+        return false
+    }
+
+    /**
+     * given a list of seqSamples, create a TN SeqRelation
+     * @param ss list of seqsamples
+     * @relation type of relation
+     * @return
+     */
+    static SeqRelation assignRelationToSeqSamples(Set<SeqSample> ss, String relation) {
+        if(checkIfSeqRelationExists(ss,relation)) {
+
+            log.error("SeqRelation ${relation} " + ss + " already exists, refusing to create")
+            return null
+        }
+
+        //  create and validate
+        //
+        def sr = new SeqRelation(relation: relation)
+        for (sample in ss) {
+            sample.addToRelations(sr)
+        }
+
+        if(!sr.save()) {
+            log.error("Failure to Save SeqRelation type ${relation} list: " + ss)
+            sr?.errors?.allErrors?.each {
+                log.error(new MessageFormat(it?.defaultMessage)?.format(it?.arguments))
+                println (new MessageFormat(it?.defaultMessage)?.format(it?.arguments))
+            }
+
+            //  Discard transient object
+            //
+            sr.discard()
+            return null
+        }
+
+        return sr
+    }
+
+    /**
+     * A list of all the relationships we want to show for a certain seqSample
+     * @param seqSample
+     * @return
+     */
+    static ArrayList<HashMap> relationships(SeqSample seqSample) {
+        ArrayList<HashMap> results = []
+
+        seqSample.relations
+//        This comparator should be stored in the domain but I don't know how to do that.
+// DKGM April 2018
+            .sort{ a,b ->
+                [ "Replicate", "Duplicate", "TumourNormal", "Trio", "TimeSeries", "Minus", "Union", "Intersect" ].indexOf(a.relation) <=> [ "Replicate", "Duplicate", "TumourNormal", "Trio", "TimeSeries", "Minus", "Union", "Intersect" ].indexOf(b.relation)
+            }
+            .each{ relation ->
+                relation
+                    .samples()
+                    .findAll { it != seqSample }
+                    .each { ss ->
+                        results.push([
+                            relation: relation.relation,
+                            seqSample: ss
+                        ])
+                    }
+            }
+
+        return results
+    }
+
 }

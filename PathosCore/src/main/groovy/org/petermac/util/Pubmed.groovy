@@ -11,6 +11,7 @@ package org.petermac.util
 
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
+import org.apache.commons.lang.StringUtils
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
 
@@ -31,7 +32,11 @@ class Pubmed
 {
     static JsonSlurper slurper = new JsonSlurper()
 
-    private static final def  pmidURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/'
+    // NCBI API Key, this one belongs to DKGM.
+    // Visit https://www.ncbi.nlm.nih.gov/account/ to generate a new one.
+    // See: https://www.ncbi.nlm.nih.gov/books/NBK25497/ for more info.
+    private static final def api_key = '222700615c07e3765fdd531360ec7a2a5108'
+    private static final def pmidURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/'
 
     /**
      * Main execution thread
@@ -88,7 +93,7 @@ class Pubmed
             return
         }
 
-        String header = "pmid\tdoi\tdate\tjournal\tvolume\tissue\tpages\ttitle\tauthors\taffiliations\tabstract\tkeywords\n"
+        String header = "pmid\tdoi\tdate\tjournal\tabbreviation\tvolume\tissue\tpages\ttitle\tauthors\taffiliations\tabstract\tkeywords\n"
         int nart = 0
 
         for ( pmid in pmids )
@@ -112,6 +117,7 @@ class Pubmed
             article << m.doi
             article << m.date
             article << m.journal
+            article << m.abbreviation
             article << m.volume
             article << m.issue
             article << m.pages
@@ -137,7 +143,7 @@ class Pubmed
      */
     static Boolean ping()
     {
-        def url = pmidURL + 'einfo.fcgi' + '?retmode=json'
+        def url = pmidURL + "einfo.fcgi?retmode=json&api_key=${api_key}"
         def res
         try
         {
@@ -177,7 +183,7 @@ class Pubmed
 
         //  Construct URL returning XML
         //
-        def url = pmidURL + "efetch.fcgi?db=pubmed&retmode=xml&rettype=abstract&id=${id}"
+        def url = pmidURL + "efetch.fcgi?api_key=${api_key}&db=pubmed&retmode=xml&rettype=abstract&id=${id}"
         def res = getUrl( url )
         if ( ! res ) return [:]
 
@@ -208,6 +214,9 @@ class Pubmed
         //
         def journal = article.MedlineCitation.Article.Journal.Title.text()
 
+        //  Find Journal Abbreviation
+        def abbreviation = article.MedlineCitation.Article.Journal.ISOAbbreviation.text()
+
         //  Find Title
         //
         def title = article.MedlineCitation.Article.ArticleTitle.text()
@@ -235,25 +244,38 @@ class Pubmed
         for ( author in authors )
         {
             Map authorMap = [:]
-            authorMap << [name: "${author.ForeName.text()} ${author.LastName.text()}"]
+            authorMap << [name: "${author.LastName.text()} ${author.Initials.text()}"]
             authorMap << [affiliation: "${author.AffiliationInfo.Affiliation.text()}"]
             authorList << authorMap
         }
 
         //  Get Date
         //
-        //  TODO: Note that we're scraping "DateCreated" and not "Article.Journal.JournalIssue.PubDate"
-        //  The actual publication date is better for citations? Is DateCreated the day it was added to pubmed? Has pubmed been around since the 80s..?
-        //  Note that there are a lot of exceptions to catch, e.g. some journals use "season: spring/winter/autumn/summer" instead of a month/day
-        //  A lot of journals use strings for their months instead of numbers.
-        //  E.g. is July: 07, Jul or July?
+        String date = null
 
+        try {
+            String year = article?.MedlineCitation?.Article?.Journal?.JournalIssue?.PubDate?.Year?.text()
+            String month = article?.MedlineCitation?.Article?.Journal?.JournalIssue?.PubDate?.Month?.text()
+            String day = article?.MedlineCitation?.Article?.Journal?.JournalIssue?.PubDate?.Day?.text()
 
-        String year = article.MedlineCitation.DateCreated.Year.text() ==~ /^\d\d\d\d$/ ? article.MedlineCitation.DateCreated.Year.text() : '1970'
-        String month = article.MedlineCitation.DateCreated.Month.text() ==~ /^\d\d$/ ? article.MedlineCitation.DateCreated.Month.text() : '01'
-        String day = article.MedlineCitation.DateCreated.Day.text() ==~ /^\d\d$/ ? article.MedlineCitation.DateCreated.Day.text() : '01'
-
-        String date = "${year}-${month}-${day}"
+            if(day) {
+                if (StringUtils.isNumeric(month)) {
+                    date = new Date().parse("yyyy-MM-dd", "${year}-${month}-${day}").format("yyyy-MM-dd")
+                } else {
+                    date = new Date().parse("yyyy-MMM-dd", "${year}-${month}-${day}").format("yyyy-MM-dd")
+                }
+            } else if (month) {
+                if (StringUtils.isNumeric(month)) {
+                    date = new Date().parse("yyyy-MM", "${year}-${month}").format("yyyy-MM-dd")
+                } else {
+                    date = new Date().parse("yyyy-MMM", "${year}-${month}").format("yyyy-MM-dd")
+                }
+            } else if (year) {
+                date = new Date().parse("yyyy", "${year}").format("yyyy-MM-dd")
+            }
+        } catch (e) {
+            log.error(e)
+        }
 
         //  Get Keyword list
         //
@@ -272,7 +294,7 @@ class Pubmed
 
         return [    pmid: id, authors: authorList , title: title ,
                     abstract: abstrct, volume: volume, issue: issue,
-                    journal: journal, pages: pages,
+                    journal: journal, abbreviation: abbreviation, pages: pages,
                     doi: doi, date: date, keywords: keywords.unique() ]
     }
 

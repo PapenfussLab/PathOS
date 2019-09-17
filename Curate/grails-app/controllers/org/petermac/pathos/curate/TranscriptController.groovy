@@ -1,7 +1,7 @@
 package org.petermac.pathos.curate
 
 import grails.converters.JSON
-import grails.util.GrailsUtil
+import org.petermac.util.Locator
 import org.grails.plugin.easygrid.Easygrid
 import org.grails.plugin.easygrid.Filter
 import org.grails.plugin.easygrid.FilterOperatorsEnum
@@ -12,6 +12,8 @@ import org.grails.plugin.filterpane.FilterPaneUtils
 import org.petermac.annotate.DataSource
 import org.petermac.annotate.MutVarDataSource
 import org.springframework.dao.DataIntegrityViolationException
+
+import java.text.MessageFormat
 
 import static org.grails.plugin.easygrid.GormUtils.applyFilter
 import static org.grails.plugin.easygrid.GormUtils.applyFilter
@@ -30,6 +32,8 @@ class TranscriptController {
     def easygridDispatchService
     def JqGridMultiSearchService
     def springSecurityService
+    def AuditService
+    def loc = Locator.instance
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
 
@@ -122,7 +126,7 @@ class TranscriptController {
                         }
 
                         //remove from cache
-                        def rdb = GrailsUtil.environment
+                        def rdb = loc.pathosEnv
                         def dsource = new DataSource(rdb)
                         def thisTranscript = Transcript.get(params.id)
 
@@ -130,6 +134,15 @@ class TranscriptController {
                         dsource.removeGeneFromCache(   'MUT', thisTranscript.gene )
                         dsource.removeGeneFromCache(   'VEP', thisTranscript.gene )
 
+                        //  audit log message. realistically here we only ever set preferred on-off, no other update
+                        //
+                        def audit_msg = "Changed Transcript ID ${thisTranscript.id} ${thisTranscript.gene} ${thisTranscript.build} ${thisTranscript.accession} ${thisTranscript.chr_refseq} set preferred to ${params.preferred} from ${thisTranscript.preferred} "
+
+                        AuditService.audit([
+                            category    : 'transcript',
+                            task        : 'transcript change',
+                            description : audit_msg
+                        ])
 
                     }
 

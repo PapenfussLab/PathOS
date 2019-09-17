@@ -56,6 +56,6 @@ class TemplateTest extends GroovyTestCase
 //            println( "${kv.key}\t\t${kv.value}")
 //        }
 
-        assert Template.fillTemplate( template, binding ) == 'The pubmed article title=2012-05-16,Cancer research'
+        assert Template.fillTemplate( template, binding ) == 'The pubmed article title=2012-05-15,Cancer research'
     }
 }

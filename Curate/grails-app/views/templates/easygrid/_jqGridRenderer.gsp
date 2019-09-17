@@ -106,9 +106,6 @@ It is commented out for now because the mysql function AES wrote does the sortin
 
         ;
 
-        <g:if test="${gridId}=='curation_table'">
-            $("#curation_table_allCuratedVariants").attr("aria-selected", true);
-        </g:if>
 
     </g:if>
 </jq:jquery>

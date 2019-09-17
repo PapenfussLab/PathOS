@@ -46,7 +46,7 @@ class Locus
             Map pmap = HGVS.parseChrPos( chrpos )
             if ( pmap )
             {
-                chr      = pmap.chr
+                chr      = pmap.chr?.replaceFirst( 'chr', '' )
                 startPos = pmap.pos    as Integer
                 endPos   = pmap.endpos as Integer
             }
@@ -57,13 +57,13 @@ class Locus
                 pmap = HGVS.parseHgvsG( chrpos )
                 if ( pmap )
                 {
-                    chr      = pmap.chr.replaceFirst( 'chr', '' )
+                    chr      = pmap.chr?.replaceFirst( 'chr', '' )
                     startPos = pmap.pos    as Integer
                     endPos   = pmap.endpos as Integer
                 }
                 else
                 {
-                    log.error( "Formatting error: ${chrpos}")
+                    log.debug( "Formatting error: ${chrpos}")
                     chr      = ''
                     startPos = null
                     endPos   = null
@@ -72,7 +72,7 @@ class Locus
         }
         catch ( Exception e )
         {
-            log.error( "Number formatting error: ${chrpos} ${e}")
+            log.debug( "Number formatting error: ${chrpos} ${e}")
             chr      = ''
             startPos = null
             endPos   = null
@@ -92,7 +92,7 @@ class Locus
     {
         try
         {
-            this.chr      = chr
+            this.chr      = chr?.replaceFirst( 'chr', '' )
             this.startPos = startPos as Integer
             this.endPos   = endPos   as Integer
         }
@@ -115,7 +115,7 @@ class Locus
      */
     Locus( String chr, Integer startPos, Integer endPos )
     {
-        this.chr      = chr
+        this.chr      = chr?.replaceFirst( 'chr', '' )
         this.startPos = startPos
         this.endPos   = endPos
         orderPos()

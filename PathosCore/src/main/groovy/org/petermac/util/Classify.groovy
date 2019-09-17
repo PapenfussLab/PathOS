@@ -26,6 +26,8 @@ class Classify
      * @param   fld Clinvar field SIG=xxxx;
      * @return  C[15]: or xxxx
      */
+    static String clinvar( List<String> fld ) { fld ? clinvar(fld[0]) : null }
+
     static String clinvar( String fld )
     {
         def sig = null
@@ -73,6 +75,8 @@ class Classify
      * @param   fld DB field
      * @return      C[15]:
      */
+    static String polyphen( List<String> fld ) { fld ? polyphen(fld[0]) : null }
+
     static String polyphen( String fld )
     {
         def cat = null
@@ -82,7 +86,7 @@ class Classify
         if ( fld.startsWith('possibly_damaging')) fld = 'P'       // raw category from VEP
         if ( fld.startsWith('probably_damaging')) fld = 'D'       // raw category from VEP
 
-        switch (fld)
+        switch ( fld )
         {
             case 'D':   cat = 'C5'; break
             case 'P':   cat = 'C4'; break
@@ -98,11 +102,15 @@ class Classify
      * @param   fld DB field
      * @return      C[15]:
      */
+    static String mutTaste( List<String> fld ) { fld ? mutTaste(fld[0]) : null }
+
     static String mutTaste( String fld )
     {
         def cat = null
 
-        switch (fld)
+        if ( ! fld ) return cat
+
+        switch ( fld )
         {
             case 'A':   cat = 'C5'; break
             case 'D':   cat = 'C4'; break
@@ -140,12 +148,15 @@ class Classify
      * @param   fld DB field
      * @return      C[15]:
      */
+    static String sift( List<String> fld ) { fld ? sift(fld[0]) : null }
+
     static String sift( String fld )
     {
         if ( ! fld ) return null
 
         if ( fld.startsWith('deleterious')) fld = 'D'       // raw category from VEP
         if ( fld.startsWith('tolerated'))   fld = 'T'       // raw category from VEP
+
         return (fld == 'D' ? 'C5' : (fld == 'T' ? 'C2' : null))
     }
 
@@ -155,6 +166,8 @@ class Classify
      * @param   fld DB field
      * @return      C[15]:
      */
+    static String fathmm( List<String> fld ) { fld ? fathmm(fld[0]) : null }
+
     static String fathmm( String fld )
     {
         return (fld == 'D' ? 'C5' : (fld == 'T' ? 'C2' : null))

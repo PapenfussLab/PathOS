@@ -7,6 +7,7 @@
 
 package org.petermac.pathos.pipeline
 
+import groovy.sql.Sql
 import groovy.util.logging.Log4j
 import org.petermac.util.DbConnect
 import org.petermac.util.Locator
@@ -25,6 +26,7 @@ class Transcript
     //
     static Map  prefMap    = null
     static Map  lrgMap     = null
+    static Map  txToGene   = [:]
 
     /**
      * Constructor loads in transcript maps
@@ -35,6 +37,7 @@ class Transcript
     {
         prefMap     = preferred
         lrgMap      = [:]
+        invertTxMap()
     }
 
     /**
@@ -46,6 +49,15 @@ class Transcript
     {
         prefMap     = preferred( dbname )
         lrgMap      = lrg( dbname )
+        invertTxMap()
+    }
+
+    private static Map invertTxMap()
+    {
+        for ( gene in prefMap )
+        {
+            txToGene << [ (gene.value) : gene.key ]
+        }
     }
 
     /**
@@ -54,8 +66,7 @@ class Transcript
      * @param dbname    DB schema to use
      * @return          Map of transcripts [gene: transcript]
      */
-    static Map preferred( String dbname )
-    {
+    static Map preferred(String dbname) {
         Map genes = [:]
 
         //  Lookup data for gene -> refseq transcript mapping
@@ -69,22 +80,23 @@ class Transcript
                     and     preferred = 1
                     '''
 
-        try
-        {
-            def db  = new DbConnect( dbname )
-            def sql = db.sql()
+        try {
+            DbConnect db  = new DbConnect(dbname)
+            Sql sql = db.sql()
             def rs  = sql.rows(qry)
 
             //  Create Hash Map of genes to transcripts  [ <gene>: <preferred_ts> ]
             //
-            for ( g in rs )
-            {
+            for (g in rs) {
                 genes << [ (g.gene) : g.refseq ]
             }
-        }
-        catch( Exception ex )
-        {
-            log.error( "Exception when trying to load preferred gene transcripts: " + ex )
+
+            // Clean up the connection
+            //
+            sql.close()
+        } catch (Exception ex) {
+            log.fatal( "Exception when trying to load preferred gene transcripts: " + ex )
+            System.exit(1)
         }
 
         return genes
@@ -125,6 +137,7 @@ class Transcript
             {
                 lrgs << [ (l.lrg) : l.refseq ]
             }
+            sql.close()
         }
         catch( Exception ex )
         {
@@ -143,7 +156,7 @@ class Transcript
     static Map selectTranscript( Map mut )
     {
         List transcripts = mut.transcripts.tokenize(',')
-        List tss         = selectRefseq( transcripts, prefMap )
+        List tss         = selectRefseq( transcripts )
 
         log.debug( "Filtering ${tss.size()}\t${tss}")
 
@@ -272,16 +285,16 @@ class Transcript
      * @param   prefer      Map of preferred transcript for genes
      * @return              List of matching transcripts
      */
-    private static List selectRefseq( List transcripts, Map prefer )
+    private static List selectRefseq( List transcripts )
     {
-        Map filter   = [:]      // [base_ts: ts_version]
+        Map version  = [:]      // [base_ts: ts_version]
         Map hgvsc    = [:]      // [base_ts: ts_hgvsc]
 
         for ( ts in transcripts )
         {
-            //  Search for refseq mRNA transcripts only
+            //  Search for refseq transcripts only eg AA_nnn.n:c\..*
             //
-            def match = ( ts =~ /^(NM_\d+)\.(\d+):(.*)/ )
+            def match = ( ts =~ /^([A-Z][A-Z]_\d+)\.(\d+):(.*)/ )
 
             if ( match.count == 1 )
             {
@@ -289,36 +302,34 @@ class Transcript
                 def ver  = match[0][2]
                 def var  = match[0][3]
 
-                //log.debug ("##0 basetest=${base in prefer.values()} prefer=${prefer.values().size()} filter=${filter} ")
-
-                //  Look for base in preferred list
+                //  Look for base in preferred TX list
                 //
-                if ( base in prefer.values())
+                if ( txToGene[base] )
                 {
                     //  have we already seen the base ?
                     //
-                    if ( filter[base] && filter[base] < ver)
+                    if ( version[base] && version[base] < ver)
                     {
                         //  Keep the latest transcript version
                         //
-                        filter[base] = ver
-                        hgvsc[base]  = var
+                        version[base] = ver
+                        hgvsc[base]   = var
                     }
 
                     //  if new, keep it
                     //
-                    if ( ! filter[base] )
+                    if ( ! version[base] )
                     {
-                        filter[base] = ver
-                        hgvsc[base]  = var
+                        version[base] = ver
+                        hgvsc[base]   = var
                     }
                 }
-                log.debug ("Matching base=$base ver=$ver ts=$ts filter=${filter} ")
+                log.debug ("Matching base=$base ver=$ver ts=$ts filter=${version} ")
             }
         }
 
         //  Return the list of latest transcripts (reassembled from components)
         //
-        return filter.collect{ it.key + '.' + it.value + ':' + hgvsc[it.key] }
+        return version.collect{ it.key + '.' + it.value + ':' + hgvsc[it.key] }
     }
 }

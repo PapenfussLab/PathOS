@@ -35,6 +35,8 @@
             
             <g:sortableColumn property="genedesc" title="${message(code: 'refGene.genedesc.label', default: 'Genedesc')}"  params="${filterParams}"/>
 
+            <g:sortableColumn property="cosmic3d" title="${message(code: 'refGene.cosmic3d.label', default: 'Cosmic3d')}"  params="${filterParams}"/>
+
         </tr>
         </thead>
         <tbody>
@@ -49,6 +51,7 @@
                 
                 <td>${fieldValue(bean: refGeneInstance, field: "genedesc")}</td>
 
+                <td><g:cosmic3d gene="${fieldValue(bean: refGeneInstance, field: "gene")}" /></td>
             </tr>
         </g:each>
         </tbody>

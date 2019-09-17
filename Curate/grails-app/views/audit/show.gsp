@@ -58,10 +58,10 @@
             </li>
         </g:if>
 
-        <g:if test="${auditInstance?.patSample}">
+        <g:if test="${auditInstance?.sample}">
             <li class="fieldcontain">
                 <span id="sample-label" class="property-label"><g:message code="audit.sample.label"
-                                                                          default="PatSample"/></span>
+                                                                          default="Sample"/></span>
 
                 <span class="property-value" aria-labelledby="sample-label"><g:fieldValue bean="${auditInstance}"
                                                                                           field="sample"/></span>

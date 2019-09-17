@@ -24,7 +24,7 @@ class RelationTagLib
                 List shown = [ss.id]
                 for ( rel in ss.relations )
                 {
-                    for ( rs in rel.samples )
+                    for ( rs in rel.samples() )
                     {
                         // don't display the sample itself
                         if(rs.id == ss.id) continue
@@ -37,7 +37,7 @@ class RelationTagLib
                             seqrun = rs.seqrun.seqrun + ':'
                             if ( seqrun =~ /\d{6}/ ) seqrun = rs.seqrun.seqrun.substring(0,6) + ':'  // display only date of seqrun
                         }
-                        out <<  "<li>${rel.relation}: ${g.link( action: "svlist", controller: "seqVariant", id: rs.id, "${seqrun}${rs.sampleName}")} <a id='relationLink-${rs.id}' href='#none' onclick=\"addToIGV('${rs.sampleName}','${UrlLink.dataUrl(rs.seqrun.toString(),rs.sampleName)}', '${rs.id}')\">Load into IGV.js</a></li>"
+                        out <<  "<li>${g.link( action: "show", controller: "seqRelation", id: rel.id, "${rel.relation}")} : ${g.link( action: "svlist", controller: "seqVariant", id: rs.id, "${seqrun}${rs.sampleName}")} <a id='relationLink-${rs.id}' href='#none' onclick=\"addToIGV('${rs.sampleName}','${UrlLink.dataUrl(rs.seqrun.toString(),rs.sampleName)}', '${rs.id}')\">Load into IGV.js</a></li>"
                     }
                 }
             }

@@ -22,7 +22,7 @@
     <g:javascript src="quasipartikel/jquery.min.js" />
     <g:javascript src="quasipartikel/jquery-ui.min.js" />
     <g:javascript src="quasipartikel/ui.multiselect.js" />
-    <script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
+    <script src="<g:context/>/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
     <g:javascript src='jquery/jquery.jgrowl.js' plugin='spring-security-ui'/>
 
     <style type="text/css">

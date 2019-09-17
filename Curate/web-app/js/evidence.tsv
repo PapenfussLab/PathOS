@@ -1,0 +1,29 @@
+Type	Strength	Description	Name
+Pathogenic	Very Strong	Nonsense, frameshift, canonical splice spite, initiation codon, single/multiexon deletion	Null variants
+Pathogenic	Strong	Same AA change as previously established pathogenic variant (Regardless of nt change)	Established Pathogenic Variant
+Pathogenic	Strong	De novo (BOTH maternity and paternity confirmed) in a patient with the disease and no family history	De novo variant
+Pathogenic	Strong	Well-established in vitro or in vivo functional studies supportive of a damaging effect on the gene or gene product	Functional studies support damaging effect
+Pathogenic	Strong	The prevalence of the variant in affected individuals is significantly increased compared with the prevalence in controls (Case-control studies show enrichment in cases)	Enrichment in cases
+Pathogenic	Moderate	Located in a mutational hotspot and/or critical and well-established functional domain without benign variation	Mutational hotspot
+Pathogenic	Moderate	Absent from population studies (Absent from ESP and 1000 genomes..)	Absent from population studies
+Pathogenic	Moderate	For recessive disorders, detected in trans with a pathogenic variant	Detected in trans
+Pathogenic	Moderate	Protein length changes as a result of in-frame deletion/insertions in a nonrepeat region or stop-loss variant (In-frame del/in in a well-characterised functional domain)	Protein length changes
+Pathogenic	Moderate	Novel missense change at an amino acid residue where a different missense change determined to be pathogenic has been seen before	Novel missense mutation
+Pathogenic	Moderate	Assumed de novo, but without confirmation of paternity and maternity	Assumed de novo
+Pathogenic	Supporting	Cosegregation with disease in multiple affected family members in a gene definitively known to cause the disease disease (Occurs in a gene with high clinical specificity and sensitivity for the cancer)	Cosegregation with disease
+Pathogenic	Supporting	Missense variant in a gene that has a low rate of benign missense variation and in which missense variants are a common mechanism of disease (Type of variant fits mutational spectrum)	Variant fits mutational spectrum
+Pathogenic	Supporting	Multiple lines of computational evidence support a deleterious effect on the gene or gene product (conservation, evolutionary, splicing impact, etc.)	Computational evidence shows deleterious effect
+Pathogenic	Supporting	Patient’s phenotype or family history is highly specific for a disease with a single genetic etiology (Proband’s family study shows co-segregation with disease)	Patient's phentoype/family history supports pathogenicity
+Pathogenic	Supporting	Reputable source recently reports variant as pathogenic, but the evidence is not available to the laboratory to perform an independent evaluation (Noted as pathogenic in curated locus specific database)	Noted as pathogenic in curated locus specific database
+Benign	Stand-alone	Population studies, allele frequency >5% in ESP and 1000 Genomes Project	In population studies >5%
+Benign	Strong	Allele frequency is greater than expected for disorder	High allele frequency
+Benign	Strong	Observed in a healthy adult individual for a recessive (homozygous), dominant (heterozygous), or X-linked (hemizygous) disorder, with full penetrance expected at an early age	Observed in a healthy adult
+Benign	Strong	Well-established in vitro or in vivo functional studies show no damaging effect on protein function or splicing	Established to be not damaging
+Benign	Strong	Lack of segregation in affected members of a family	Lacking segregation
+Benign	Supporting	Missense variant in a gene for which primarily truncating variants are known to cause disease (Type of variant does not fit mutational spectrum)	Does not fit mutational spectrum
+Benign	Supporting	Observed in trans with a pathogenic variant for a fully penetrant dominant gene/disorder or observed in cis with a pathogenic variant in any inheritance pattern (For fully penetrant cancer syndrome, observed with another pathogenic variant in the same individual)	Observed with another pathogenic variant
+Benign	Supporting	In-frame deletions/insertions in a repetitive region without a known function (Located in a region without a characterised function or away from known mutation hot-spot)	Away from mutational hot-spot
+Benign	Supporting	Multiple lines of computational evidence suggest no impact on gene or gene product (conservation, evolutionary, splicing impact, etc.)	Computational evidence shows no impact
+Benign	Supporting	Variant found in a case with an alternate molecular basis for disease	Alternate molecular basis for disease
+Benign	Supporting	Reputable source recently reports variant as benign, but the evidence is not available to the laboratory to perform an independent evaluation (Noted as benign in a curated locus specific database)	Sources report as benign
+Benign	Supporting	A synonymous (silent) variant for which splicing prediction algorithms predict no impact to the splice consensus sequence nor the creation of a new splice site AND the nucleotide is not highly conserved	Predicted as benign synonymous variant

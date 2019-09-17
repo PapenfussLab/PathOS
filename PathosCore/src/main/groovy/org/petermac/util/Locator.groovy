@@ -8,9 +8,14 @@
 package org.petermac.util
 
 import groovy.util.logging.Log4j
+import org.petermac.pathos.api.ApiUtils
+import org.petermac.pathos.api.ExportReceiver
+import org.petermac.pathos.amqp.AMQPExporter
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
- * Created for PathOS.
+ * Created for PathOS
  *
  * Description:
  *
@@ -29,11 +34,12 @@ class Locator
     //  Can be overridden by Environment variable "PATHOS_CONFIG" or
     //  by systems property -Dpathos.config=/path_to_pathos.properties
     //
-    static String config_file = null
+    static String config_file = 'etc/pathos.properties'
 
     //  Application root directory
     //
     static String pathos_home = '/pathology/NGS/pa_uat'
+    static Path home = Paths.get(pathos_home)
 
     //  Application properties object
     //
@@ -47,9 +53,19 @@ class Locator
     //
     static String samDir
 
+    //  Absolute path to mp-vep.sh script
+    //
+    static String mpVepPath = "mp-vep.sh"
+
+
+    //  Tomcat-writable directory for user-initated reruns of pipeline sequencing and samples
+    //
+    static String tomcatSeqrunDir = '/usr/share/tomcat/pipeline'
+
     //  Server Instance Molpath or Research
     //
     static String samBase = 'Molpath'
+
 
     //  Root of reporting directory
     //
@@ -122,6 +138,9 @@ class Locator
     //
     static String dbPassword = null
 
+    //  Database Port (defauly mysql 3306)
+    static String dbPort = '3306'
+
     //  Database Host and Schema
     //
     static String dbHost = null
@@ -132,9 +151,32 @@ class Locator
     //
     static String pathosEnv = 'noenv'
 
+    //  Mutalyzer host
+    //
+    static String mutalyzer = 'https://mutalyzer.nl'
+
     //  CNV viewer URL
     //
     static String cnvViewerUrl = 'http://bioinf-pathos-test:3838/users/jmarkham/cnb'
+
+    //  Anomaly  URL
+    //
+    static String anomalyUrl = 'http://api-anomaly.ap-southeast-2.elasticbeanstalk.com'
+
+    //  VCF Upload method = either Anomaly or VcfLoader
+    //
+    static String vcfUploadMethod = 'Anomaly'
+
+    //  Method to reload samples (ie when changing gene mask) - either Anomaly or VcfLoader
+    //
+    static String sampleReloadMethod = 'VcfLoader'
+
+
+    static String pathosExportConfig
+    static ExportReceiver pathosExport
+
+    static LinkGenerator links
+
 
     //  default password for bootstrap pathos test users (bootstrap creates these on on-prod enviornments
     //
@@ -159,20 +201,56 @@ class Locator
      */
     private Locator()
     {
+        println "Constructing a locator"
+        init("For utilities, don't pass in a context string")
+    }
+
+    /**
+     * Initialise the locator instance!
+     */
+    public static init(String context)
+    {
+        println "Initialising the locator"
+        println "The context is... ${context}"
+
+//  We have to set pathos_home, based on the context...
+
+
         //  Find application properties
         //
-        def config = System.getenv('PATHOS_CONFIG') ?: config_file
-        if ( System.getProperty('pathos.config')) config = System.getProperty('pathos.config')
+        pathos_home = System.getenv('PATHOS_HOME') ?: pathos_home
+        pathos_home = System.getProperty('pathos.home') ?: pathos_home
 
-        if (! config ) {    //check here since line below throws exception on config=null
-            System.err.println( "PathOS Configuration file path is null. Exiting...")
-            System.exit(1)
+// todo: /Haem and /Trace context is hardcoded, this should be env agnostic
+        if(context == "/Haem") {
+            pathos_home = "/pathology/NGS/pa_haem"
+        } else if(context == "/Trace" || context == "/Traceback") {
+            pathos_home = "/pathology/NGS/pa_trace"
         }
 
-        def chf = new File( config )
-        if ( ! chf.exists())
+        home = Paths.get(pathos_home).toAbsolutePath()
+
+        config_file = System.getenv('PATHOS_CONFIG') ?: config_file
+        config_file = System.getProperty('pathos.config') ?: config_file
+
+// todo: /Haem and /Trace context is hardcoded, this should be env agnostic
+        if(context == "/Haem") {
+            config_file = "/pathology/NGS/pa_haem/etc/pathos.properties"
+        } else if(context == "/Trace" || context == "/Traceback") {
+            config_file = "/pathology/NGS/pa_trace/etc/pathos.properties"
+        }
+
+        //Path config_path = home.resolve(Paths.get(config_file))
+        Path config_path = Paths.get(config_file)
+
+        File chf = new File(config_path.toUri())
+        if (!chf.exists())
         {
-            System.err.println( "PathOS Configuration File doesn't exist [${chf.absolutePath}] Exiting...${System.getenv('PATHOS_CONFIG')}")
+            System.err.println "PathOS Configuration File doesn't exist ${chf.absolutePath}"
+            System.err.println "PATHOS_HOME=${System.getenv('PATHOS_HOME')}"
+            System.err.println "PATHOS_CONFIG=${System.getenv('PATHOS_CONFIG')}"
+            System.err.println "pathos.config=${System.getProperty('pathos.config')}"
+            System.err.println "Exiting..."
             System.exit(1)
         }
 
@@ -186,12 +264,17 @@ class Locator
 
         //  Set application home
         //
-        if ( prop.getProperty('pathos.home')) pathos_home = prop.getProperty('pathos.home')
-        System.err.println( "Using PathOS Configuration File [${chf.absolutePath}] PathOS Home [${pathos_home}]")
-        def homeDir = new File(pathos_home)
-        if ( ! homeDir.directory )
+        if (prop.getProperty('pathos.home')) {
+            pathos_home = prop.getProperty('pathos.home')
+            home = Paths.get(pathos_home).toAbsolutePath()
+        }
+        System.err.println("Using PathOS Configuration File ${chf.absolutePath}")
+        System.err.println("PathOS Home ${pathos_home}")
+        File homeDir = new File(home.toUri())
+        if (!homeDir.directory)
         {
-            System.err.println( "PathOS Home Directory doesn't exist [${homeDir.absolutePath}] Exiting...")
+            System.err.println("PathOS Home is not a directory.")
+            System.err.println("Exiting...")
             System.exit(1)
         }
 
@@ -223,11 +306,20 @@ class Locator
         //
         def path = samDir.tokenize('/')
         samBase = path[-1]
-        assert samBase in ['Molpath','Research','PipeCleaner','Testing']
+//        assert samBase in ['Molpath','Research','PipeCleaner','Testing']
+
+
+        //  Set panel manifest directory
+        //
+        if ( prop.getProperty('tomcat.seqrun.directory')) tomcatSeqrunDir = prop.getProperty('tomcat.seqrun.directory')
 
         //  Set panel manifest directory
         //
         if ( prop.getProperty('pipeline.manifests')) manifestDir = prop.getProperty('pipeline.manifests')
+
+        // Mutalyser Host for the pipeline
+        //
+        if ( prop.getProperty('pipeline.mutalyzer')) mutalyzer = prop.getProperty('pipeline.mutalyzer')
 
         //  Set default genome path
         //
@@ -273,9 +365,8 @@ class Locator
         //
         if ( prop.getProperty('ad.configuration.path')) ADConfigurationFile = prop.getProperty('ad.configuration.path')
 
-        //  Location of AD config file?
-        //
         if ( prop.getProperty('default.test.user.password')) defaultTestUserPassword = prop.getProperty('default.test.user.password')
+
 
         //  Set DB paramters
         //
@@ -283,11 +374,47 @@ class Locator
         dbPassword = prop.getProperty('db.password')
         dbSchema   = prop.getProperty('db.schema')
         dbHost     = prop.getProperty('db.host')
+        if(prop.getProperty('db.port'))             dbPort     = prop.getProperty('db.port')
         pathosEnv  = prop.getProperty('pathos.env')
+
+        // Set the export config, and load it if necessary
+        //
+        pathosExportConfig = prop.getProperty('pathos.export.config')
+        if (pathosExportConfig) {
+            try {
+                pathosExport = ApiUtils.loadExporter(pathosExportConfig, home)
+            } catch (Exception e) {
+                System.err.println("Caught Exception loading ${pathosExportConfig}")
+                System.err.println("${e.getMessage()}")
+            }
+        }
 
         //  Set CNV viewer URL
         //
         if ( prop.getProperty('cnv.viewer.url')) cnvViewerUrl = prop.getProperty('cnv.viewer.url')
+
+        //  Set anomaly URL
+        //
+        if ( prop.getProperty('anomaly.url')) anomalyUrl = prop.getProperty('anomaly.url')
+
+        //  Set path to mp-vep script
+        //
+        if ( prop.getProperty('mp.vep.path')) mpVepPath = prop.getProperty('mp.vep.path')
+
+
+        //  Set CNV viewer URL
+        //
+        if ( prop.getProperty('vcf.upload.method')) vcfUploadMethod = prop.getProperty('vcf.upload.method')
+
+        //  Set CNV viewer URL
+        //
+        if ( prop.getProperty('sample.reload.method')) sampleReloadMethod = prop.getProperty('sample.reload.method')
+
+        // Initialize the link generator.
+        if (prop.getProperty('external.links.config')) {
+            println "external.links.config = `${prop.getProperty('external.links.config')}`"
+            links = new LinkGenerator(prop.getProperty('external.links.config'))
+        }
     }
 
     /**

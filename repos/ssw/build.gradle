@@ -1,0 +1,19 @@
+apply from: '../../scripts/common.gradle'
+
+group = "org.ssw"
+version = '1.0'
+
+jar {
+    baseName = 'ssw'
+}
+
+artifacts {
+    archives file('ssw-1.0.jar')
+}
+
+uploadArchives {
+    repositories.mavenInstaller {
+    	files('./ssw-1.0.jar')
+    }
+}
+

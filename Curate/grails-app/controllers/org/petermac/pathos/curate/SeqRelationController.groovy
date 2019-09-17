@@ -14,6 +14,7 @@ class SeqRelationController {
     }
 
     def filterPaneService
+    def DerivedSampleService
 
     def list(Integer max) {
         params.max = Math.min(max ?: 25, 100)
@@ -33,29 +34,157 @@ class SeqRelationController {
     }
 
     def create() {
-        println "aa"
-
-        def c = SeqSample.constraints.sampleType['inList']
-        println c
 
         [seqRelationInstance: new SeqRelation(params)]
     }
 
+    /**
+     * given an encoded sample from our edit or create form, return the actual seqsample object
+     */
+    SeqSample parseFormToSeqSample(v) {
+        def slurper = new groovy.json.JsonSlurper()
+
+        def newSs
+
+        try {
+            newSs = slurper.parseText(v)
+            String srun = newSs.seqrun.size() > 0 ?  newSs.seqrun[0] :""
+            String ssname = newSs.seqsample.size() > 0 ?  newSs.seqsample[0] :""
+            Seqrun run = Seqrun.findBySeqrun(srun)
+
+            def seqsample = SeqSample.findBySeqrunAndSampleName(run,ssname)
+            return seqsample
+        } catch (Exception e) {
+            log.warn("Error while parsing new samples to be added: trying to parse malformed JSON string " + v)
+            return null
+        }
+    }
+
+    Integer parseFormGetOrder(v) {
+        def slurper = new groovy.json.JsonSlurper()
+
+        def newSs
+
+        try {
+            newSs = slurper.parseText(v)
+            Integer order = newSs.order.size() > 0 ?  newSs.order[0] :""
+            return order
+        } catch (Exception e) {
+            log.warn("Error while parsing new samples to be added: trying to parse malformed JSON string " + v)
+            return null
+        }
+
+
+    }
+
+    /**
+     * derived sample information is implied by name
+     * given an sr, get its derived sample
+     * @param sr
+     * @return
+     */
+    SeqSample findDerivedSampleForSeqRelation(SeqRelation sr) {
+
+        //  assemble list of samples, refuse if not pair or if srs dont match
+        def samples = []
+        for (s in sr.samples()) samples.add(s)
+        if(samples.size() != 2) return null
+        if(samples[0].seqrun != samples[1].seqrun)  return null
+
+        //  search by name
+        def srun = samples[0].seqrun
+        def dss = new DerivedSampleService()
+        def derivedName = dss.derivedSampleName(sr.relation.toString().toLowerCase(),samples)
+        def derivedSample = SeqSample.findBySeqrunAndSampleNameAndSampleType(srun,derivedName,'Derived')
+
+
+        return derivedSample
+    }
+
+
     def save() {
+        def derived = null
+
+        //  if we have a Derived relationship, create a derived seqsample
+        //
+        if(['Minus','Intersect','Union'].contains(params.relation)) {
+
+            int countNewSamples = 0
+            def allSs = new ArrayList<SeqSample>()
+
+            //  grab the add params. we have two samples - get the order, smallest order goes
+            //  in front of the list
+            def prevOrder = -1
+            params.each { k, v ->
+                if (k.toString().startsWith('add_')) {
+                    def seqsample = parseFormToSeqSample(v)
+                    def order = parseFormGetOrder(v)
+
+
+                    if(order < prevOrder) {     //this sample should be first in list
+                        allSs.add(0,seqsample)
+                        println "order ${order} goes first for " + seqsample
+                    } else {
+                        allSs.add(seqsample)    //this sample should be second in list
+                        println "order ${order} goes second for " + seqsample
+                    }
+                    prevOrder = order
+                }
+            }
+            println "Our list:"
+            println allSs
+
+            //  a bunch of safety checks
+            //
+            if (allSs.size() != 2) {
+                flash.message = "Cannot create a Derived SeqRelation - need exactly two samples "
+                render(view: "create", model: [seqRelationInstance: new SeqRelation(params)])
+                return
+            }
+
+            if (allSs[0].seqrun != allSs[1].seqrun) {
+                flash.message = "Samples for a Derived SeqRelation must have the same seqrun"
+                render(view: "create", model: [seqRelationInstance: new SeqRelation(params)])
+                return
+            }
+            def dss = new DerivedSampleService()
+
+            //  check if this exists
+            if(SeqSample.findBySampleNameAndSeqrun(dss.derivedSampleName(params.relation.toLowerCase(),[allSs[0],allSs[1]]),allSs[0].seqrun)) {
+                flash.message = "Error:  unable to create derived sample, sample with this name already exists"
+                render(view: "create", model: [seqRelationInstance: new SeqRelation(params)])
+                return null
+            }
+
+
+            //create a derived sample now, based on the relation
+            derived = dss.createDerivedSample(params.relation.toString().toLowerCase(),[allSs[0],allSs[1]])
+
+        }
+
 
         def seqRelationInstance = new SeqRelation(params)
-        if (!seqRelationInstance.save(flush: true)) {
+        println params
+        if (!seqRelationInstance.save(flush: true, failOnError: true)) {
+            println "failed to save"
             render(view: "create", model: [seqRelationInstance: seqRelationInstance])
             return
         }
+        println "saved"
 
-        /*
-        seqsample_set_type
-         */
-
-        // add any samples passed from params
+        // add any samples passed from params to the SeqRelation
+        //
         def warnings = addSamplesToSeqRelation(params,seqRelationInstance)
 
+        // add our new derived sample
+        //
+        if ( derived ) {
+
+            seqRelationInstance.save(flush: true,failOnError:true)
+            derived.save(flush:true,failOnError:true)
+            seqRelationInstance.setDerivedSampleName(derived.sampleName)
+            seqRelationInstance.setDerivedSampleSeqrunName(derived.seqrun.seqrun)
+        }
 
         flash.message = message(code: 'default.created.message', args: [message(code: 'seqRelation.label', default: 'SeqRelation'), seqRelationInstance.id])
         redirect(action: "show", id: seqRelationInstance.id)
@@ -69,7 +198,10 @@ class SeqRelationController {
             return
         }
 
-        [seqRelationInstance: seqRelationInstance]
+        //  see if there is a derived sample
+        //def derivedSample = findDerivedSampleForSeqRelation(seqRelationInstance)
+        def derivedSample = seqRelationInstance.derivedSample() //todo fix view an dont pass this explicit
+        [seqRelationInstance: seqRelationInstance, derivedSample: derivedSample]
     }
 
     def edit(Long id) {
@@ -139,6 +271,15 @@ class SeqRelationController {
 
     def delete(Long id) {
         def seqRelationInstance = SeqRelation.get(id)
+
+        if (seqRelationInstance.derivedSample()) {
+            def derSample = SeqSample.get(seqRelationInstance.derivedSample().id) //check if SeqSample stored in derivedsample exists
+            if (derSample) {
+                flash.message = "Cannot delete SeqRelation - a Derived sample exists and must be deleted first"
+                redirect(action: "list")
+                return
+            }
+        }
         if (!seqRelationInstance) {
             flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqRelation.label', default: 'SeqRelation'), id])
             redirect(action: "list")
@@ -161,7 +302,7 @@ class SeqRelationController {
      * takes params and assumes the _form.gsp style (hidden fields with ids starting with "add_"
      * @param params
      * @param seqRelationInstance
-     * @return  warnings a List of warnings
+     * @return  warnings a List of warning messages
      */
     private List<String> addSamplesToSeqRelation(Map params, SeqRelation seqRelationInstance) {
 
@@ -169,13 +310,13 @@ class SeqRelationController {
         //
         def updateTNSampleTypes = false
         if (seqRelationInstance.relation == 'TumourNormal') updateTNSampleTypes = true
+
         def warnings = []
-        println params
+
         //  cycle through samplename seqrun pairs to be added (passed as json) and add the seqrun
         //
         params.each{ k, v ->
-            //see what begins with "add_"
-            if (k.toString().startsWith('add_')) {
+            if (k.toString().startsWith('add_')) {  //these are seqsampels to add
 
                 //slurp the json and add
                 def slurper = new groovy.json.JsonSlurper()
@@ -189,34 +330,27 @@ class SeqRelationController {
 
                 if(newSs?.seqrun && newSs?.seqsample) {
                     // these are 3 arraylists of size 1, or at least they should nbe
-                    def srun = newSs.seqrun.size() > 0 ?  newSs.seqrun[0] :""
-                    def ssname = newSs.seqsample.size() > 0 ?  newSs.seqsample[0] :""
-                    def stype = newSs.sampletype.size() > 0 ?  newSs.sampletype[0] :""
+                    String stype = newSs.sampletype.size() > 0 ?  newSs.sampletype[0] :""
+                    SeqSample seqsample = parseFormToSeqSample(v)
 
-                    def run = Seqrun.findBySeqrun(srun)
+                    if(seqsample) {
+                        def oldSampleType = seqsample.sampleType
+                        //seqRelationInstance.addToSamples(seqsample)
+                        seqsample.addToRelations(seqRelationInstance)
 
-                    if (run) {
-                        def seqsample = SeqSample.findBySeqrunAndSampleName(run,ssname)
+                        if(stype) {
 
-                        if(seqsample) {
-                            def oldSampleType = seqsample.sampleType
-                            seqRelationInstance.addToSamples(seqsample)
+                            seqsample.setSampleType(stype)
 
-                            if(stype) {
-                                println stype
-                                println stype.getClass()
-                                seqsample.setSampleType(stype)
-                                println seqsample.getSampleType()
-                                println "---"
-                                if (oldSampleType != seqsample.sampleType) {
-                                    //warn us
-                                    log.warn('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.sampleType + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
-                                    println ('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.sampleType + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
-                                    warnings.add('Overwrote sample type of SeqSample ' + seqsample.sampleName + ' from ' + oldSampleType?oldSampleType:"none" + ' to ' + seqsample.sampleType)
-                                }
+                            if (oldSampleType != seqsample.sampleType) {
+                                //warn us
+                                log.warn('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.sampleType + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
+                                println ('Overwrote sample type of SeqSample Id' + seqsample.id + ' from ' + oldSampleType + ' to ' + seqsample.sampleType + ' when adding to SeqRelation Id ' + seqRelationInstance.id)
+                                warnings.add('Overwrote sample type of SeqSample ' + seqsample.sampleName + ' from ' + oldSampleType?oldSampleType:"none" + ' to ' + seqsample.sampleType)
                             }
                         }
                     }
+
                 }
             }
         }
@@ -239,9 +373,7 @@ class SeqRelationController {
         def ss = params['seqsample']
         def sr = params['seqrun']
         SeqSample sSample
-        println ss
-        println sr
-        println "sfsdf"
+
         def thisrun = Seqrun.findBySeqrun(sr)
         if (thisrun) {
             sSample = SeqSample.findBySampleNameAndSeqrun(ss, thisrun)

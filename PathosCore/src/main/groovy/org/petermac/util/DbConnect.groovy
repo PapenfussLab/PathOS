@@ -24,6 +24,7 @@ import org.petermac.util.Locator
 class DbConnect
 {
     String  host        // DB host
+    String  port        // DB port
     String  schema      // DB schema
     String  user        // DB user
     String  pass        // DB pass
@@ -35,19 +36,21 @@ class DbConnect
     static Locator  loc  = Locator.instance
 
     /**
-     * Database Connector Constructor Todo: move passwords out of here to parameters file
+     * Database Connector Constructor
      *
      * Supports all current PathOS databases
      *
-     * @param env   Enivornment you think you're on (currently, if executed targetign a diff. env, will exit)
+     * @param env   Enivornment you think you're on currently
+     * if executed targeting a different env, it will exit
      */
     DbConnect( String env )
     {
         ok = false
 
         host   = loc.dbHost
+        port   = loc.dbPort
         schema = loc.dbSchema
-        jdbc   = "jdbc:mysql://${host}:3306/${schema}"
+        jdbc   = "jdbc:mysql://${host}:${port}/${schema}"
         user   = loc.dbUsername
         pass   = loc.dbPassword
         driver = 'com.mysql.jdbc.Driver'
@@ -92,6 +95,11 @@ class DbConnect
         def sql = Sql.newInstance( this.jdbc, this.user, this.pass, this.driver )
         assert( sql )
         log.info( "Connected to DB host: $host schema: $schema" )
+
+        // Check that the version in the database is the same
+        // as what we're running.
+        //
+        PathosVersion.instance.checkDatabaseVersion(sql, schema)
 
         return sql
     }

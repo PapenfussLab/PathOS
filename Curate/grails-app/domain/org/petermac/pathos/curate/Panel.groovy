@@ -15,6 +15,7 @@ class Panel
     String	manifest
     String  panelGroup
     String  description
+    Boolean skipGeneMask = false
 
     static	hasMany = [ seqSamples: SeqSample ]
 
@@ -23,6 +24,7 @@ class Panel
         manifest(    unique: true )
         description( nullable: true)
         panelGroup(  nullable: false )
+        skipGeneMask        ( nullable: true )
     }
 
     String	toString()
@@ -37,4 +39,9 @@ class Panel
         sort panelGroup: "asc"
 
     }
+
+//    ArrayList<String> allGroups(){
+//        return Panel.executeQuery("select panel.panelGroup from Panel panel group by panelGroup")
+//    }
+
 }

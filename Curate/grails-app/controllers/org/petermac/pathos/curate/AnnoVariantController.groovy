@@ -7,13 +7,14 @@
 
 package org.petermac.pathos.curate
 
-import grails.util.GrailsUtil
+import org.petermac.util.Locator
 import org.petermac.annotate.DataSource
 import org.grails.taggable.*
 /**
  * Created by seleznev andrei on 30/09/2015.
  */
 class AnnoVariantController {
+    def loc = Locator.instance
 
 
     /**
@@ -27,7 +28,7 @@ class AnnoVariantController {
 
 
         def allAnnoMaps = []
-        def rdb = GrailsUtil.environment
+        def rdb = loc.pathosEnv
         def dsource = new DataSource(rdb)
 
 

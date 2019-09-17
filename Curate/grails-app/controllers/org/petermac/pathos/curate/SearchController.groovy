@@ -13,6 +13,7 @@ import org.apache.lucene.queryParser.QueryParser
 
 class SearchController
 {
+    def utilService
 
     /**
      * Action to perform search on a query string
@@ -41,12 +42,12 @@ def deepSearch = {
 def searchSeqSamples(String q) {
     HashMap results = [seqSample:[
         extra: [],
-        link: "/PathOS/seqVariant/svlist/",
+        link: "${utilService.context()}/seqVariant/svlist/",
         name: "Sequenced Sample",
         offset: 0,
         results: [],
         scores: [],
-        table_link: "/PathOS/seqSample/list",
+        table_link: "${utilService.context()}/seqSample/list",
         tags: [],
         title_field: "sampleName",
     ]];
@@ -170,7 +171,7 @@ def svTags = {
         or
         t.createdBy.displayName like :query
 """
-    List results = SeqVariant.executeQuery(query, [query: '%'+q+'%', offset: 0, max: 10])
+    List<SeqVariant> results = SeqVariant.executeQuery(query, [query: '%'+q+'%', offset: 0, max: 10])
 
 def counter =
 """
@@ -190,6 +191,8 @@ def counter =
 
     int count = SeqVariant.executeQuery(counter, [query: '%'+q+'%'])[0]
 
+    results = results.findAll{ sv -> sv.seqSample.firstReviewBy }
+
     render ( [ results: results, count: count ] as JSON )
 }
 
@@ -206,7 +209,7 @@ def svExact = {
         or
         x.sampleName = :query
 """
-    List results = SeqVariant.executeQuery(query, [query: q, offset: 0, max: 10])
+    List<SeqVariant> results = SeqVariant.executeQuery(query, [query: q, offset: 0, max: 10])
 
     def counter =
 """
@@ -221,6 +224,8 @@ def svExact = {
 """
 
     int count = SeqVariant.executeQuery(counter, [query: q])[0]
+
+    results = results.findAll{ sv -> sv.seqSample.firstReviewBy }
 
     render ( [ results: results, count: count ] as JSON )
 }
@@ -238,8 +243,8 @@ def svExact = {
                     o:              o,
                     name:           "Patient Sample",
                     table:          PatSample,
-                    link:           "/PathOS/patSample/show/",
-                    table_link:     "/PathOS/patSample/list",
+                    link:           "${utilService.context()}/patSample/show/",
+                    table_link:     "${utilService.context()}/patSample/list",
                     title_field:    "sample"
             ])
 
@@ -249,8 +254,8 @@ def svExact = {
                     o:              o,
                     name:           "Sequenced Run",
                     table:          Seqrun,
-                    link:           "/PathOS/seqrun/show?id=",
-                    table_link:     "/PathOS/seqrun/list",
+                    link:           "${utilService.context()}/seqrun/show?id=",
+                    table_link:     "${utilService.context()}/seqrun/list",
                     title_field:    "seqrun"
             ])
 
@@ -260,8 +265,8 @@ def svExact = {
                     o:              o,
                     name:           "Curated Variant",
                     table:          CurVariant,
-                    link:           "/PathOS/curVariant/show?id=",
-                    table_link:     "/PathOS/curVariant/list",
+                    link:           "${utilService.context()}/curVariant/show?id=",
+                    table_link:     "${utilService.context()}/curVariant/list",
                     title_field:    "gene"
             ])
 
@@ -271,8 +276,8 @@ def svExact = {
                     o:              o,
                     name:           "Pubmed Article",
                     table:          Pubmed,
-                    link:           "/PathOS/Pubmed?id=",
-                    table_link:     "/PathOS/Pubmed",
+                    link:           "${utilService.context()}/Pubmed?id=",
+                    table_link:     "${utilService.context()}/Pubmed",
                     title_field:    "title"
             ])
 
@@ -282,8 +287,8 @@ def svExact = {
                     o:              o,
                     name:           "PathOS Tag",
                     table:          Tag,
-                    link:           "/PathOS/tag/show/",
-                    table_link:     "/PathOS/tag/list",
+                    link:           "${utilService.context()}/tag/show/",
+                    table_link:     "${utilService.context()}/tag/list",
                     title_field:    "label"
             ])
         }
@@ -411,6 +416,8 @@ def seqSampleLookup(Long id){
             title: ss.sampleName,
             seqrun: ss.seqrun.toString(),
             panel: ss.panel.toString(),
+            reviewed: ss.firstReviewBy ? true : false,
+            mask: ss.geneMask(),
             seqVariants: SeqVariant.countBySeqSample(ss),
             curVariants: SeqVariant.executeQuery("select x from SeqVariant x where x.seqSample = :ss and x.maxPmClass != null", [ss:ss])
         ]
@@ -422,93 +429,119 @@ def seqSampleLookup(Long id){
 
 
 def tables(){
+    String context = utilService.context()
 
     def result = [
         Patient: [
                 count: Patient.count(),
                 title: "Patients",
-                link: "/PathOS/Patient/list"
+                link: "${context}/Patient/list"
         ],
         PatSample: [
                 count: PatSample.count(),
                 title: "Patient Samples",
-                link: "/PathOS/PatSample/list"
+                link: "${context}/PatSample/list"
         ],
         Seqrun: [
                 count: Seqrun.count(),
                 title: "Sequencing Runs",
-                link: "/PathOS/Seqrun/list"
+                link: "${context}/Seqrun/list"
         ],
         Panel: [
                 count: Panel.count(),
                 title: "Panels",
-                link: "/PathOS/Panel/list"
+                link: "${context}/Panel/list"
+        ],
+        LabAssay: [
+                count: LabAssay.count(),
+                title: "LabAssays",
+                link: "${context}/LabAssay/list"
         ],
 //  Don't show this table for now, because it is not used. DKGM 20-December-2016
 //        Amplicon: [
 //                count: Amplicon.count(),
 //                title: "Amplicons",
-//                link: "/PathOS/Amplicon/list"
+//                link: "${context}/Amplicon/list"
 //        ],
         Roi: [
                 count: Roi.count(),
                 title: "Regions of Interest",
-                link: "/PathOS/Roi/list"
+                link: "${context}/Roi/list"
         ],
         RefGene: [
                 count: RefGene.count(),
                 title: "Genes",
-                link: "/PathOS/RefGene/list"
+                link: "${context}/RefGene/list"
         ],
         RefExon: [
                 count: RefExon.count(),
                 title: "Exons",
-                link: "/PathOS/RefExon/list"
+                link: "${context}/RefExon/list"
+        ],
+        CivicClinicalEvidence: [
+                count: CivicClinicalEvidence.count(),
+                title: "Civic Evidence",
+                link: "${context}/CivicClinicalEvidence/list"
+        ],
+        CivicVariant: [
+                count: CivicVariant.count(),
+                title: "Civic Variants",
+                link: "${context}/CivicVariant/list"
+        ],
+        Drugs: [
+                count: Drug.count(),
+                title: "Drugs",
+                link: "${context}/Drug/list"
+        ],
+        Trial: [
+                count: Trial.count(),
+                title: "Trials",
+                link: "${context}/Trial/list"
         ],
         SeqSample: [
                 count: SeqSample.count(),
                 title: "Sequenced Samples",
-                link: "/PathOS/SeqSample/list"
+                link: "${context}/SeqSample/list/"
         ],
         SeqVariant: [
                 count: SeqVariant.count(),
                 title: "Sequenced Variants",
-                link: "/PathOS/seqVariant/allsvlist"
+                link: "${context}/seqVariant/allsvlist/"
         ],
         CurVariant: [
                 count: CurVariant.count(),
                 title: "Curated Variants",
-                link: "/PathOS/CurVariant/list"
+                link: "${context}/CurVariant/list"
         ],
         Transcript: [
                 count: Transcript.count(),
                 title: "Transcripts",
-                link: "/PathOS/Transcript/list"
+                link: "${context}/Transcript/list"
         ],
         Audit: [
                 count: Audit.count(),
                 title: "Data Audit Trail",
-                link: "/PathOS/Audit/list"
+                link: "${context}/Audit/list"
         ],
         Pubmed: [
                 count: Pubmed.count(),
                 title: "PubMed Articles",
-                link: "/PathOS/Pubmed"
+                link: "${context}/Pubmed"
         ],
         ClinContext: [
                 count: ClinContext.count(),
                 title: "Clinical Context",
-                link: "/PathOS/ClinContext/list"
+                link: "${context}/ClinContext/list"
         ],
         SeqRelation: [
                 count: SeqRelation.count(),
                 title: "Sequenced Relations",
-                link: "/PathOS/SeqRelation/list"
+                link: "${context}/SeqRelation/list"
         ],
         Tag: [
                 count: Tag.count(),
                 title: "Tags",
-                link: "/PathOS/Tag/list"
+                link: "${context}/Tag/list"
         ]
     ]
 
@@ -520,7 +553,7 @@ def tables(){
     // This is restricted to admins and devs
     def reindex() {
 
-        SeqSample.reindex()
+//        SeqSample.reindex()
         PatSample.reindex()
         Seqrun.reindex()
         CurVariant.reindex()

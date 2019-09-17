@@ -1,0 +1,18 @@
+// build.gradle
+//
+// Build file for the YamlTools module.
+//
+
+apply from: '../../scripts/common.gradle'
+
+//  Release version
+//
+version = '1.5.2'
+
+jar {
+    baseName = 'yaml-tools'
+}
+
+dependencies {
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.18'
+}

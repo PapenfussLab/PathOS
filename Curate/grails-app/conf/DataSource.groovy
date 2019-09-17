@@ -7,11 +7,6 @@
 
 import org.petermac.util.Locator
 
-dataSource
-{
-    pooled = true
-}
-
 hibernate
 {
     cache.use_second_level_cache = true
@@ -22,246 +17,57 @@ hibernate
 //  Application properties
 //
 def loc  = Locator.instance
+String context = grailsApplication.metadata['app.context']
+println "DataSource initialising locator... ${context}"
+loc.init(context)
+
+dataSource
+{
+    pooled = true
+    dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+
+    dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
+
+    //  MySql parameters for DB
+    //
+    driverClassName = "com.mysql.jdbc.Driver"
+    username = loc.prop.get('db.username')
+    password = loc.prop.get('db.password')
+    dbschema = loc.prop.get('db.schema')
+    dbhost   = loc.prop.get('db.host')
+    dbport   = loc.dbPort
+    url = "jdbc:mysql://${dbhost}:${dbport}/${dbschema}"
+
+    properties
+    {
+        dbProperties
+        {
+            autoReconnect               =   true
+            useUnicode                  =   true
+            characterEncoding           =   'utf8'
+            zeroDateTimeBehavior        =   'convertToNull'
+        }
+        testWhileIdle                   =   true
+        validationQuery                 =   "SELECT 1"
+    }
+}
 
 // environment specific settings
 //
 environments
 {
-    gebtest {
-        dataSource {
-            dbCreate = "update"
-            url = "jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
-        }
-    }
-
-    pa_test
-    {
-        dataSource
-        {
-            //  In Memory hibernate DB
-            //
-            driverClassName = "org.h2.Driver"
-            dbCreate = "create"
-            url = "jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
-        }
-    }
-
     pa_uat
     {
         dataSource
         {
-            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-            dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
-
-            properties
-                    {
-                        maxActive = -1
-                        minEvictableIdleTimeMillis=1800000
-                        timeBetweenEvictionRunsMillis=1800000
-                        numTestsPerEvictionRun=3
-                        testOnBorrow=true
-                        testWhileIdle=true
-                        testOnReturn=true
-                        validationQuery="SELECT 1"
-                    }
+            dbCreate = "nothing"
         }
     }
-
-    pa_dev
-            {
-                dataSource
-                        {
-                            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-
-                            //  MySql parameters for DB
-                            //
-                            driverClassName = "com.mysql.jdbc.Driver"
-                            username = loc.prop.get('db.username')
-                            password = loc.prop.get('db.password')
-                            dbschema = loc.prop.get('db.schema')
-                            dbhost   = loc.prop.get('db.host')
-                            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-                            dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
-
-                            properties
-                                    {
-                                        maxActive = -1
-                                        minEvictableIdleTimeMillis=1800000
-                                        timeBetweenEvictionRunsMillis=1800000
-                                        numTestsPerEvictionRun=3
-                                        testOnBorrow=true
-                                        testWhileIdle=true
-                                        testOnReturn=true
-                                        validationQuery="SELECT 1"
-                                    }
-                        }
-            }
-
-    pa_stage
-    {
-        dataSource
-        {
-            dialect  = "org.hibernate.dialect.MySQL5InnoDBDialect"
-            dbCreate = "update"
-
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-            properties
-                    {
-                        testOnBorrow=true
-                        testWhileIdle=true
-                        testOnReturn=true
-                        validationQuery="SELECT 1"
-                    }
-        }
-    }
-
-    pa_test
-    {
-        dataSource
-        {
-            dialect  = "org.hibernate.dialect.MySQL5InnoDBDialect"
-            dbCreate = "update"
-
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-
-            properties
-                    {
-                        testOnBorrow=true
-                        testWhileIdle=true
-                        testOnReturn=true
-                        validationQuery="SELECT 1"
-                    }
-        }
-    }
-
-    pa_local
-    {
-        dataSource
-        {
-            dialect  = "org.hibernate.dialect.MySQL5InnoDBDialect"
-            dbCreate = "update"
-
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-        }
-    }
-
-    pa_cloud
-    {
-        dataSource
-        {
-            dialect  = "org.hibernate.dialect.MySQL5InnoDBDialect"
-
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-            properties
-            {
-                testOnBorrow=true
-                testWhileIdle=true
-                testOnReturn=true
-                validationQuery="SELECT 1"
-            }
-        }
-    }
-
     pa_prod
     {
         dataSource
         {
-            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-            properties
-            {
-                maxActive = -1
-                minEvictableIdleTimeMillis=1800000
-                timeBetweenEvictionRunsMillis=1800000
-                numTestsPerEvictionRun=3
-                testOnBorrow=true
-                testWhileIdle=true
-                testOnReturn=true
-                validationQuery="SELECT 1"
-            }
-        }
-    }
-
-    pa_research
-    {
-        dataSource
-        {
-            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-            dbCreate = "update"
-            
-            //  MySql parameters for DB
-            //
-            driverClassName = "com.mysql.jdbc.Driver"
-            username = loc.prop.get('db.username')
-            password = loc.prop.get('db.password')
-            dbschema = loc.prop.get('db.schema')
-            dbhost   = loc.prop.get('db.host')
-            url = "jdbc:mysql://${dbhost}:3306/${dbschema}?autoreconnect=true?useUnicode=yes&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull"
-
-
-
-            properties
-            {
-                maxActive = -1
-                minEvictableIdleTimeMillis=1800000
-                timeBetweenEvictionRunsMillis=1800000
-                numTestsPerEvictionRun=3
-                testOnBorrow=true
-                testWhileIdle=true
-                testOnReturn=true
-                validationQuery="SELECT 1"
-            }
+            dbCreate = "nothing"
         }
     }
 }

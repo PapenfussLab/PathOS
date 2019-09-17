@@ -172,76 +172,76 @@ class TestTest extends GroovyTestCase
 
     }
 
-    // TODO: Temporal location of testing pipeline
-    void testPipeline()
-    {
-        def Tolerance = 5.0
-        def list_Muts = []
-        def list_Vcfs = []
-        def VariantMap = [:]
-        def outputMutation
-        def outputVaf
-        def Tests = []
-        Tsv tsv_mut
-        Vcf vcf
-        String pathToVariant
-        String pathToTsvMut
-        def Found
-        String Type_of_case
-        def InvalidRange = []
-        def NotFound = []
-        def FoundV = []
-
-        // This will generate the files
-        ( list_Muts, list_Vcfs ) = GetPath_of_Files()
-
-        [list_Muts, list_Vcfs].transpose().collect
-                {
-                    pathToVariant = it[0]
-                    pathToTsvMut = it[1]
-
-                    print pathToTsvMut + " >> "
-
-                    (tsv_mut, vcf) = ReadFiles( pathToVariant,  pathToTsvMut)
-
-                    VariantMap = SetList_of_Varaints( vcf )
-
-                    ( outputMutation, outputVaf ) = ReadTestVariant( tsv_mut )
-
-                    // Code this in a sub function
-                    (Found, Type_of_case) = Checker( VariantMap,  outputMutation,  outputVaf,  Tolerance )
-
-                    Tests.add(Found)
-                    if(Type_of_case == "FI")
-                    {
-                        InvalidRange.add(Type_of_case)
-                    }
-                    else if(Type_of_case == "F")
-                    {
-                        FoundV.add(Type_of_case)
-                    }
-                    else
-                    {
-                        NotFound.add(Type_of_case)
-                    }
-                }
-
-        printResults( list_Muts, Tests)
-
-        def AccFreq = 0.0
-
-        for (value in NotFound)
-        {
-            AccFreq = AccFreq + Double.valueOf( value.split(":")[1] )
-        }
-
-
-
-        println "Founf INV:${InvalidRange.size()}, FOUND:${FoundV.size()}, NOT FOUND:${NotFound.size()} with average of ${AccFreq/NotFound.size()} "
-
-
-    }
-
+//    // TODO: Temporal location of testing pipeline
+//    void testPipeline()
+//    {
+//        def Tolerance = 5.0
+//        def list_Muts = []
+//        def list_Vcfs = []
+//        def VariantMap = [:]
+//        def outputMutation
+//        def outputVaf
+//        def Tests = []
+//        Tsv tsv_mut
+//        Vcf vcf
+//        String pathToVariant
+//        String pathToTsvMut
+//        def Found
+//        String Type_of_case
+//        def InvalidRange = []
+//        def NotFound = []
+//        def FoundV = []
+//
+//        // This will generate the files
+//        ( list_Muts, list_Vcfs ) = GetPath_of_Files()
+//
+//        [list_Muts, list_Vcfs].transpose().collect
+//                {
+//                    pathToVariant = it[0]
+//                    pathToTsvMut = it[1]
+//
+//                    print pathToTsvMut + " >> "
+//
+//                    (tsv_mut, vcf) = ReadFiles( pathToVariant,  pathToTsvMut)
+//
+//                    VariantMap = SetList_of_Varaints( vcf )
+//
+//                    ( outputMutation, outputVaf ) = ReadTestVariant( tsv_mut )
+//
+//                    // Code this in a sub function
+//                    (Found, Type_of_case) = Checker( VariantMap,  outputMutation,  outputVaf,  Tolerance )
+//
+//                    Tests.add(Found)
+//                    if(Type_of_case == "FI")
+//                    {
+//                        InvalidRange.add(Type_of_case)
+//                    }
+//                    else if(Type_of_case == "F")
+//                    {
+//                        FoundV.add(Type_of_case)
+//                    }
+//                    else
+//                    {
+//                        NotFound.add(Type_of_case)
+//                    }
+//                }
+//
+//        printResults( list_Muts, Tests)
+//
+//        def AccFreq = 0.0
+//
+//        for (value in NotFound)
+//        {
+//            AccFreq = AccFreq + Double.valueOf( value.split(":")[1] )
+//        }
+//
+//
+//
+//        println "Founf INV:${InvalidRange.size()}, FOUND:${FoundV.size()}, NOT FOUND:${NotFound.size()} with average of ${AccFreq/NotFound.size()} "
+//
+//
+//    }
+//
 
 
     def printResults(List list_Muts, List Tests)

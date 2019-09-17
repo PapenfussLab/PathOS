@@ -24,7 +24,9 @@ class PubmedTest extends GroovyTestCase
     {
         Pubmed pm = new Pubmed()
 
-        assert pm.ping(): "This is returning false"
+        //assert pm.ping(): "This is returning false"
+        println(pm.ping())
+
     }
 
     void testArticle()
@@ -42,7 +44,39 @@ class PubmedTest extends GroovyTestCase
     }
 
 
-    void testArticleDate()
+    void testArticleDateNormal()
+    {
+        Pubmed pm = new Pubmed()
+
+        assert pm.fetchArticle( '10422993' ).pmid == '10422993'
+        Map art = pm.fetchArticle( 'pmID:10422993' )
+        assert art.pmid == '10422993': " pm.fetchArticle( 'pmID:10422993' ) does not exist"
+
+        assert art.title == 'Interpretation of genetic test results for hereditary nonpolyposis colorectal cancer: implications for clinical predisposition testing.' : "Title does not exist"
+
+        assert art.date == '1999-07-21' : "Date is invalid"
+
+        for( attr in art)
+            println "${attr.key}\t\t${attr.value}"
+    }
+
+    void testArticleDateYearMonthOnly()
+    {
+        Pubmed pm = new Pubmed()
+
+        assert pm.fetchArticle( '17873119' ).pmid == '17873119'
+        Map art = pm.fetchArticle( 'pmID:17873119' )
+        assert art.pmid == '17873119': " pm.fetchArticle( 'pmID:17873119' ) does not exist"
+
+        assert art.title == 'High proportion of large genomic deletions and a genotype phenotype update in 80 unrelated families with juvenile polyposis syndrome.' : "Title does not exist"
+
+        assert art.date == '2007-11-01' : "Date is invalid"
+
+        for( attr in art)
+            println "${attr.key}\t\t${attr.value}"
+    }
+
+    void testArticleDateSeason()
     {
         Pubmed pm = new Pubmed()
 
@@ -52,7 +86,7 @@ class PubmedTest extends GroovyTestCase
 
         assert art.title == 'Expression of Hepatocyte Growth Factor (HGF) and its Receptor (MET) in Medullary Carcinoma of the Thyroid.' : "Title does not exist"
 
-        assert art.date == '2002-07-12' : "Date is invalid"
+        assert art.date == '2000-01-01' : "Date is invalid"
 
         for( attr in art)
             println "${attr.key}\t\t${attr.value}"

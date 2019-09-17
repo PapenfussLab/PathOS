@@ -12,9 +12,13 @@ class AnnoMetaData {
     String annoDataSource    //datasource (ANV/IARC/etc)
     String category          //grouping field
 
+    static mapping =
+            {
+                description     (type: 'text')
+            }
     static constraints =
             {
-                description ( nullable: true, maxSize: 9999)
+                description ( nullable: true )
                 colName ( unique:'annoDataSource' )
             }
 }

@@ -42,7 +42,7 @@
 
             <th><g:message code="patAssay.patSample.label" default="Sample"/></th>
 
-            <th><g:message code="patAssay.panel.label" default="Panel"/></th>
+            <th><g:message code="patAssay.labAssay.label" default="Lab Assay"/></th>
 
             <g:sortableColumn property="authDate"
                               title="${message(code: 'patAssay.authDate.label', default: 'Auth Date')}"
@@ -61,7 +61,7 @@
 
                 <td>${fieldValue(bean: patAssayInstance, field: "patSample")}</td>
 
-                <td>${fieldValue(bean: patAssayInstance, field: "panel")}</td>
+                <td>${fieldValue(bean: patAssayInstance, field: "labAssay")}</td>
 
                 <td><g:formatDate date="${patAssayInstance.authDate}" format="dd-MMM-yyyy"/></td>
 

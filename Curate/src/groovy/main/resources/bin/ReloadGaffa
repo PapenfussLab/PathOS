@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -e
+
+function loadOne() {
+    if ! test -f $1
+    then
+        echo "file not found: $f" 1>&2
+        exit 1
+    fi
+    lc=$(grep -v '^#' $1 | wc -l)
+    if [ ${lc} -le 1 ]
+    then
+        # Files have a header line followed by data lines
+        # So we should have at lead two lines before we process it.
+        echo "file contains no meaningful data: $f" 1>&2
+        exit 1
+    fi
+    # Match something like:
+    # /pathology/NGS/Samples/UAT/180504_NS500817_0318_AHVNCMBGX5-10122018/08554846/CNV/08554846_gaffa_pathos.tsv
+    re=".*/([^/]+)/([^/]+)/CNV/(.*)_gaffa_pathos.tsv"
+    f=$1
+    if [[ $1 =~ ${re} ]]
+    then
+        sr=${BASH_REMATCH[1]}
+        ss=${BASH_REMATCH[2]}
+    else
+        echo "couldn't match seqrun and sample from: $1"
+        exit 1
+    fi
+    babble -b gaffa-to-pathos.yaml ${sr} ${ss} ${f}
+}
+
+for f in $@
+do
+    loadOne ${f}
+done

@@ -5,6 +5,7 @@
 		<meta name="layout" content="main">
 		<g:set var="entityName" value="${message(code: 'clinContext.label', default: 'ClinContext')}" />
 		<title><g:message code="default.create.label" args="[entityName]" /></title>
+
 	</head>
 	<body>
 		<a href="#create-clinContext" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
@@ -14,6 +15,48 @@
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
 			</ul>
 		</div>
+
+<r:style>
+#create-clinContext table {
+	width: 500px;
+	margin: auto;
+}
+#create-clinContext table input#create {
+	background-image: url(<g:context/>/images/skin/database_save.png);
+	background-position: 0.7em center;
+	background-repeat: no-repeat;
+	text-indent: 25px;
+	background-color: transparent;
+	border: 1px solid grey;
+	color: #666666;
+	cursor: pointer;
+	display: inline-block;
+	overflow: visible;
+	padding: 10px 0;
+	text-decoration: none;
+	-moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
+	border-radius: 0.3em;
+	width: 110px;
+	margin: 0 55px;
+}
+
+#create-clinContext table td h3 {
+	margin-bottom: 0;
+}
+
+#create-clinContext table td p {
+	margin-top: 5px;
+}
+td {
+	width: 50%;
+	line-height: 1em;
+}
+td input {
+	width: 100%;
+}
+</r:style>
+
 		<div id="create-clinContext" class="content scaffold-create" role="main">
 			<h1><g:message code="default.create.label" args="[entityName]" /></h1>
 			<g:if test="${flash.message}">
@@ -27,12 +70,22 @@
 			</ul>
 			</g:hasErrors>
 			<g:form action="save" >
-				<fieldset class="form">
-					<g:render template="form"/>
-				</fieldset>
-				<fieldset class="buttons">
-					<g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
-				</fieldset>
+				<table>
+					<tr>
+						<td><h3>Name</h3><p>A descriptive name, e.g. Colorectal Cancer</p></td>
+						<td><g:textField name="description" value="${clinContextInstance?.description}"/></td>
+					</tr>
+					<tr>
+						<td><h3>Code</h3><p>A short code, e.g. CRC</p></td>
+						<td><g:textField name="code" value="${clinContextInstance?.code}"/></td>
+					</tr>
+					<tr>
+						<td><h3>Save</h3></td>
+						<td>
+							<g:submitButton name="create" class="save" value="${message(code: 'default.button.create.label', default: 'Create')}" />
+						</td>
+					</tr>
+				</table>
 			</g:form>
 		</div>
 	</body>

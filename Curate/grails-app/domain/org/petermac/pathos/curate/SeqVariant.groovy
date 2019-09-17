@@ -90,7 +90,10 @@ class SeqVariant implements Taggable
     String      homopolymer
     String      varcaller
 
-    Integer maxPmClass
+    Integer     maxPmClass
+    Integer     acmgSort
+    Integer     ampSort
+    Integer     overallSort
 
     static constraints =
         {
@@ -131,15 +134,15 @@ class SeqVariant implements Taggable
             refseq_mrna( nullable: true)
             refseq_peptide( nullable: true)
             existing_variation( nullable: true)
-            domains( maxSize: 2000, nullable: true)
+            domains( nullable: true)
             genedesc( nullable: true)
             cytoband( nullable: true)
-            omim_ids( maxSize: 2000, nullable: true)
+            omim_ids( nullable: true)
             clin_sig( nullable: true)
             biotype( nullable: true)
-            pubmed( maxSize: 2000, nullable: true)
+            pubmed( nullable: true)
             esp( nullable: true)
-            cosmicOccurs( maxSize: 1000, nullable: true )
+            cosmicOccurs( nullable: true )
             cadd( nullable: true )
             cadd_phred( nullable: true )
             exac( nullable: true )
@@ -152,7 +155,7 @@ class SeqVariant implements Taggable
             metaLrCat( nullable: true )
             siftCat( nullable: true )
             polyphenCat( nullable: true )
-            clinvarVal( maxSize: 2000, nullable: true )
+            clinvarVal( nullable: true )
             lrtVal( nullable: true )
             mutTasteVal( nullable: true )
             mutAssessVal( nullable: true )
@@ -171,6 +174,9 @@ class SeqVariant implements Taggable
             varSamplesSeenInPanel( nullable: true)
             varSamplesTotalInPanel( nullable: true)
             maxPmClass( nullable: true)
+            acmgSort (  nullable: true )
+            ampSort (   nullable: true )
+            overallSort ( nullable: true )
         }
 
     static hasMany = [ tags: Tag ] //,  curVariants: CurVariant ] //, varLinks: VarLink ]
@@ -193,8 +199,28 @@ class SeqVariant implements Taggable
         hgvsc       index: 'hgvsc_idx'
 
         //  calculate max pmclass (needed for svlist sortorder)
-        maxPmClass formula: "(SELECT  max( case when SUBSTRING(cv.pm_class,2,1) > 0 then  SUBSTRING(cv.pm_class,2,1)  else 0  end)  FROM seq_variant as sv INNER JOIN cur_variant AS cv ON cv.grp_variant_accession=sv.hgvsg WHERE sv.id=id)"
+        maxPmClass formula: "(SELECT max(cv_weight.weight) FROM seq_variant as sv, cur_variant AS cv, cv_weight WHERE cv_weight.guideline='ACMG' and cv_weight.classification = cv.pm_class and cv.grp_variant_accession=sv.hgvsg and sv.id=id)"
+
+        acmgSort formula: "(SELECT cv_weight.weight FROM seq_variant as sv, cur_variant cv, seq_sample as ss, cv_weight WHERE sv.seq_sample_id = ss.id and ss.clin_context_id = cv.clin_context_id and cv_weight.classification = cv.pm_class and cv.grp_variant_accession=sv.hgvsg and cv_weight.guideline='ACMG' and sv.id=id)"
+
+        ampSort formula: "(SELECT cv_weight.weight FROM seq_variant as sv, cur_variant cv, seq_sample as ss, cv_weight WHERE sv.seq_sample_id = ss.id and ss.clin_context_id = cv.clin_context_id and cv_weight.classification = cv.amp_class and cv.grp_variant_accession=sv.hgvsg and cv_weight.guideline='AMP' and sv.id=id)"
+
+        overallSort formula: "(SELECT cv_weight.weight FROM seq_variant as sv, cur_variant cv, seq_sample as ss, cv_weight WHERE sv.seq_sample_id = ss.id and ss.clin_context_id = cv.clin_context_id and cv_weight.classification = cv.overall_class and cv.grp_variant_accession=sv.hgvsg and cv_weight.guideline='Overall' and sv.id=id)"
+
+        // Field larger than 500 varchar
+        domains            (type: 'text')
+        omim_ids           (type: 'text')
+        pubmed             (type: 'text')
+        cosmic             (type: 'text')
+        cosmicOccurs       (type: 'text')
+        clinvarVal         (type: 'text')
+        clin_sig           (type: 'text')
+        existing_variation (type: 'text')
     }
+
+//    static transients = ['maxPmClass']
+//    Find a new way to sort svlist before adding this back in.
+//    DKGM 7-6-18
 
     String	toString()
     {
@@ -202,22 +228,6 @@ class SeqVariant implements Taggable
     }
 
     def CurateService
-
-    /**
-     * returns panel freq
-     * (from 0-100)
-     * DEPRECATED
-     * @return
-     */
-    BigDecimal panelFreq() {
-        // this function is deprecated in favour of varPanelPct property (see PATHOS-1941)
-        try {
-            BigDecimal pf = ( this.varSamplesSeenInPanel.div(this.varSamplesTotalInPanel) )  // ( varSamplesSeenInPanel.div(varSamplesTotalInPanel) ) * 100
-            return pf * 100
-       } catch(all) {  //on any exception (null, divide-by-zero might happen)
-            return 0
-       }
-    }
 
     /**
      * Check if this SV is curated in a certain context.
@@ -243,22 +253,30 @@ class SeqVariant implements Taggable
     }
 
 
+    // Get generic CurVariant for this SeqVariant
+    // Return null if none exists
+    // DKGM 6-June-2017
+    CurVariant genericCurVariant()
+    {
+        ClinContext cc = ClinContext.generic()
+        def thisCvs = CurVariant.executeQuery("select cv from CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext=:cc",[hgvsg:this.hgvsg,cc:cc])
+
+        assert (thisCvs?.size() < 2 || thisCvs == null)    // accession and cc combo should be unique
+        return thisCvs[0]
+    }
     //  get CurVariant matching this SeqVariant's SeqSample's context
+    //  Return null if none exists
     CurVariant currentCurVariant()
     {
-        def cc = this.seqSample?.clinContext
-        def thisCvs = null
-        if(cc) {
-            thisCvs = CurVariant.executeQuery("from CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext=:cc",[hgvsg:this.hgvsg,cc:cc])
+        ClinContext cc = this.seqSample?.clinContext
+        CurVariant result = null
+        if( cc ) {
+            def thisCvs = CurVariant.executeQuery("from CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext=:cc",[hgvsg:this.hgvsg,cc:cc])
 
-        } else {
-            thisCvs = CurVariant.executeQuery("from CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext is null",[hgvsg:this.hgvsg])
+            assert (thisCvs?.size() < 2 || thisCvs == null)    // accession and cc combo should be unique
+            result = thisCvs[0]
         }
-
-
-        assert (thisCvs?.size() < 2 || thisCvs == null)    //accesion and cc combo unique
-        return thisCvs[0]
-
+        return result
     }
 
     boolean curate()

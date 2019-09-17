@@ -1,0 +1,19 @@
+apply from: '../../scripts/common.gradle'
+
+group = "com.aspose"
+version = '14.7.0'
+
+jar {
+    baseName = 'aspose-word'
+}
+
+artifacts {
+    archives file('aspose-word-14.7.0.jar')
+}
+
+uploadArchives {
+    repositories.mavenInstaller {
+    	files('./aspose-word-14.7.0.jar')
+    }
+}
+

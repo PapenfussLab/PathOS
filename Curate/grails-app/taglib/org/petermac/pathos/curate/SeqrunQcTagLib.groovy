@@ -272,7 +272,7 @@ class SeqrunQcTagLib
                             def sstats = sample[2].tokenize("|")
                             if (sstats.size() > 1) {
 
-                                println sstats
+//                                println sstats
                                 def statsmap = new HashMap<String,String>()
                                 for ( entry in sstats) {
                                     //println "split " + entry.tokenize(":") + " " + entry.tokenize(":").size()

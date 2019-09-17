@@ -93,7 +93,6 @@ class MakePanel
         //
         File outf = setOutputFile( panel, ampFile, true )
         if ( ! outf ) return false
-
         //  Check panel
         //
         File pf = getPanelPrimer( panel )

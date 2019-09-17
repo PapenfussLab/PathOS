@@ -16,8 +16,14 @@ class CosmicTagLib
         attr ->
             if ( attr.cosmic )
             {
-                def url = UrlLink.cosmic( attr.cosmic )
-                out << """<a href="${url}" target="_blank">COSM${attr.cosmic}</a>"""
+
+                out << attr.cosmic.tokenize(",")
+                        .collect({ it ->
+                    String cosmicID = it.replace("COSM", "").trim()
+                    String url = UrlLink.cosmic( cosmicID )
+                    return """<a href="${url}" target="_blank">COSM${ cosmicID }</a>"""
+                }).join(", ")
+
             }
     }
 }

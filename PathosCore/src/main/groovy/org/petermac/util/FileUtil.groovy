@@ -84,8 +84,35 @@ class FileUtil
         def timeStamp = now.format("yyyyMMdd'T'HHmmss.SSS")
 
         File tmpFile = new File( path, prefix + timeStamp)
-//        tmpFile.deleteOnExit()
 
         return tmpFile
+    }
+
+    /**
+     * Filename without the extension
+     *
+     * @param name
+     * @return
+     */
+    static String nameNoExt( String name )
+    {
+        def m = ( name =~ /([^\/]+)\.\w*$/ )
+        if ( m.count >= 1 ) return m[0][1]
+
+        return name
+    }
+
+    /**
+     * Filename extension
+     *
+     * @param name
+     * @return
+     */
+    static String nameExt( String name )
+    {
+        def m = ( name =~ /\.(\w+)$/ )
+        if ( m.count >= 1 ) return m[0][1]
+
+        return null
     }
 }

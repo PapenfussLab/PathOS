@@ -12,7 +12,9 @@ import groovy.util.logging.Log4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.codehaus.groovy.grails.web.util.WebUtils
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.petermac.util.Locator
+
 import java.text.MessageFormat
 
 /**
@@ -39,183 +41,101 @@ class ReportService
 
     def reportRenderService
 
-    /**
-     * Main reporting method. Generates a report from a sample after curation
-     *
-     * @param sample    SeqSample to report on
-     * @param hidePat   Hide the patient details on the report
-     * @param fileExt   Output file type currently supported .pdf, .docx, .doc, .html
-     * @param swVersion Optional Version for audit reporting
-     * @return          Raw report of sample bytes
-     */
-    byte[] sampleReport( SeqSample sample, Boolean hidePat, String fileExt, String swVersion = '', Boolean test ) throws FileNotFoundException
-    {
-        //  Open files
-        //
-        File outfile   = setOutput( sample, fileExt )
-        List templates = setTemplates( sample, test )
-        if ( ! templates )
-        {
-            log.warn( "No templates found for sample ${sample}")
-            throw new FileNotFoundException()
-        }
+    def patientService
 
-        //  Open database Todo: This should only use Grails Domain classes
-        //
-        Sql sql = Sql.newInstance(  grailsApplication.config.dataSource.url,
-                                    grailsApplication.config.dataSource.username,
-                                    grailsApplication.config.dataSource.password,
-                                    grailsApplication.config.dataSource.driverClassName )
-
-        //  Generate report into web-apps directory
-        //
-        reportRenderService.runReport( sample, hidePat, sql, templates, outfile )
-
-        //  Failed to create a report
-        //
-        if ( ! outfile.exists()) return null
-
-        //  Copy file to payload directory in web context
-        //
-        File newfile = copyReportToArchive( outfile )
-
-        //  Create new SeqSampleReport record
-        // AuthUser currentUser = AuthUser.findByUsername(springSecurityService.currentUser);
-        def currentUser = springSecurityService.currentUser as AuthUser
-
-        //  Todo: catch an exception if one occurs
-        //
-        SeqSampleReport newReport = new SeqSampleReport(seqSample: sample, user: currentUser, reportFilePath: newfile.getPath() ).save(flush: true, failOnError: true)
-
-        //  Create audit message
-        //
-        def audit_msg = "Reported on ${sample.sampleName}"
-        def audit     = new Audit(  category:    'curation',
-                                    sample:      sample.sampleName,
-                                    seqrun:      sample.seqrun.seqrun,
-                                    complete:    new Date(),
-                                    elapsed:     0,
-                                    software:    'PathOS',
-                                    swVersion:   swVersion,
-                                    task:        'report',
-                                    username:    currentUser.username,
-                                    description: audit_msg )
-
-        if ( ! audit.save( flush: true ))
-        {
-            audit?.errors?.allErrors?.each
-            {
-                log.error( new MessageFormat(it?.defaultMessage)?.format(it?.arguments))
-            }
-            log.error( "Failed to log audit message: ${audit_msg}")
-        }
-
-        //  Send PDF document to browser as a byte stream
-        //
-        return outfile.readBytes()
-    }
+    def AuditService
 
     /**
      * Construct a template File for reporting
      *
      * @param sample    sample to report on
-     * @return          List of Files suitable for sample "<panelGroup> [Var|Fail|Neg] Template.docx"
+     * @return          Template File suitable for sample "Template_<test_set>_[Var|Fail|Neg].docx"
      */
-    public List setTemplates( SeqSample sample, Boolean test )
+    public File loadTemplate( SeqSampleReport ssr, Boolean test )
     {
+        SeqSample sample = ssr.seqSample
+        if ( test )
+        {
+            File templateFile = new File( loc.repDir, "${sample.sampleName} Template.docx")
+            if ( ! templateFile.exists())
+            {
+                templateFile = new File( loc.repDir, "Test Template.docx" )
+                if ( ! templateFile.exists())
+                {
+                    log.warn("Test Template file doesn't exist: " + templateFile)
+                }
+            }
+            return templateFile
+        }
+
         //  Default report type for reportable variants
         //
-        String type   = " Var "
+        String type = "var"
 
         //  No reportable variants ?
         //
-        int nvars = sample.seqVariants.findAll{it.reportable}.size()
-        if ( ! nvars ) type = " Neg "
+        int nvars = ssr.curVariantReports.size()
+        if ( ! nvars )
+        {
+            type = "neg"
+        }
 
         //  Failed Sample QC ?
         //
-        if ( sample.authorisedQc && ! sample.passfailFlag ) type = " Fail "
-
-        def pgs = setPanelGroup( sample )
-
-        //  Validate template files, only return ones that exist
-        //
-        List templateFiles = []
-        for ( String pg in pgs )
+        if ( sample.authorisedQc && ! sample.passfailFlag )
         {
-            //  Set template name from panel group and report type
-            //
-            String tf = pg.trim() + type + "Template.docx"
-
-            //  Open Template document
-            //
-            def templateFile = new File( loc.repDir, tf )
-            if ( templateFile.exists())
-            {
-                templateFiles << templateFile
-            }
-            else
-                log.warn( "Template file doesn't exist: " + templateFile)
+            type = "fail"
         }
 
-        //  Set default template if none found
+        //  todo use test code while we wait for mapping from Auslab
         //
-        if ( ! templateFiles )
+        String testCode = sample?.patSample?.patAssays?.find { true }?.testSet
+               testCode = testCode?.trim()
+
+        if ( ! testCode )
         {
-            //  Open Template document
+            log.warn( "No PatAssays found when making template for Sample ${sample} test ${test}" )
+
+            //  fall back to default template
             //
-            def templateFile = new File( loc.repDir, "Default" + type + "Template.docx" )
-            if ( templateFile.exists())
-            {
-                templateFiles << templateFile
-            }
-            else
-                log.warn( "Template file doesn't exist: " + templateFile)
+            return  chooseDefaultTemplate( type )
         }
 
-        if ( test ) {
-            def templateFile = new File( loc.repDir, "Test Template.docx" )
-            if ( templateFile.exists())
-            {
-                templateFiles = []
-                templateFiles << templateFile
-            }
-            else
-                log.warn( "Template file doesn't exist: " + templateFile)
+        //  Set template name from test code and report type
+        //
+        String tf = "Template_${testCode}_${type}.docx"
+
+        //  Open Template document
+        //
+        File templateFile = new File( loc.repDir, tf )
+        if ( ! templateFile.exists())
+        {
+            log.warn( "Template file for ${testCode} doesn't exist: " + templateFile )
+
+            //  Set default template if none found
+            //
+            templateFile = chooseDefaultTemplate( type )
         }
 
-        return templateFiles
+        return templateFile
     }
 
     /**
-     * Construct a panel group prefix for the template file
-     * Append the first test set name (if any) for somatic panels only
-     *
-     * @param sample    Sample to report on
-     * @return          List of Either the panel group for this sample or the panel group appended with the test set name
+     * Construct a default template for reporting
+     * We use the default template when we are unable to find our specific template
+     * @param type
+     * @return
      */
-    private static List setPanelGroup( SeqSample sample )
+    private File chooseDefaultTemplate(String type )
     {
-        def pg = sample.panel.panelGroup
-        def st = sample.patSample?.patAssays
-
-        //  If not somatic or familial or no tests, just use panelGroup
+        //  Open Template document
         //
-        if ((pg != 'MP FLD Somatic Production' && pg != 'MP Germline Capture Assay') || ! st ) return [ pg ]
-
-        //  Find all test sets for this patient sample
-        //
-        def testSets = st.collect { it.testName.trim() }
-
-        //  If no test sets use default template for panelGroup
-        //
-        if ( testSets.size() == 0 ) return [ pg ]
-
-        log.info( "Sample ${sample} has patAssays ${testSets}" )
-
-        //  prepend the panelGroup to testSets and return the list
-        //
-        return testSets.collect{ pg + ' ' + it }
+        File templateFile = new File(loc.repDir, "Template_default_${type}.docx")
+        if ( ! templateFile.exists())
+        {
+            log.warn("Default Template file doesn't exist: " + templateFile)
+        }
+        return templateFile
     }
 
     /**
@@ -226,7 +146,7 @@ class ReportService
      *
      * @return          File suitable for sample
      */
-    private File setOutput( SeqSample sample, String fileExt )
+    private File outputFile( SeqSample sample, String fileExt )
     {
         //  Allocate a temp file
         //
@@ -246,8 +166,8 @@ class ReportService
     {
         //  copy the file to a permanent payload directory and keep it there
         //
-        def webroot = servletContext.getRealPath('/')
-        String newpath = webroot+"/payload"
+        def webroot = loc.pathos_home
+        String newpath = webroot+"/Report/Generated"
 
         if (FilenameUtils.getExtension(outfile.getName()) == 'pdf') {
             newpath = newpath + "/pdf"
@@ -265,4 +185,398 @@ class ReportService
 
         return newfile
     }
+
+    /**
+     * Things we need for PATHOS-2269 MVP
+     * DKGM 13-April-2017
+     *
+     * Mostly copy+pasted from ReportRenderService
+     *
+     * @param SeqSample
+     * @return SeqSampleReport
+     */
+    static def ampliconRoiService = new AmpliconRoiService()    // only need a new because stand alone doesn't have Spring
+
+    public static SeqSampleReport makeNewSeqSampleReport( SeqSample sample, currentUser )
+    {
+        String template = "Test_name.pdf" // name of the output file..???
+
+        //  Calculate amplicon QC stats
+        //
+        Map ampQC = ampliconRoiService.setAmpliconQc( sample, template )
+
+        //  Calculate ROI QC stats
+        //  Note, we are truncating to 1000 chars because any more than that is not worth printing in a report. ROI QC stats should be improved in future.
+        //
+        String rr = ampliconRoiService.roiReport( sample, template )
+        if( rr.length() > 1000 ) {
+            rr = rr.take(996) + "..."
+        }
+
+        // End copy+paste
+        HashMap data = [
+                        seqSample:          sample,
+                        user:               currentUser,
+                        reportFilePath:     "none",
+                        sample:             sample.sampleName,
+                        patient:            sample.patSample?.patient?.fullName,
+                        urn:                sample.patSample?.patient?.urn,
+                        dob:                sample.patSample?.patient?.dob?.format("d-MMM-yyyy"),
+                        age:                sample.patSample?.patient?.age,
+                        sex:                sample.patSample?.patient?.sex,
+//                        requester:          sample.patSample?.requester,
+//                        location:           sample.patSample?.pathlab,
+                        morphology:         sample.patSample?.repMorphology,
+                        site:               sample.patSample?.retSite,
+                        tumour_pct:         sample.patSample?.tumourPct,
+                        collect_date:       sample.patSample?.collectDate?.format("d-MMM-yyyy"),
+                        rcvd_date:          sample.patSample?.rcvdDate?.format("d-MMM-yyyy"),
+                        ampReads:           ampQC?.ampReads,
+                        ampPct:             ampQC?.ampPct,
+                        lowAmps:            ampQC?.lowAmps,
+                        rois:               rr,
+//                        isdraft:            sample.finalReviewBy ? 'FINAL' : 'DRAFT',
+//                        clinContext:        sample.clinContext?.toString(),
+//                        firstReviewer:      sample.firstReviewBy?.displayName,
+//                        firstReviewedDate:  sample?.firstReviewedDate?.format("d-MMM-yyyy h:mm a"),
+//                        secondReviewer:     sample.secondReviewBy?.displayName,
+//                        secondReviewedDate: sample?.secondReviewedDate?.format("d-MMM-yyyy h:mm a"),
+//                        finalReviewer:      sample.finalReviewBy?.displayName,
+//                        finalReviewedDate:  sample?.finalReviewedDate?.format("d-MMM-yyyy h:mm a"),
+                        clinicalDetails:    "",
+                        resultSummary:      "",
+                        recommendations:    "",
+                        uncoveredRegions:   "",
+                        citations:          ""
+                        ]
+
+        SeqSampleReport newReport = new SeqSampleReport(data)
+
+        List<CurVariantReport> curVariantReports = makeVariantMaps(sample, newReport)
+
+        newReport.setCurVariantReports(curVariantReports);
+        newReport.citations = generateCitations(curVariantReports, null);
+
+        newReport.save(flush: true, failOnError: true)
+        curVariantReports.each { it.save() }
+
+        return newReport
+    }
+
+    /**
+     * Create a String of citations from all curated variant texts
+     *
+     * @param   curVariantReports   List of CV report records
+     * @param   ssr                 The seqSampleReport
+     * @param   fields (Optional)   A list of fields to pull citations from
+     *
+     * @return
+     */
+    static String generateCitations(
+        List<CurVariantReport> curVariantReports,
+        SeqSampleReport ssr,
+        String[] fields = ['clinicalDetails', 'resultSummary', 'recommendations', 'mut', 'genedesc']
+    ) {
+
+        String text = ""
+        ArrayList<String> citations = []
+
+        if ( ssr ) {
+            if ( fields.contains('clinicalDetails') )
+                text += ssr.clinicalDetails ?: ""
+
+            if ( fields.contains('resultSummary') )
+                text += ssr.resultSummary   ?: ""
+
+            if ( fields.contains('recommendations') )
+                text += ssr.recommendations ?: ""
+        }
+
+        curVariantReports.each
+        { CurVariantReport cvr ->
+            if ( fields.contains('mut') )
+                text += cvr.mut ?: ""
+
+            if ( fields.contains('genedesc') )
+                text += cvr.genedesc ?: ""
+        }
+
+        ArrayList<Long> pmids = PubmedService.listOfPMIDs(text);
+
+        pmids.each
+        {
+            pmid ->
+            Pubmed article = Pubmed.findByPmid( pmid as String );
+            citations.push("[PMID: $pmid] " + PubmedService.buildCitation(article))
+        }
+
+        return citations.join("\n")
+    }
+
+    // Make a curVariant map from a CurVariant instead of a SeqVariant
+    static Map makeCurVarMap( CurVariant cv, SeqSampleReport ssr ) {
+        String references = ''
+
+        CurVariant generic_cv = CurVariant.findByClinContextAndHgvsg(ClinContext.generic(), cv.hgvsg)
+
+        String reportDesc = generic_cv?.reportDesc ?: ''
+        String pmClass    = generic_cv?.pmClass ?: ''
+
+        //  Add the report description for the current disease context
+        //
+        if (cv != generic_cv)
+        {
+            reportDesc += "\n"
+            reportDesc += cv?.reportDesc ?: ''
+            pmClass     = cv?.pmClass ?: ''
+        }
+
+        //  Collect all the references of the Pubmed IDs
+        //
+        PubmedService.listOfPMIDs(reportDesc).each
+            {
+                PMID ->
+                    references += "[PMID: ${PMID}] " + PubmedService.buildCitation( Pubmed.findByPmid( PMID.toString())) + "\n"
+            }
+
+        //  Get gene
+        //
+        RefGene rg = RefGene.findByGene( cv.gene )
+
+        Map variant =   [
+                seqSampleReport:ssr,
+                curVariant:     cv,
+                sample:         ssr.seqSample.sampleName,
+                gene:           cv.gene,
+                refseq:         cv.hgvsc?.replaceAll(~/:.*/,''),
+                hgvsc:          cv.hgvsc?.replaceAll(~/.*:/,''),
+                hgvsp:          cv.hgvsp,
+                refseqNP:       cv.hgvsp?.replaceAll(~/:.*/,''),
+                aaChange:       cv.hgvsp?.replaceAll(~/.*:/,'') ?: "?",
+                varreaddepth:   "",
+                totalreaddepth: "",
+                afpct:          "",
+                exon:           cv.exon,
+                pmClass:        pmClass,
+                ampClass:       cv.ampClass ?: "",
+                overallClass:   cv.overallClass ?: "",
+                mut:            reportDesc,
+                genedesc:       rg?.genedesc,
+                citations:      references
+        ]
+
+        log.info( "Variant: ${variant.gene}:${variant.hgvsc}" )
+
+        return variant
+    }
+
+    // Make a curVariant map from a SeqVariant
+    static Map makeCurVarMap( SeqVariant sv, SeqSampleReport ssr ) {
+        String reportDesc = /Sequenced Variant "${sv.hgvsg}" not yet Curated/
+        String pmClass = 'none'
+        String references = ''
+
+        //  Get the report description for the null disease context
+        //
+        CurVariant generic_cv = sv.genericCurVariant()
+
+        if( generic_cv )
+        {
+            reportDesc = generic_cv?.reportDesc ?: ''
+            pmClass    = generic_cv?.pmClass ?: ''
+
+            //  Add the report description for the current disease context
+            //
+            if (sv.currentCurVariant() != generic_cv)
+            {
+                reportDesc += "\n"
+                reportDesc += sv.currentCurVariant()?.reportDesc ?: ''
+                pmClass     = sv.currentCurVariant()?.pmClass ?: ''
+            }
+
+            //  Collect all the references of the Pubmed IDs
+            //
+            PubmedService.listOfPMIDs(reportDesc).each
+                {
+                    PMID ->
+                        references += "[PMID: ${PMID}] " + PubmedService.buildCitation( Pubmed.findByPmid( PMID.toString())) + "\n"
+                }
+        }
+
+        //  Get gene
+        //
+        RefGene rg = RefGene.findByGene( sv.gene )
+
+        Map variant =   [
+                seqSampleReport:ssr,
+                curVariant:     sv.currentCurVariant(),
+                sample:         ssr.seqSample.sampleName,
+                gene:           sv.gene,
+                refseq:         sv.hgvsc?.replaceAll(~/:.*/,''),
+                hgvsc:          sv.hgvsc?.replaceAll(~/.*:/,''),
+                hgvsp:          sv.hgvsp,
+                refseqNP:       sv.hgvsp?.replaceAll(~/:.*/,''),
+                aaChange:       sv.hgvsp?.replaceAll(~/.*:/,'') ?: "?",
+                varreaddepth:   sv.varDepth,
+                totalreaddepth: sv.readDepth,
+                afpct:          sv.varFreq,
+                exon:           sv.exon,
+                pmClass:        pmClass,
+                ampClass:       sv.currentCurVariant()?.ampClass ?: "",
+                clinicalSignificance:   sv.currentCurVariant()?.overallClass ?: "",
+                mut:            reportDesc,
+                genedesc:       rg?.genedesc,
+                citations:      references
+        ]
+
+        log.info( "Variant: ${variant.gene}:${variant.hgvsc}" )
+
+        return variant
+    }
+
+    /**
+     * Copied from ReportRenderService
+     * We should be able to use that function, but it is private.
+     * I would also like to add a reference to the original "CurVariant" at this point
+     *
+     * -DKGM 13-April-2017 PATHOS-2269
+     */
+    static private List<CurVariantReport> makeVariantMaps(SeqSample sample, SeqSampleReport ssr )
+    {
+        //  Find all reportable variants for sample
+        ArrayList<SeqVariant> svs = sample.reportableVariants()
+
+        //  Convert variants to a List of Maps
+        //
+        List variants = []
+        for ( sv in svs )
+        {
+            variants.push( makeCurVarMap(sv, ssr) )
+        }
+
+        List<CurVariantReport> curVariantReports = []
+
+        variants.each { variant ->
+            CurVariantReport cvr = new CurVariantReport(variant)
+            curVariantReports.add(cvr)
+        }
+
+        return curVariantReports
+    }
+
+    /**
+     * Generate a report as a byte stream (PDF or MSWord format)
+     *
+     * @param   ssr       SeqSampleReport data of report
+     * @param   swVersion PathOS version number
+     * @param   test      True if a test report
+     * @param   fileExt   Extension of report eg pdf, docx
+     * @param   publish   True if it should be published
+     * @return
+     * @throws  Exception
+     */
+    byte[] generateReport( SeqSampleReport ssr, String swVersion = '', Boolean test, String fileExt, Boolean publish ) throws Exception
+    {
+        Boolean hidePat = false;
+        SeqSample sample = ssr.seqSample;
+
+        //  Open files
+        //
+        File outfile  = outputFile( sample, fileExt )
+        File template = loadTemplate( ssr, test )
+
+        if ( ! template.exists())
+        {
+            String message = "No templates found for sample ${ssr.seqSample}"
+            log.warn( message )
+            throw new FileNotFoundException(message)
+        }
+
+        //  Open database Todo: This should only use Grails Domain classes
+        //
+        Sql sql = Sql.newInstance(
+            grailsApplication.config.dataSource.url,
+            grailsApplication.config.dataSource.username,
+            grailsApplication.config.dataSource.password,
+            grailsApplication.config.dataSource.driverClassName
+        )
+
+        //  Generate report into web-apps directory
+        //
+        try
+        {
+            reportRenderService.runPreparedReport( ssr, hidePat, sql, template, outfile )
+        }
+        catch ( Exception e )
+        {
+            log.error( "Failed to render report " + e )
+            StackTraceUtils.sanitize(e).printStackTrace()
+            throw e
+        }
+
+        //  Failed to create a report
+        //
+        if ( ! outfile.exists()) return null
+
+        //  Copy file to payload directory in web context
+        //
+        File newfile = copyReportToArchive( outfile )
+
+        //  Create new SeqSampleReport record
+        // AuthUser currentUser = AuthUser.findByUsername(springSecurityService.currentUser);
+        //        def currentUser = springSecurityService.currentUser as AuthUser
+
+        //  Todo: catch an exception if one occurs
+        //
+        // Don't make a new seqsample... perhaps update the old one?
+        //        SeqSampleReport newReport = new SeqSampleReport(seqSample: sample, user: currentUser, reportFilePath: newfile.getPath() ).save(flush: true, failOnError: true)
+
+        def audit_msg = "Reported on ${sample.sampleName} as a ${fileExt}"
+
+        //  Only update the filepath if it is a PDF?
+        //
+        if ( publish )
+        {
+            audit_msg = "Published on ${sample.sampleName} as a ${fileExt}"
+            ssr.setReportFilePath(newfile.getPath())
+
+            try {
+                String yaml =  patientService.publishToAuslab( ssr.seqSample.patSample, outfile )
+                println yaml
+                log.info(yaml)
+            } catch (Exception e) {
+                println e
+                log.error(e);
+            }
+        }
+
+        //  Create audit message
+        //
+        AuditService.audit([
+            category    : 'report',
+            task        : 'report',
+            sample      : sample.sampleName,
+            seqrun      : sample.seqrun.seqrun,
+            description : audit_msg
+        ])
+
+        //  Send PDF document to browser as a byte stream
+        //
+        return outfile.readBytes()
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

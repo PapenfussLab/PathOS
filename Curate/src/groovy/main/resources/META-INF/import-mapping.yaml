@@ -1,0 +1,39 @@
+patient:
+  patAssay: [testName, testSet, patSample]
+  patSample: sample
+  patient: urn
+
+sequence:
+  alignStats: [seqrun, sampleName, amplicon]
+  seqSample: [seqRun, sampleName]
+  seqVariant: [seqSample, variant]
+  seqRun: seqRun
+  seqCnv: [seqSample, resolution, chr, start, end]
+  seqRelation: [relation, samples]
+
+panel:
+  labAssay: testSet
+  panel: manifest
+  panelFreq: [panel, hgvsg]
+  roi: [panel, name]
+
+curation:
+  clinContext: code
+  curVariant: [grpVariant, clinContext]
+  evidence: null
+  grpVariant: accession
+  tag: label
+
+reference:
+  annoMetaData: colName
+  pubmed: pmid
+  refChrMappings: chr
+  refExon: [gene, exon]
+  refGene: gene
+  transcript: refseq
+
+user:
+  authRole: authority
+  authUser: username
+  authUserAuthRole: [authUser, authRole]
+  userPersonalPrefs: authUser

@@ -24,7 +24,7 @@ class GenSeqrunIntTest extends GroovyTestCase
 
     String DB
     Boolean isPaLocal
-
+    static Locator loc  = Locator.instance
     VcfDbCheck vdc = null
 
     void setUp()
@@ -34,7 +34,7 @@ class GenSeqrunIntTest extends GroovyTestCase
 
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB =  loc.pathosEnv
 
         if(DB == 'pa_local')
             isPaLocal = true

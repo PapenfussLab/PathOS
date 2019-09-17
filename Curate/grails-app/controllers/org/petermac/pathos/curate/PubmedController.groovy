@@ -5,6 +5,7 @@
 
 package org.petermac.pathos.curate
 
+import org.codehaus.groovy.grails.web.json.JSONElement
 import org.petermac.util.Locator
 
 // Uhhh... this was giving me naming issues, so I aliased it.
@@ -48,6 +49,11 @@ class PubmedController {
                     doi
                     pdf
                     abstrct
+                    citation {
+                        value { Pubmed article ->
+                            PubmedService.buildCitation(article)
+                        }
+                    }
                 }
             }
 
@@ -89,19 +95,29 @@ class PubmedController {
     //perhaps we should do some error checking to see if the pmid is any good...
     // This should probably be "Long pmid" DKGM 28-November-2016
     def fetch_pmid(String pmid){
-        Pubmed entry = Pubmed.findByPmid(pmid);
+        try {
+            Pubmed entry = Pubmed.findByPmid(pmid);
 
-        if(entry) {
-            render "exists-"+entry.getId()
-        } else {
+            if (entry) {
+                render "exists-" + entry.getId()
+            } else {
 
 
-            def result = PubmedUtility.fetchArticle(pmid) as JSON
+                Map result = PubmedUtility.fetchArticle(pmid)
+                result.citation = PubmedService.buildCitation(result)
 
-            System.out.println(result)
+                System.out.println(result)
 
-            render result
+                render result as JSON
+            }
+        } catch ( Exception e ) {
+            log.error(e)
+            render new HashMap([Error: e]) as JSON
         }
+    }
+
+    def update_article( String pmid ){
+        render PubmedService.updateArticle( pmid ) as JSON
     }
 
     def add_pmid(){
@@ -110,19 +126,8 @@ class PubmedController {
         if(entry) {
             render "exists-"+entry.getId()
         } else {
-
-            Map data = PubmedUtility.fetchArticle(params.pmid)
-
-            data.affiliations = data.authors?.affiliation?.join(',').take(255)
-            data.authors = data.authors?.name?.join(',').take(255)
-            data.keywords = data.keywords?.join(',').take(255)
-            data.date = new Date().parse("yyyy-mm-dd", data.date)
-            data.abstrct = data.abstract
-
-            def newEntry = new Pubmed(data)
-
-            if(newEntry.save(flush:true, failOnError: true)){
-               render "saved"
+            if(PubmedService.updateArticle(params.pmid)){
+                render "saved"
             } else {
                 render "failed"
             }
@@ -161,6 +166,53 @@ class PubmedController {
         }
 //        response.sendError(200, 'Done')
     }
+
+    def saveCitation(Long pmid, String citation) {
+        if( pmid && citation ) {
+            Pubmed article = Pubmed.findByPmid(pmid)
+            if( article ) {
+                article.setCitation(citation)
+                article.save()
+                render "Success"
+            } else {
+                render "Fail"
+            }
+        } else {
+            render "Fail"
+        }
+    }
+
+
+
+    def test() {
+        Map result = [
+            hello: 'world'
+        ]
+
+        String blah = "[1,2,3,{123:456}]"
+
+        try {
+
+            JSONElement thing = JSON.parse(blah)
+            result.test = thing
+        } catch (e) {
+            result.error = e
+        }
+
+        try {
+//            result.something = JSON.parse(null)
+        } catch (e) {
+            result.lol = e
+        }
+
+
+        render result as JSON
+    }
+
+
+
+
+
 
 
 }

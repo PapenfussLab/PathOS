@@ -24,7 +24,8 @@ class Seqrun implements Taggable
     Boolean     authorisedFlag = false
     Boolean     passfailFlag   = false
     String      qcComment
-    String      panelList
+    transient String panelList = ""
+
     static	hasMany = [ seqSamples: SeqSample, tags: Tag ]
 
     static  searchable =
@@ -35,20 +36,19 @@ class Seqrun implements Taggable
 
     static mapping =
     {
-        panelList   formula: '(select GROUP_CONCAT(DISTINCT panel.manifest) from panel left join seq_sample on seq_sample.panel_id=panel.id left join seqrun on seq_sample.seqrun_id = seqrun.id WHERE panel.manifest IS NOT NULL AND panel.manifest != "null" AND seqrun.id=id)'
         sort seqrun: "desc"
     }
 
     static constraints =
     {
-        seqrun( unique: true )
+        seqrun( unique: true, validator: { val -> if (val.contains(' ')) return 'value.hasASpace' } )
         runDate()
-        platform()
-        sepe()
-        readlen()
-        library()
-        experiment()
-        scanner()
+        platform( nullable: true )
+        sepe( nullable: true )
+        readlen( nullable: true )
+        library( nullable: true )
+        experiment( nullable: true )
+        scanner( nullable: true )
         authorisedFlag()
         passfailFlag()
         authorised( nullable: true )
@@ -61,5 +61,38 @@ class Seqrun implements Taggable
         seqrun
     }
 
+    String getPanelList() {
+        this.seqSamples.collect{ it?.panel?.manifest }.unique().sort().join(", ")
+    }
 
+
+    /**
+     * get most common panel for a seqrun
+     * @param sr
+     * @return
+     */
+    Panel mostCommonPanel() {
+        String panels = this?.panelList
+
+        ArrayList panelList = panels?.contains(',')? panels.tokenize(','):[panels]
+
+        String largestPanel = null
+        int largestPanelCount = 0
+
+
+        for(p in panelList) {
+            def ss = SeqSample.findAllBySeqrunAndPanel(this,Panel.findByManifest(p))
+            if(ss.size() > largestPanelCount ) {
+                largestPanel = p
+
+                largestPanelCount = ss.size()
+            }
+        }
+
+        if (!largestPanel) {
+            return null
+        }
+
+        return Panel.findByManifest(largestPanel)
+    }
 }

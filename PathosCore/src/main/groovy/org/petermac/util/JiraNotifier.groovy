@@ -61,7 +61,7 @@ class JiraNotifier
 
         //  curl it up
         //
-        String curlCommand = "curl ${proxyString} -k -D- -u ${userName}:${userPass} -X ${method} --data-binary @${dataFile.getPath()} -H \"Content-Type: application/json\" ${baseurl}"
+        String curlCommand = "curl ${proxyString} --connect-timeout 10 --max-time 40 -k -D- -u ${userName}:${userPass} -X ${method} --data-binary @${dataFile.getPath()} -H \"Content-Type: application/json\" ${baseurl}"
         println "JIRA: Curling"
         println curlCommand
         log.warn("JIRA curling")

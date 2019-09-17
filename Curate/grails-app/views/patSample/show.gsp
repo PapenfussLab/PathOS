@@ -154,50 +154,43 @@
 				</li>
 				</g:if>
 
-                <g:if test="${sampleInstance?.patAssays}">
                     <li class="fieldcontain">
                         <span id="seqVariants-label" class="property-label"><g:message code="patient.patAssays.label" default="Pat Assays"/></span>
+				<g:if test="${sampleInstance?.patAssays}">
+
                         <g:each in="${sampleInstance?.patAssays}" var="s">
-                            <span class="property-value" aria-labelledby="patAssays-label"><g:link controller="patAssay" action="show" id="${s.id}">${s?.encodeAsHTML()}</g:link></span>
-                        </g:each>
+							<span class="property-value" aria-labelledby="patAssays-label"><g:link controller="patAssay" action="show" id="${s.id}">${s?.encodeAsHTML()}</g:link></span>
+						</g:each>
+				</g:if>
+				<g:else>
+					<span class="property-value" aria-labelledby="patAssays-label">No Pat Assays</span>
+				</g:else>
                     </li>
-                </g:if>
-
-
 
 			<g:if test="${sampleInstance?.hollyLastUpdated}">
-
-
-
 					<g:if test="${sampleInstance?.pathologist}">
 						<li class="fieldcontain">
-							<span id="seqrun-label" class="property-label">Pathologist Review</span>
-							<span class="property-value" aria-labelledby="sampleName-label">
+							<span id="pathologist-label" class="property-label">Pathologist Review</span>
+							<span class="property-value" aria-labelledby="pathologist-label">
 								${sampleInstance.pathologist}
 							</span>
 						</li>
 					</g:if>
 
-
-
-
-
-
 					<g:if test="${sampleInstance?.pathComments}">
 						<li class="fieldcontain">
-							<span id="seqrun-label" class="property-label">Pathologist Comments</span>
-							<span class="property-value" aria-labelledby="sampleName-label">
+							<span id="pathComments-label" class="property-label">Pathologist Comments</span>
+							<span class="property-value" aria-labelledby="pathComments-label">
 								${sampleInstance.pathComments}
 							</span>
 						</li>
 					</g:if>
 
-
 					<g:if test="${sampleInstance?.repMorphology}">
 
 						<li class="fieldcontain">
-							<span id="seqrun-label" class="property-label">Report Morphology</span>
-							<span class="property-value" aria-labelledby="sampleName-label">
+							<span id="repMorphology-label" class="property-label">Report Morphology</span>
+							<span class="property-value" aria-labelledby="repMorphology-label">
 								${sampleInstance.repMorphology}
 							</span>
 						</li>
@@ -205,28 +198,26 @@
 
 					<g:if test="${sampleInstance?.pathMorphology}">
 						<li class="fieldcontain">
-							<span id="seqrun-label" class="property-label">Notes</span>
-							<span class="property-value" aria-labelledby="sampleName-label">
+							<span id="pathMorphology-label" class="property-label">Notes</span>
+							<span class="property-value" aria-labelledby="pathMorphology-label">
 								${sampleInstance.pathMorphology}
 							</span>
 						</li>
 					</g:if>
 
-
 					<g:if test="${sampleInstance?.retSite}">
 						<li class="fieldcontain">
-							<span id="seqrun-label" class="property-label">Tissue Site</span>
-							<span class="property-value" aria-labelledby="sampleName-label">
+							<span id="retSite-label" class="property-label">Tissue Site</span>
+							<span class="property-value" aria-labelledby="retSite-label">
 								${sampleInstance.retSite}
 							</span>
 						</li>
 					</g:if>
 
-
 					<g:if test="${sampleInstance?.tumourPct}">
 						<li class="fieldcontain">
-							<span id="seqrun-label" class="property-label">Tumour %</span>
-							<span class="property-value" aria-labelledby="sampleName-label">
+							<span id="tumourPct-label" class="property-label">Tumour %</span>
+							<span class="property-value" aria-labelledby="tumourPct-label">
 								${sampleInstance.tumourPct}
 							</span>
 						</li>

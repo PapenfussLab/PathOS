@@ -47,6 +47,7 @@ class RunCommand
         //
         def proc = listcmd.execute()
 
+        Integer exitval
         //	Flush output, in background or foreground
         //
         if ( bg )
@@ -60,11 +61,12 @@ class RunCommand
             //  foreground: wait for process to finish
             //
             proc.waitForProcessOutput( sout, serr)
+
+            //	Check exit from command
+            //
+            exitval = proc.exitValue()
         }
 
-        //	Check exit from command
-        //
-        def exitval = proc.exitValue()
 
         return [ stdout: sout, stderr: serr, exit: exitval ]
     }

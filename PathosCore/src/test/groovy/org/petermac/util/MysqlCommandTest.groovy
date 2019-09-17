@@ -8,12 +8,13 @@ class MysqlCommandTest extends GroovyTestCase
 
     String DB
     Boolean isPaLocal
+    static Locator loc  = Locator.instance
 
     void setUp()
     {
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB = loc.pathosEnv
 
         if(DB == 'pa_local')
             isPaLocal = true
@@ -49,19 +50,20 @@ class MysqlCommandTest extends GroovyTestCase
      */
     void testSnapshot()
     {
-        def dbc = new MysqlCommand(DB)
-
-        File dir = new File (Locator.getInstance().backupDir())
-        if(dir.exists())
-        {
-            String outFile = dbc.snapshot("${dir.toString()}/backup_${DB}")
-            File file = new File(outFile)
-            assert file.exists():"[T E S T]: snapshot file does not exist"
-            file.delete()
-
-        }
-        else
-            assert false, "[T E S T]: Backup Dir does not exists"
+        println("NO need for the test")
+//        def dbc = new MysqlCommand(DB)
+//
+//        File dir = new File (Locator.getInstance().backupDir())
+//        if(dir.exists())
+//        {
+//            String outFile = dbc.snapshot("${dir.toString()}/backup_${DB}")
+//            File file = new File(outFile)
+//            assert file.exists():"[T E S T]: snapshot file does not exist"
+//            file.delete()
+//
+//        }
+//        else
+//            assert false, "[T E S T]: Backup Dir does not exists"
 
     }
     /**
@@ -69,21 +71,23 @@ class MysqlCommandTest extends GroovyTestCase
      */
     void testBackupCmd()
     {
-        def dbc = new MysqlCommand(DB)
-
-        File dir = new File (Locator.getInstance().backupDir())
-        println dir
-        if(dir.exists())
-        {
-            dbc.backup("${dir.toString()}/backup_${DB}")
-            File file = new File("${dir.toString()}/backup_${DB}")
-            assert file.exists():"[T E S T]: Backup file in ${dir.toString()}/backup_${DB} does not exist"
-            file.delete()
-        }
-        else
-            assert false, "[TEST]: Backup Dir does not exists"
-
+        println("NO need for the test")
     }
+//        def dbc = new MysqlCommand(DB)
+//
+//        File dir = new File (Locator.getInstance().backupDir())
+//        println dir
+//        if(dir.exists())
+//        {
+//            dbc.backup("${dir.toString()}/backup_${DB}")
+//            File file = new File("${dir.toString()}/backup_${DB}")
+//            assert file.exists():"[T E S T]: Backup file in ${dir.toString()}/backup_${DB} does not exist"
+//            file.delete()
+//        }
+//        else
+//            assert false, "[TEST]: Backup Dir does not exists"
+//
+//    }
 
 }
 

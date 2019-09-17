@@ -7,8 +7,12 @@
 
 package org.petermac.pathos.curate
 
+import grails.converters.JSON
+
 class TagTagLib
 {
+    def utilService
+
     /**
      * Return all tags as a javascript array
      *
@@ -16,15 +20,13 @@ class TagTagLib
      */
     def allTags =
     {
-        def tags = []
+        HashMap results = [:]
 
-        org.petermac.pathos.curate.Tag.findAll().each { obj ->
-            if(!obj.isAuto) {
-                tags.add(obj.label)
-            }
+        Tag.findAll().each{ tag ->
+            results[tag.label] = tag.description
         }
 
-        out << "${tags as grails.converters.JSON}"
+        out << "${results as JSON}"
     }
 
 
@@ -86,7 +88,7 @@ class TagTagLib
                         };
                         \$.ajax({
                             type: "DELETE",
-                            url: "/PathOS/tag/removeLink?" + \$.param(params),
+                            url: "${utilService.context()}/tag/removeLink?" + \$.param(params),
                             success: function (result) {
                                 if(result != 'fail') {
                                     \$('.tag-'+data.id).remove();
@@ -107,7 +109,7 @@ class TagTagLib
                         };
                         \$.ajax({
                             type: "DELETE",
-                            url: "/PathOS/tag/removeLink?" + \$.param(params),
+                            url: "${utilService.context()}/tag/removeLink?" + \$.param(params),
                             success: function (result) {
                                 if(result != 'fail') {
                                     \$('.tag-'+data.id).remove();

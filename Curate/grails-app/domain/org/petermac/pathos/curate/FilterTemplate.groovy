@@ -12,10 +12,13 @@ class FilterTemplate
 
     String template
 
+    static mapping =
+        {
+            template        (type: 'text')
+        }
+
     static constraints =
     {
-        template( maxSize: 9999)
-
         // no spaces for template name since it's used as a var name
         //
         templateName( unique:true, validator: { val -> if (val.contains(' ')) return 'value.hasASpace' } )

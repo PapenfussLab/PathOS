@@ -1,0 +1,54 @@
+#alignStats: null
+#amplicon: null
+#audit: null
+#authRole: null
+#authUser:
+#  - authorities
+authUserAuthRole:
+  - authUser
+  - authRole
+clinContext:
+  - createdBy
+curVariant:
+  #- grpVariant <- embedded
+  #- evidence   <- embedded
+  - clinContext
+  - classified
+  - authorised
+  #- originating
+#evidence: null
+#grpVariant: null
+labAssay:
+  - panel
+#panel: null
+panelFreq:
+  - panel
+patAssay:
+  - patSample
+  - labAssay
+patSample:
+  - patient
+  - owner
+#patient: null
+#pubmed:
+#  - tags
+roi:
+  - panel
+seqCnv:
+  - seqSample
+#seqRelation:
+#  - samples
+seqSample:
+  - panel
+  - seqrun
+  - patSample
+  - clinContext
+  - firstReviewBy
+  - secondReviewBy
+  - authorisedQc
+seqVariant:
+  - seqSample
+seqrun:
+  - authorised
+tag:
+  - createdBy

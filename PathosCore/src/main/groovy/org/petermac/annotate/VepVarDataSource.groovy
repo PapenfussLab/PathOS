@@ -8,6 +8,7 @@
 package org.petermac.annotate
 
 import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
 import org.petermac.pathos.pipeline.HGVS
 import org.petermac.pathos.pipeline.Transcript
@@ -61,42 +62,45 @@ class VepVarDataSource extends VarDataSource
         //
         if ( useCache )
         {
-            novelVars = notInCache( DS.VEP.code(), novelVars )
+            novelVars = notInCache( code, novelVars )
             if ( vcflines.size())
                 log.info( "Found ${vcflines.size()-novelVars.size()}/${vcflines.size()} in ${code} cache")
+
+            if ( ! novelVars ) return nadd
         }
 
-        if ( novelVars )
+        //  VEP all uncached variants
+        //
+        List<Map> mutvars = runVep( novelVars, hgs )
+
+        //  Filter by transcript
+        //
+        List<Map> vars = transcriptFilter( mutvars )
+
+        //  Process all muts individually
+        //
+        for ( var in vars )
         {
-            //  VEP all uncached variants
+            //  convert Map to JSON object
             //
-            List<Map> mutvars = runVep( novelVars, hgs )
+            jb( var )
 
-            //  Process all muts individually
+            //  Add to cache using HGVSg as the key
             //
-            for ( mut in mutvars )
-            {
-                //  convert Map to JSON object
-                //
-                jb(mut)
+            Map params   =  [
+                    data_source:        code,
+                    hgvsg:              var.hgvsg,
+                    attr:               'mut_map',
+                    value:              jb.toString(),
+                    hgvsc:              var.besttx?.hgvsc,
+                    hgvsp:              var.besttx?.hgvsp,
+                    version:            'v90',
+                    gene:               var.besttx?.gene_symbol
+            ]
 
-                //  Add to cache using HGVSg as the key
-                //
-                Map params   =  [
-                                data_source:        code,
-                                hgvsg:              mut.hgvsg,
-                                attr:               'mut_map',
-                                value:              jb.toString(),
-                                hgvsc:              (vepToHGVSc( mut ) ?: mut.HGVSc),
-                                hgvsp:              mut.HGVSp,
-                                version:            'v78',
-                                gene:               mut.SYMBOL
-                                ]
-
-                List ids = saveValueMap( params )
-                if ( ! ids ) log.warn( "Couldn't add ${params}")
-                nadd += ids.size()
-            }
+            List ids = saveValueMap( params )
+            if ( ! ids ) log.warn( "Couldn't add ${params}")
+            nadd += ids.size()
         }
 
         return nadd
@@ -111,60 +115,99 @@ class VepVarDataSource extends VarDataSource
      */
     static List<Map> runVep( List vars, Map veplines )
     {
-        //  Dump variants into a temporary file
-        //  Todo: replace with FileUtil.tmpFile( 'vep_' ) which is deleted on exit
+        //  Create a temp VCF file for VEP to process
         //
-        File tmpFile = FileUtil.tmpFixedFile( '/tmp', 'vep_' )
-
-        //  Output header
-        //
-        tmpFile << Vcf.header()
-
-        //  Output variants
-        //
-        for ( var in vars )
-            tmpFile << veplines[var]
+        File tmpFile = createVepVcf( vars, veplines )
 
         //  Run VEP
         //
         log.info( "Running VEP on ${vars.size()} vars" )
-        def cmd   = "mp-vep.sh -i ${tmpFile.absolutePath} ${tmpFile.absolutePath}.vep"
+        def cmd   = "${loc.mpVepPath} ${tmpFile.absolutePath} ${tmpFile.absolutePath}.vep"
         def sout  = new RunCommand( cmd ).run()
-        if ( sout ) log.warn( "VEP command output: " + sout )
+        if ( sout ) log.warn( "VEP command output:\n" + sout )
+
+        //  Convert VEP JSON output into Maps
+        //
+        List<Map> muts = loadJson( tmpFile.absolutePath + ".vep" )
+        log.info( "Found ${muts.size()} VEP annotations")
+
+        return muts
+    }
+
+    /**
+     * Create temporary VCF file for VEP
+     *
+     * @param   vars        Variants to add to VCF
+     * @param   veplines    VCF lines to output
+     * @return              vcf File created
+     */
+    private static File createVepVcf( List vars, Map veplines )
+    {
+        File tmpFile = null
+
+        try
+        {
+            //  Dump variants into a temporary file
+            //
+            tmpFile = FileUtil.tmpFixedFile( '/tmp', 'vep_' )
+
+            //  Output header
+            //
+            tmpFile << Vcf.vepHeader()
+
+            //  Output variants
+            //
+            for ( var in vars )
+                tmpFile << veplines[var]
+        }
+        catch( Exception e )
+        {
+            log.fatal( "Couldn't create temp VCF file ${tmpFile} " + e )
+            System.exit(1)
+        }
+
+        return tmpFile
+    }
+
+    /**
+     * Load in a file of JSON lines and return a Map
+     *
+     * @param   jname   File of JSON lines
+     * @return          List<Map> of converted JSON lines
+     */
+    static List<Map> loadJson( String jname )
+    {
+        def       js   = new JsonSlurper()
+        List<Map> vars = []
 
         //  Read in VEP output from specific file
         //
-        tmpFile = new File( tmpFile.absolutePath + ".vep" )
-        if ( ! tmpFile.canRead())
+        File vepFile = new File( jname )
+        if ( ! vepFile.canRead())
         {
-            log.fatal( "No VEP results in ${tmpFile} exiting...")
-            System.exit(1)
+            log.error( "No VEP results in ${jname} exiting...")
+            return vars
         }
 
-        //	Unpack VEP file for database loading
-        //  Todo: should call a VepToTsv method directly
+        //  Load in all lines as Maps
         //
-        def cols = loc.etcDir + "vepcols.txt"
-        String[] cmdargs = "--columns ${cols} ${tmpFile.absolutePath} ${tmpFile.absolutePath}.tsv".tokenize(' ')
-        new VepToTsv().main( cmdargs )
-
-        //  Check TSV file created
-        //
-        tmpFile = new File( tmpFile.absolutePath + ".tsv" )
-        if ( ! tmpFile.canRead())
+        int nl = 0
+        vepFile.eachLine
         {
-            log.fatal( "No VEP TSV results in ${tmpFile} exiting...")
-            System.exit(1)
+            String line ->
+
+                try
+                {
+                    ++nl
+                    vars << ( js.parseText( line ) as Map )
+                }
+                catch ( Exception e )
+                {
+                    log.error( "Json Parse Exception: ${e.toString()}\nline ${nl}:\n${line}")
+                }
         }
 
-        //  Read VEP output as TSV file and render as a List of Maps
-        //
-        Tsv tsv = new Tsv( tmpFile )
-        tsv.load( true )
-        List<Map> muts = tsv.getRowMaps()
-        log.info( "Found ${muts.size()} VEP annotations")
-
-        return transcriptFilter(muts)
+        return vars
     }
 
     /**
@@ -182,12 +225,9 @@ class VepVarDataSource extends VarDataSource
             def row  = line.tokenize()
             assert row.size() >= 5, "VCF line doesn't have enough columns [$line]"
 
-            //  Convert a VCF row into a Map
-            //  Map of converted variant [chr:, pos:, ref:, alt:, ensvar: "chr_pos_ref/alt", hgvsg: ]
+            //  The third column is the hgvsg string
             //
-            Map var = HGVS.normaliseVcfVar( row[0], row[1], row[3], row[4] )
-
-            def hgvsg = var.hgvsg
+            def hgvsg = row[2]
             assert hgvsg.startsWith('chr')
             hgs << [(hgvsg): line]
         }
@@ -204,82 +244,48 @@ class VepVarDataSource extends VarDataSource
      */
     private static List<Map> transcriptFilter( List<Map> vars )
     {
-        Map<String,Map> bestVars = [:]      //  Best transcript for a variant
+        Map<String,Map> bestVars = [:]                                      //  Best transcript for a variant
 
         for ( var in vars )
         {
-            var.hgvsg = hg.ensToHgvsg( var.Uploaded_variation )   //  HGVSg variant
-            if ( ! var.hgvsg )
+            var.hgvsg = var.id
+            if ( ! var.hgvsg?.startsWith('chr'))
             {
                 //  unparseable variant
                 //
-                log.error( "Missing HGVSg for ${var}" )
+                log.error("Missing HGVSg for ${var}")
                 continue
             }
 
-            var.hgvsc       = vepToHGVSc( var )                         //  HGVSc variant
-            String prefts   = hg.geneToTranscript( var.SYMBOL )         //  preferred TS for gene
-            String tss      = var.RefSeq_mRNA                           //  list of '|' separated refseq
-
-            //  Ignore this vep annotation if not preferred for the VEP gene (SYMBOL column)
+            //  Loop through transcripts looking for preferred TX for gene and best TX for the locus if multiple
             //
-            if ( ! prefts || ! tss.contains(prefts)) continue
+            for (Map tx in var.transcript_consequences)
+            {
+                String prefts = hg.geneToTranscript(tx.gene_symbol)         // Preferred TS for gene
+                String tss    = tx.transcript_id                            // This Refseq transcript
+                log.debug("In TX loop: hgvsc=${tx.hgvsc} hgvsp=${tx.hgvsp} gene=${tx.gene_symbol} preferred=${prefts} transcript=${tss}")
 
-            //  Select the "best" transcript if there are multiple for a variant
-            //
-            log.debug( "Best=${bestVars[var.hgvsg]?.hgvsc} Target=${var.hgvsc}")
-            if ( Transcript.selectCoding( bestVars[var.hgvsg]?.hgvsc, var.hgvsc ))
-                bestVars[var.hgvsg] = var
+                //  Ignore this vep annotation if
+                // (i)   no preferred tx
+                // (ii)  no coding HGVSc
+                // (iii) not preferred for the VEP TX gene
+                //
+                if ( ! prefts || ! tx.hgvsc || ! tss?.startsWith(prefts+'.')) continue
+
+                //  Select the "best" transcript if there are multiple for a variant
+                //
+                log.debug("Best=${bestVars[var.hgvsg]?.besttx?.hgvsc} Target=${tx.hgvsc}")
+                if ( Transcript.selectCoding( bestVars[var.hgvsg]?.besttx?.hgvsc, tx.hgvsc ))
+                {
+                    var.besttx = tx
+                    bestVars[var.hgvsg] = var
+                    log.debug("Setting besttx=${tx.hgvsc}")
+                }
+            }
         }
 
         return bestVars.values() as List<Map>
     }
-
-    /**
-     *  Return a canonical HGVSc string from a VEP record,
-     *  there my be multiple transcripts seperated by '|' - choose first only
-     *
-     *  @param vep  Map of VEP transcript attributes
-     *  @return     NM_nnnn:c.nnnG>A
-     */
-    private static vepToHGVSc( Map vep )
-    {
-        if ( ! vep?.RefSeq_mRNA || ! vep?.HGVSc ) return null
-        List   tss   = (vep.RefSeq_mRNA as String).tokenize( '|' )
-        String hgvsc = vep.HGVSc
-
-        return tss[0] + ':' + hgvsc
-    }
-
-//    /**
-//     * Find the 'BEST' transcript if there are multiple transcripts annotated for a variant
-//     * Todo: this needs to match logic in Transcript() for transcript selection
-//     *
-//     * @param best      Current best variant transcript
-//     * @param newvar    Contender transcript
-//     * @return          Best - currently the coding transcript
-//     */
-//    private static Map selectTranscript( Map best, Map newvar )
-//    {
-//        //  best is empty, use new as best
-//        //
-//        if ( ! best ) return newvar
-//
-//        //  new is not coding, keep best
-//        //
-//        if ( ! newvar.HGVSc ) return best
-//
-//        //  best is not coding but new is, switch to new
-//        //
-//        if ( ! best.HGVSc ) return newvar
-//
-//        //  both new and best are coding - warn of conflict Todo: this is a problem for variants tha both have HGVSc set
-//        //
-//        if ( best.HGVSc && newvar.HGVSc )
-//            log.warn( "Overlapping coding transcripts for variant ${best.hgvsg} [${best.SYMBOL}:${best.RefSeq_mRNA}] [${newvar.SYMBOL}:${newvar.RefSeq_mRNA}]")
-//
-//        return best
-//    }
 
     /**
      * Delete keys from cache

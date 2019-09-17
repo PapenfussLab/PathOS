@@ -11,7 +11,7 @@ class VcfUpload {
     String filePath
     Seqrun seqrun
     Date dateCreated
-
+    String result
     static constraints =
             {
 

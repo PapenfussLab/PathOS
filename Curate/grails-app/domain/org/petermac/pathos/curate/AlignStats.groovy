@@ -34,7 +34,7 @@ class AlignStats
         totreads()
         unmapped()
         goodamp()
-        sampleStats( maxSize: 2000, nullable: true )
+        sampleStats( nullable: true )
     }
     //  Indexes on sampleName, seqrun
     //
@@ -44,6 +44,7 @@ class AlignStats
                 seqrun      index: 'align_stats_idx2'
                 panelName   index: 'align_stats_idx3'
                 amplicon    index: 'align_stats_idx4'
+                sampleStats (type: 'text')
             }
 
     String	toString()

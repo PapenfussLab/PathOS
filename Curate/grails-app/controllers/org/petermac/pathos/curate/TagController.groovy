@@ -3,7 +3,9 @@ package org.petermac.pathos.curate
 import grails.converters.JSON
 import org.grails.plugin.filterpane.FilterPaneUtils
 import org.springframework.dao.DataIntegrityViolationException
+import groovy.util.logging.Log4j
 
+@Log4j
 class TagController {
 
     static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
@@ -124,14 +126,7 @@ class TagController {
     def lookUp(Long id){
         render Tag.get(id) as JSON
     }
-    def getAllTags(){
 
-    }
-
-    def test() {
-        System.out.println(params)
-        render "hahahaha testing"
-    }
     /**
      * Add a tag to a taggable object
      * If the tag already exists (case insensitive), use the existing one
@@ -191,6 +186,68 @@ class TagController {
         }
         render result
     }
+
+    Map objGetterTable = [
+        curVariant: { id -> CurVariant.get(id) },
+        curvariant: { id -> CurVariant.get(id) },
+        patSample:  { id -> PatSample.get(id) },
+        patsample:  { id -> PatSample.get(id) },
+        pubmed:     { id -> Pubmed.findByPmid(id) },
+        seqCnv:     { id -> SeqCnv.get(id) },
+        seqcnv:     { id -> SeqCnv.get(id) },
+        seqrun:     { id -> Seqrun.get(id) },
+        seqSample:  { id -> SeqSample.get(id) },
+        seqsample:  { id -> SeqSample.get(id) },
+        seqVariant: { id -> SeqVariant.get(id) },
+        seqvariant: { id -> SeqVariant.get(id) }
+    ]
+
+    Map objNamerTable = [
+        curvariant: { obj -> obj.hgvsc },
+        seqrun:     { obj -> obj.seqrun }
+    ]
+
+    /**
+     * Please refactor into addTag when you have time
+     * DKGM 27-June-2017
+     */
+    def betterAddTag() {
+        HashMap result = [error: 0]
+
+        if(request.JSON) {
+            AuthUser currentUser = springSecurityService.currentUser as AuthUser
+            log.info "betterAddTag ${request.JSON}"
+            Long id = request.JSON.id;
+            Tag tag = Tag.findByLabel(request.JSON.label);
+
+            if(tag) {
+                tag.setDescription(request.JSON.description);
+            } else {
+                tag = new Tag([
+                    label: request.JSON.label,
+                    isAuto: false,
+                    createdBy: currentUser,
+                    description: request.JSON.description
+                ]);
+            }
+
+            def type = request.JSON.type
+            if(type && objGetterTable[type]) {
+                objGetterTable[type](id).addToTags(tag);
+            }
+            result = [
+                success: 1,
+                tag: tag
+            ]
+        }
+
+        render result as JSON;
+    }
+
+
+
+
+
     def putDescription() {
         def description = params.description as String
         def id = params.id as Integer
@@ -198,35 +255,28 @@ class TagController {
         render "success"
     }
 
-    def getTags() {
-        println(params)
-        String type = params.type.toLowerCase()
+    def fetchTags() {
+        Long id = params.id as Long
+        String type = params.type
 
-        def results = [name:"", tags:[]];
+        def results = [name:id, tags:[]];
 
-        if(type == 'pubmed') {
-            results.name = params.id
-            results.tags = Pubmed.findByPmid(params.id)?.getTags()
-        } else if (type == 'seqrun') {
-            Seqrun obj = Seqrun.get(params.id)
-            results.name = obj.seqrun
-            results.tags = obj.getTags()
-        } else if (type == 'curvariant') {
-            CurVariant obj = CurVariant.get(params.id)
-            results.name = obj.hgvsc
-            results.tags = obj.getTags()
-        } else if(type == 'patsample') {
-            PatSample obj = PatSample.get(params.id)
-            results.name = obj.toString()
-            results.tags = obj.getTags()
-        } else if(type == 'seqsample') {
-            SeqSample obj = SeqSample.get(params.id)
-            results.name = obj.toString()
-            results.tags = obj.getTags()
-        } else if(type == 'seqvariant') {
-            SeqVariant obj = SeqVariant.get(params.id)
-            results.name = obj.toString()
-            results.tags = obj.getTags()
+        if (objGetterTable[type]) {
+            def obj = objGetterTable[type](id)
+            if (obj) {
+                results.tags = obj.tags
+                if (objNamerTable[type]) {
+                    results.name = objNamerTable[type](obj)
+                } else {
+                    results.name = obj.toString()
+                }
+            } else {
+                log.warn "no such id, while attempting to fetch tags for ${type}/${id}"
+                results.error = "true"
+                results.errorTagType = type
+                results.errorTaggedId = id
+                results.errorMessage = "no such id, while attempting to fetch tags for ${type}/${id}"
+            }
         }
         render results as JSON
     }
@@ -249,18 +299,8 @@ class TagController {
         if(!tag?.isAuto) {
             type = type.toLowerCase()
 
-            if (type == 'pubmed') {
-                result = Pubmed.findByPmid(objid).removeFromTags(tag)
-            } else if (type == 'seqrun') {
-                result = Seqrun.get(objid).removeFromTags(tag)
-            } else if (type == 'curvariant') {
-                result = CurVariant.get(objid).removeFromTags(tag)
-            } else if (type == 'patsample') {
-                result = PatSample.get(objid).removeFromTags(tag)
-            } else if (type == 'seqsample') {
-                result = SeqSample.get(objid).removeFromTags(tag)
-            } else if (type == 'seqvariant') {
-                result = SeqVariant.get(objid).removeFromTags(tag)
+            if (objGetterTable[type]) {
+                result = objGetterTable[type](objid).removeFromTags(tag)
             }
         }
         render result

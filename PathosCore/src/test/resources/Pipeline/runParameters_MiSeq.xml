@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<RunParameters xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <EnableCloud>true</EnableCloud>
+  <CopyManifests>true</CopyManifests>
+  <FlowcellRFIDTag>
+    <SerialNumber>000000000-A5D1J</SerialNumber>
+    <PartNumber>15028382</PartNumber>
+    <ExpirationDate>2014-06-22T00:00:00</ExpirationDate>
+  </FlowcellRFIDTag>
+  <PR2BottleRFIDTag>
+    <SerialNumber>MS2189077-00PR2</SerialNumber>
+    <PartNumber>15023445</PartNumber>
+    <ExpirationDate>2014-06-03T00:00:00</ExpirationDate>
+  </PR2BottleRFIDTag>
+  <ReagentKitRFIDTag>
+    <SerialNumber>MS2028148-300V2</SerialNumber>
+    <PartNumber>15033572</PartNumber>
+    <ExpirationDate>2014-04-06T00:00:00</ExpirationDate>
+  </ReagentKitRFIDTag>
+  <Resumable>true</Resumable>
+  <ManifestFiles>
+    <string>CancerGNA10212011_170_190_Viewermanifest</string>
+    <string>TruSeq_Custom_Amplicon_Control_Manifest_ACP1</string>
+  </ManifestFiles>
+  <AfterRunWashMethod>Post-Run Wash</AfterRunWashMethod>
+  <Setup>
+    <SupportMultipleSurfacesInUI>true</SupportMultipleSurfacesInUI>
+    <ApplicationVersion>2.2.0</ApplicationVersion>
+    <NumTilesPerSwath>14</NumTilesPerSwath>
+    <NumSwaths>1</NumSwaths>
+    <NumLanes>1</NumLanes>
+    <ApplicationName>MiSeq Control Software</ApplicationName>
+  </Setup>
+  <RunID>130822_M00139_0022_000000000-A5D1J</RunID>
+  <ScannerID>M00139</ScannerID>
+  <RunNumber>21</RunNumber>
+  <FPGAVersion>9.5.12</FPGAVersion>
+  <MCSVersion>2.2.0</MCSVersion>
+  <RTAVersion>1.17.28</RTAVersion>
+  <Barcode>000000000-A5D1J</Barcode>
+  <PR2BottleBarcode>MS2189077-00PR2</PR2BottleBarcode>
+  <ReagentKitPartNumberEntered />
+  <ReagentKitVersion>Version2</ReagentKitVersion>
+  <ReagentKitBarcode>MS2028148-300V2</ReagentKitBarcode>
+  <PreviousPR2BottleBarcode />
+  <PreviousReagentKitBarcode />
+  <ExperimentName>Ca2015_TSCAP_Plate11_Pool2</ExperimentName>
+  <Chemistry>Amplicon</Chemistry>
+  <Username>sbsuser</Username>
+  <Workflow>
+    <Analysis>Amplicon</Analysis>
+  </Workflow>
+  <EnableAnalysis>false</EnableAnalysis>
+  <Reads>
+    <RunInfoRead Number="1" NumCycles="151" IsIndexedRead="N" />
+    <RunInfoRead Number="2" NumCycles="8" IsIndexedRead="Y" />
+    <RunInfoRead Number="3" NumCycles="8" IsIndexedRead="Y" />
+    <RunInfoRead Number="4" NumCycles="151" IsIndexedRead="N" />
+  </Reads>
+  <TempFolder>D:\Illumina\MiSeqTemp\130822_M00139_0022_000000000-A5D1J</TempFolder>
+  <AnalysisFolder>D:\Illumina\MiSeqAnalysis\130822_M00139_0022_000000000-A5D1J</AnalysisFolder>
+  <RunStartDate>130822</RunStartDate>
+  <MostRecentWashType>PostRun</MostRecentWashType>
+  <RecipeFolder>C:\Illumina\MiSeq Control Software\Recipe</RecipeFolder>
+  <ILMNOnlyRecipeFolder>C:\Illumina\MiSeq Control Software\Recipe</ILMNOnlyRecipeFolder>
+  <SampleSheetName>CA2015_TSCAP Plate11 Pool2</SampleSheetName>
+  <SampleSheetFolder>Y:\Sample Sheets</SampleSheetFolder>
+  <ManifestFolder>Y:\Manifests</ManifestFolder>
+  <OutputFolder>Y:\130822_M00139_0022_000000000-A5D1J</OutputFolder>
+  <FocusMethod>AutoFocus</FocusMethod>
+  <SurfaceToScan>Both</SurfaceToScan>
+  <SaveFocusImages>true</SaveFocusImages>
+  <SaveScanImages>true</SaveScanImages>
+  <CloudUsername>ravikiran.vedururu@petermac.org</CloudUsername>
+  <CloudRunId>3300332</CloudRunId>
+  <SendInstrumentHealthToILMN>true</SendInstrumentHealthToILMN>
+  <AmpliconWorkflowType />
+</RunParameters>

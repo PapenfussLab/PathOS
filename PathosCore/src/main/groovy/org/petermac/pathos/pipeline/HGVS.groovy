@@ -41,16 +41,31 @@ class HGVS
     Sql sql
     static def aat = new AminoAcidTable()
 
-    static Map geneToTx = [:]
+    static Map geneToTx
 
     /**
      * Constructor: Load in genes for lookup of default transcript
+     *
+     * Deprecated: call ensureTranscriptsLoaded(dbname) instead.
      *
      * @param dbname    database to look for reference transcripts
      */
     HGVS( String dbname )
     {
-        geneToTx = Transcript.preferred( dbname )
+        ensureTranscriptsLoaded(dbname)
+    }
+
+    /**
+     * Make sure the preferred transcripts have been loaded.
+     *
+     * The first time this is invoked the database of preferred transcripts is loaded.
+     * Subsequent calls do nothing.
+     */
+    static void ensureTranscriptsLoaded(String dbname) {
+        if (geneToTx) {
+            return
+        }
+        geneToTx = Transcript.preferred(dbname)
     }
 
     /**
@@ -171,17 +186,24 @@ class HGVS
 
         //  Parse NC_000017.10:g.41276247A>G or chr17:g.41276247A>G
         //
-        def match = ( var =~ /(NC_\d+\.\d+|chr\d+):g\.([\d+\-_*]+)(.*)/ )
+        def match = ( var =~ /(NC_\d+\.\d+|chr(\d+|X|Y)):g\.([\d+\-_*]+)(.*)/ )
         if ( match.count == 1)
         {
             log.debug( "Parse HGVSg, in: " + var + " out " + match[0])
             String trs  = match[0][1]
-            String pos  = match[0][2]
-            String rest = match[0][3]
+            String pos  = match[0][3]
+            String rest = match[0][4]
 
-            //  Split position into start and end
+            def muttyp = mutType(rest)
+
+            //  Split position into start and end for non-SNPs
             //
-            Map loc = parsePos(pos)
+            HashMap loc = new HashMap<String,String>()
+            if(muttyp != 'snp') {
+                loc = parsePos(pos)
+            } else {
+                loc = ['pos':pos,'endpos':pos]
+            }
 
             return  [
                     transcript: trs,
@@ -191,9 +213,9 @@ class HGVS
                     pos:        loc['pos'],
                     var:        'g.' + pos + rest,
                     mut:        rest,
-                    bases:      rest.replaceAll(mutType(rest),''),      // bases inserted eg AGCT from g.12_34insAGCT
+                    bases:      rest.replaceAll(muttyp,''),      // bases inserted eg AGCT from g.12_34insAGCT
                     endpos:     loc['endpos'],
-                    muttype:    mutType(rest)
+                    muttype:    muttyp
                     ]
         }
 
@@ -201,7 +223,7 @@ class HGVS
     }
 
     /**
-     * Parse a HGVSg variant
+     * Parse a HGVSc variant, Note: may have form NR_001566.1:n.123C>A
      *
      * @param var       HGVSc Variant to parse
      * @return          Map of parsed values (transcript, version, hgvstype, pos, endpos, ref, alt, muttype)
@@ -212,26 +234,34 @@ class HGVS
 
         //  Parse NM_000017.10:c.412A>G
         //
-        def match = ( var =~ /(NM_\d+\.\d+):c\.([\d+\-_*]+)(.*)/ )
+        def match = ( var =~ /([NX][MR]_\d+\.\d+):([cn])\.([\d+\-_*]+)(.*)/ )
         if ( match.count == 1)
         {
             log.debug( "Parse HGVSC, in: " + var + " out " + match[0])
             String trs  = match[0][1]
-            String pos  = match[0][2]
-            String rest = match[0][3]
+            String typ  = match[0][2]
+            String pos  = match[0][3]
+            String rest = match[0][4]
 
-            //  Split position into start and end
+            def mutType = mutType(rest)
+
+            //  Split position into start and end for non-SNPs
             //
-            Map loc = parsePos(pos)
+            HashMap loc = new HashMap<String,String>()
+            if(mutType != 'snp') {
+                loc = parsePos(pos)
+            } else {
+                loc = ['pos':pos,'endpos':pos]
+            }
 
             return  [
                     transcript: trs,
                     hgvstype:   hgvsType(var),
                     pos:        loc['pos'],
-                    var:        'c.' + pos + rest,
+                    var:        typ + '.' + pos + rest,
                     mut:        rest,
                     endpos:     loc['endpos'],
-                    muttype:    mutType(rest)
+                    muttype:    mutType
             ]
         }
 
@@ -293,7 +323,7 @@ class HGVS
 
         //  Parse SNP eg NM_000558.3:c.247_254C>A or NM_000059.1:c.*105A>C
         //
-        def match = ( var =~ /NM_(\d+)\.(\d+):c\.([\d+\-_\*]+)([ATGC])>([ATGC])$/ )
+        def match = ( var =~ /([NX][MR]_\d+)\.(\d+):c\.([\d+\-_\*]+)([ATGC])>([ATGC])$/ )
         if ( match.count == 1)
         {
             def trs = match[0][1]
@@ -302,12 +332,12 @@ class HGVS
             def ref = match[0][4]
             def alt = match[0][5]
 
-            return "NM_${trs}.${ver}:c.${pos}${ref}>${alt}"
+            return "${trs}.${ver}:c.${pos}${ref}>${alt}"
         }
 
         //  Parse deletion NM_000033.3: c.977_983del[GGTATGT] or NM_000179.2:c.3647-53_3647-38del16
         //
-        match = ( var =~ /NM_(\d+)\.(\d+):c\.([\d+\-_\*]+)del[ATGC0-9]*$/ )
+        match = ( var =~ /([NX][MR]_\d+)\.(\d+):c\.([\d+\-_\*]+)del[ATGC0-9]*$/ )
         if ( match.count == 1)
         {
             def trs = match[0][1]
@@ -315,25 +345,25 @@ class HGVS
             def pos = match[0][3]
             pos = collapsePos(pos)
 
-            return "NM_${trs}.${ver}:c.${pos}del"
+            return "${trs}.${ver}:c.${pos}del"
         }
 
 
         //  Parse duplication eg NM_000214.2:c.1880dup[AAAA|NNN]
         //
-        match = ( var =~ /NM_(\d+)\.(\d+):c\.([\d+\-_\*]+)dup[ATGC0-9]*$/ )
+        match = ( var =~ /([NX][MR]_\d+)\.(\d+):c\.([\d+\-_\*]+)dup[ATGC0-9]*$/ )
         if ( match.count == 1)
         {
             def trs = match[0][1]
             int ver = match[0][2] as int
             def pos = match[0][3]
 
-            return "NM_${trs}.${ver}:c.${pos}dup"
+            return "${trs}.${ver}:c.${pos}dup"
         }
 
         //  Parse insertion eg NM_000551.3: c.165_166insAAAA
         //
-        match = ( var =~ /NM_(\d+)\.(\d+):c\.([\d+\-_\*]+)ins([ATGC]+)$/ )
+        match = ( var =~ /([NX][MR]_\d+)\.(\d+):c\.([\d+\-_\*]+)ins([ATGC]+)$/ )
         if ( match.count == 1)
         {
             def trs = match[0][1]
@@ -341,12 +371,12 @@ class HGVS
             def pos = match[0][3]
             def ins = match[0][4]
 
-            return "NM_${trs}.${ver}:c.${pos}ins${ins}"
+            return "${trs}.${ver}:c.${pos}ins${ins}"
         }
 
         //  Parse Complex var eg NM_000558.3:c.247_254del[CCCCC|NNN]insAAAAA
         //
-        match = ( var =~ /NM_(\d+)\.(\d+):c\.([\d+\-_\*]+)del[ATGC0-9]*(ins[ATGC]+)$/ )
+        match = ( var =~ /([NX][MR]_\d+)\.(\d+):c\.([\d+\-_\*]+)del[ATGC0-9]*(ins[ATGC]+)$/ )
         if ( match.count == 1)
         {
             def trs = match[0][1]
@@ -355,7 +385,7 @@ class HGVS
             def ins = match[0][4]
             pos = collapsePos(pos)
 
-            return "NM_${trs}.${ver}:c.${pos}del${ins}"
+            return "${trs}.${ver}:c.${pos}del${ins}"
         }
 
         //  Log warning unless its a mitochondrial variant
@@ -394,6 +424,7 @@ class HGVS
         if ( mtype.startsWith('del'))       return 'del'
         if ( mtype.startsWith('ins'))       return 'ins'
         if ( mtype.startsWith('dup'))       return 'dup'
+        if ( mtype.startsWith('inv'))       return 'inv'
         if ( mtype =~ /^[ATGC]>/ )          return 'snp'
 
         return 'unknown'
@@ -525,7 +556,7 @@ class HGVS
     {
         //  Parse NM_123456.78
         //
-        def match = ( ts =~ /(NM_\d+)\.(\d+)$/ )
+        def match = ( ts =~ /([A-Z][A-Z]_\d+)\.(\d+)$/ )
         if ( match.count == 1 )
         {
             return match[0][1]
@@ -605,7 +636,7 @@ class HGVS
                 int epos = pos + ref.length() - 1
                 hgvsg = "chr${chr}:g.${spos}_${epos}delins${alt}"
             }
-            log.info( "Complex indel: ${hgvsg}" )
+            log.debug( "Complex indel: ${hgvsg}" )
         }
 
         return normalise( hgvsg )

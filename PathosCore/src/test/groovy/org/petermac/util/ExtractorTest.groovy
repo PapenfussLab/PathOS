@@ -53,9 +53,9 @@ class ExtractorTest extends GroovyTestCase {
     {
         def ext = new Extractor()
         String gene = "RAS"
-        String mut =  "p.c.1940A>T, p.Asn647Ile"
+        String mut =  "c.1940A>T, p.Asn647Ile"
         assert ext.mutAdd( gene, mut): "[T E S T]: gene, ${gene} or mut ${mut} is not in format (gene='word', mut=p.c.1940A>T, p.Asn647Ile)"
-        mut = "p.c.1940A>T"
+        mut = "c.1940A>T"
         assert ext.mutAdd( gene, mut): "[T E S T]: gene, ${gene} or mut ${mut} is not in format (gene='word', mut=p.c.1940A>T, p.Asn647Ile)"
     }
 

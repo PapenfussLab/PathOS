@@ -45,6 +45,7 @@
                               title="${message(code: 'panel.description.label', default: 'Description')}"
                               params="${filterParams}"/>
 
+            <g:sortableColumn property="skipGeneMask" title="Skip Gene Mask" params="${filterParams}"/>
         </tr>
         </thead>
         <tbody>
@@ -58,6 +59,8 @@
                 <td>${fieldValue(bean: panelInstance, field: "panelGroup")}</td>
 
                 <td>${fieldValue(bean: panelInstance, field: "description")}</td>
+
+                <td>${fieldValue(bean: panelInstance, field: "skipGeneMask")}</td>
             </tr>
         </g:each>
         </tbody>

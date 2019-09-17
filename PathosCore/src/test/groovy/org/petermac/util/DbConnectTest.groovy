@@ -21,4 +21,9 @@ class DbConnectTest extends GroovyTestCase
 //        db.sql()
 //        return valid
 //    }
+
+    void testPAss()
+    {
+        assert true
+    }
 }

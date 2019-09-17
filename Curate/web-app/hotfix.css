@@ -80,7 +80,7 @@ img {
 }
 
 .spinner {
-	background: url(/PathOS/images/spinner.gif) 50% 50% no-repeat transparent;
+	background: url(images/spinner.gif) 50% 50% no-repeat transparent;
 	height: 16px;
 	width: 16px;
     padding: 0.5em;
@@ -149,15 +149,15 @@ img {
 }
 
 .nav a.home {
-	background-image: url(/PathOS/images/skin/house.png);
+	background-image: url(images/skin/house.png);
 }
 
 .nav a.list {
-	background-image: url(/PathOS/images/skin/database_table.png);
+	background-image: url(images/skin/database_table.png);
 }
 
 .nav a.create {
-	background-image: url(/PathOS/images/skin/database_add.png);
+	background-image: url(images/skin/database_add.png);
 }
 
 /* CREATE/EDIT FORMS AND SHOW PAGES */
@@ -318,12 +318,12 @@ fieldset.embedded legend {
 
 .errors li {
 	list-style: none;
-	background: transparent url(/PathOS/images/skin/exclamation.png) 0.5em 50% no-repeat;
+	background: transparent url(images/skin/exclamation.png) 0.5em 50% no-repeat;
 	text-indent: 2.2em;
 }
 
 .message {
-	background: transparent url(/PathOS/images/skin/information.png) 0.5em 50% no-repeat;
+	background: transparent url(images/skin/information.png) 0.5em 50% no-repeat;
 	text-indent: 2.2em;
 }
 
@@ -427,11 +427,11 @@ th.sortable a {
 }
 
 th.asc a {
-	background-image: url(/PathOS/images/skin/sorted_asc.gif);
+	background-image: url(images/skin/sorted_asc.gif);
 }
 
 th.desc a {
-	background-image: url(/PathOS/images/skin/sorted_desc.gif);
+	background-image: url(images/skin/sorted_desc.gif);
 }
 
 .odd {
@@ -546,15 +546,15 @@ th:hover, tr:hover {
 }
 
 .buttons .delete {
-	background-image: url(/PathOS/images/skin/database_delete.png);
+	background-image: url(images/skin/database_delete.png);
 }
 
 .buttons .edit {
-	background-image: url(/PathOS/images/skin/database_edit.png);
+	background-image: url(images/skin/database_edit.png);
 }
 
 .buttons .save {
-	background-image: url(/PathOS/images/skin/database_save.png);
+	background-image: url(images/skin/database_save.png);
 }
 
 a.skip {
@@ -564,4 +564,8 @@ a.skip {
 
 .queryresult .query { /*fix for jqgrid filter on seqvar list*/
     line-height: 120%;
+}
+
+#showTags span {
+	font-size: inherit;
 }

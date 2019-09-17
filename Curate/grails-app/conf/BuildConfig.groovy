@@ -4,7 +4,7 @@ grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 grails.project.target.level = 1.6
 grails.project.source.level = 1.6
-//grails.project.war.file = "target/${appName}-${appVersion}.war"
+grails.project.war.file = "target/${appName}-${appVersion}.war"
 
 // uncomment (and adjust settings) to fork the JVM to isolate classpaths
 //grails.project.fork = [
@@ -23,22 +23,12 @@ grails.project.dependency.resolution =
             checksums true // Whether to verify checksums on resolve
             legacyResolve false // whether to do a secondary resolve on plugin installation, not advised and here for backwards compatibility
 
-            def gebVersion = "0.10.0"
-
             def seleniumVersion = "2.52.0"
-
 
             repositories
                     {
                         inherits true // Whether to inherit repository definitions from plugins
 
-                        //  Local repository
-                        //
-                        flatDir name:'pathos',  dirs:'../PathosCore/build/libs'
-
-                        //  Continuous Integration PathOS Home deployment directory
-                        //
-                        flatDir name:'cihome',  dirs:'../PathOSHome/lib'
 
                         grailsPlugins()
                         grailsHome()
@@ -56,47 +46,34 @@ grails.project.dependency.resolution =
 
                         mavenRepo "http://repo.grails.org/grails/core"
                         mavenRepo "http://repo.grails.org/grails/plugins"
+
+                        // Nexus repository
+                        mavenRepo "http://localhost:8081/repository/maven-releases"
                     }
 
             dependencies
                     {
                         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes e.g.
                         //
-                        test    "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
+                        test "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
                         test "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
-                        test    "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
-
+                        test "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
 
                         // dependencies required for easygrid
+                        //
                         compile('net.sf.opencsv:opencsv:2.3')
                         compile('com.google.visualization:visualization-datasource:1.1.1') {
                             exclude(group: 'commons-logging', name: 'commons-logging')
                             exclude(group: 'commons-lang', name: 'commons-lang')
                         }
 
-//                        This is unused because it wasn't invoked properly.
-//                        I am fixing it, but also commenting it out, because it is not being used.
-//                        DKGM 12-Jan-2017
-//                        compile('commons-beanutils:commons-beanutils:1.9.2'){
-//                            exclude(group: 'commons-logging', name: 'commons-logging')
-//                            exclude(group: 'commons-lang', name: 'commons-lang')
-//                        }
-
                         compile 'com.esotericsoftware.kryo:kryo:2.24.0'
-
 
                         runtime 'mysql:mysql-connector-java:5.1.25'
 
-                        compile(':PathosCore-all:1.3') {
+                        compile( group: 'org.petermac.pathos' , name: 'PathosCore',  version: '1.5.3', classifier: 'all' ) {
                             changing = true
                         }
-
-
-                        //test    "org.gebish:geb-spock:$gebVersion"
-                        //test    "org.gebish:geb-core:$gebVersion"
-                        //test    "org.gebish:geb-spock:$gebVersion"
-                        //test    "org.gebish:geb-junit4:$gebVersion"
-                        //compile 'org.codehaus.groovy:groovy-backports-compat23:2.3.5'
 
                         compile 'org.apache.httpcomponents:httpcore:4.3'
                         compile 'org.apache.httpcomponents:httpclient:4.3'
@@ -136,6 +113,7 @@ grails.project.dependency.resolution =
                         compile ":csv:0.3.1"
 
                         //  Easygrid: 1.6.6.1 is our custom local copy
+                        //
                         compile ":easygrid:1.6.6.1"
                         compile ":google-visualization:0.7"
 
@@ -144,27 +122,22 @@ grails.project.dependency.resolution =
 
                         compile ":google-chart:0.5.2"
 
-                        //dependencies needed for spring security UI:
+                        //  dependencies needed for spring security UI:
+                        //
                         compile ":mail:1.0.7"
                         compile ":jquery-ui:1.10.4"
                         compile ":famfamfam:1.0.1"
 
-                        //spring security
+                        //  spring security
+                        //
                         compile ":spring-security-core:2.0-RC3"
                         compile ":spring-security-ui:1.0-RC2"
 
                         compile "org.grails.plugins:spring-security-ldap:2.0-RC2"
 
-                        //mail testing
+                        //  mail testing
+                        //
                         compile ":greenmail:1.3.4"
-
-                        //test ":geb:$gebVersion"
-                        //test ":spock:$gebVersion"
-
-                        //test ":geb:0.10.0", {
-                        //    excludes 'xml-apis'
-                        //    exclude "spock-grails-support"
-                        //}
 
                     }
         }

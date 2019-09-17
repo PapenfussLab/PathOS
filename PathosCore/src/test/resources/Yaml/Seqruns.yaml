@@ -1,0 +1,90 @@
+# First Seqrun
+sender: moleculargenetics@petermac.org
+source: [petermac, molpath, pipeline]
+source-id: a7f7dc9c644b60acbf0a940662b8697b8c0f7073
+status: started
+timestamp: '2015-01-22 15:21:15.882271'
+content:
+  seqrun: 150227_NS500817_0002_AH3YT5BGXX
+  experiment: Frankenstein
+  library: Gormenghast
+  platform: NextSeq
+  readlen: 76
+  runDate: '2017-02-28 00:00:00'
+  scanner: NS500817
+  sepe: PE
+  seqSamples:
+  - sampleName: 17K0874 
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+    sampleType: Tumour
+  - sampleName: 17K0008 
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+    sampleType: Normal
+  - sampleName: NA12878 
+    sampleType: Control
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+  - sampleName: NA12878-1 
+    sampleType: Control
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+---
+# Second Seqrun
+sender: moleculargenetics@petermac.org
+source: [petermac, molpath, pipeline]
+source-id: a7f7dc9c644b60acbf0a940662b8697b8c0f7073
+status: started
+timestamp: '2015-01-22 15:21:15.898488'
+content: 
+  seqrun: 170330_NS500817_0002_AH3YT5BGXX
+  experiment: Frankenstein
+  library: Gormenghast
+  platform: NextSeq
+  readlen: 76
+  runDate: '2017-02-27 00:00:00'
+  scanner: NS500817
+  sepe: PE
+  seqSamples:
+  - sampleName: 17M0007 
+    sampleType: Tumour
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+  - sampleName: 17M0084 
+    sampleType: Normal
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+  - sampleName: NA12878 
+    sampleType: Control
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+  - sampleName: NA12878-1 
+    sampleType: Control
+    panel: Germline_v4-8_071013_with_off_target_manifest
+    analysis: mp_dualAmplicon
+    userName: Ken Doig
+    userEmail: ken.doig@petermac.org
+    laneNo: 1
+...

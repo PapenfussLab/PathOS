@@ -1,10 +1,9 @@
-import grails.util.GrailsUtil
 import org.petermac.pathos.curate.*
 import org.petermac.pathos.curate.AuthRole
 import org.petermac.pathos.curate.AuthUser
 import org.petermac.pathos.curate.AuthUserAuthRole
 import org.petermac.util.Locator
-import java.text.SimpleDateFormat
+import org.petermac.util.DbConnect
 
 class BootStrap
 {
@@ -19,6 +18,12 @@ class BootStrap
         if (thisRole == null)
         { //make a new role if we found nothing in the DB
             thisRole = new AuthRole(authority: 'ROLE_ADMIN').save(flush: true,failOnError:true)
+        }
+
+        thisRole = AuthRole.findByAuthority("ROLE_UNMASKER") as AuthRole
+        if (thisRole == null)
+        { //make a new role if we found nothing in the DB
+            thisRole = new AuthRole(authority: 'ROLE_UNMASKER').save(flush: true,failOnError:true)
         }
 
         thisRole = AuthRole.findByAuthority("ROLE_CURATOR") as AuthRole
@@ -58,39 +63,37 @@ class BootStrap
 
     }
 
+    /*
+     peter mac specific clinical context for PMC environments
+     */
     void makeBaseClinContexts()
     {
-        def clinContextMaps = ['Actinic Keratosis':'AK',
-                              'Acute Lymphoblastic Leukemia':'ALL',
-                              'Acute Nonlymphocytic Leukemias':'ANLL',
-                              'Acute Promyelocytic Leukemia':'APL',
-                              'Aggressive Systemic Mastocytosis':'ASM',
-                              'B-cell Non-Hodgkin Lymphoma':'BNHL',
-                              'Basal Cell Carcinoma Breast cancer':'BCCBC',
-                              'Bladder Cancer':'BLC',
-                              'Breast Cancer':'BC',
-                              'Cervical Cancer':'CC',
-                              'Chronic Myelogenous Leukemia':'CLL',
-                              'Colorectal Cancer':'CRC',
-                              'Gastric Adenocarcinoma':'GA',
-                              'Cutaneous T-cell Lymphoma':'CTL',
-                              'Dukes stage C colon cancer':'DSCCC',
-                              'Follicular Non-Hodgkin Lymphoma':'FNHL',
-                              'Gastric or Gastroesophageal':'GOG',
-                              'Junction Adenocarcinoma':'GEJA',
-                              'Head and Neck Cancer':'HNC',
-                              'Hodgkin Lymphoma ':'HL',
-                              'Large B-cell Non-Hodgkin Lymphoma':'LBNHL',
-                              'Leukemia':'LEU',
-                              'Lymphoma':'LYMPH',
-                              'Malignant Mesothelioma':'MM',
-                              'Melanoma':'MEL',
-                              'Non-small Cell Lung Cancer':'NSCLC',
-                              'Ovarian Cancer':'OC',
-                              'Pancreatic Cancer':'PC',
-                              'Testicular Cancer':'TC',
-                              'Cancer of unknown primary':'CUP',
-                              'Germline':'GL'
+        def clinContextMaps = [
+            'Generic Clinical Context': 'Generic',
+            'Colorectal Cancer': 'CRC',
+            'Neuroblastoma': 'NB',
+            'Head and Neck Cancer': 'HNC',
+            'Melanoma': 'MEL',
+            'Small Cell Lung Cancer': 'SCLC',
+            'Ovarian Cancer': 'OVCA',
+            'Testicular Cancer': 'TC',
+            'Cancer of unknown primary': 'CUP',
+            'Germline': 'GL',
+            'Malignant peripheral nerve sheath tumour': 'MPNST',
+            'Pleomorphic xanthoastrocytoma': 'PXA',
+            'Merkel cell carcinoma': 'MCC',
+            'Non-small Cell Lung Cancer': 'NSCLC',
+            'Medulloblastoma': 'MB',
+            'Mesonephric adenocarcinoma': 'MADC',
+            'Non-melanoma skin cancer': 'SKIN',
+            'Thymic carcinoma': 'THYMIC',
+            'Adenoid Cystic Carcinoma': 'ACC',
+            'Gastrointestinal Stromal Tumor': 'GIST',
+            'Kidney cancer': 'KIDNEY',
+            'Langerhans Cell Histiocytosis': 'LCH',
+            'Mesothelioma': 'MES',
+            'Sarcoma': 'SARC',
+            'Cholangiocarcinoma': 'CCC'
         ]
 
         clinContextMaps.each{ desc, code ->
@@ -100,6 +103,48 @@ class BootStrap
         }
     }
 
+    void makeCvWeights()
+    {
+        Map guidelines = [
+            ACMG: [
+                "Unclassified",
+                "C1: Not pathogenic",
+                "C2: Unlikely pathogenic",
+                "C3: Unknown pathogenicity (Level C)",
+                "C3: Unknown pathogenicity (Level B)",
+                "C3: Unknown pathogenicity",
+                "C3: Unknown pathogenicity (Level A)",
+                "C4: Likely pathogenic",
+                "C5: Pathogenic"
+            ],
+            AMP: [
+                "Unclassified",
+                "Tier IV",
+                "Tier III",
+                "Tier II",
+                "Tier I"
+            ],
+            Overall: [
+                "Unclassified",
+                "NCS: Not Clinically Significant",
+                "UCS: Unclear Clinical Significance",
+                "CS: Clinically Significant"
+            ]
+        ]
+
+        guidelines.each{ guideline, array ->
+            array.eachWithIndex { classification, weight ->
+                if(!CvWeight.findByGuidelineAndClassification(guideline, classification)) {
+                    CvWeight cvw = new CvWeight([
+                        guideline: guideline,
+                        classification: classification,
+                        weight: weight
+                    ])
+                    cvw.save()
+                }
+            }
+        }
+    }
 
     
     
@@ -109,21 +154,20 @@ class BootStrap
 
         //  make debug users
         //
-        AuthRole viewerRole
-        AuthRole adminRole
-        AuthRole curatorRole
-        AuthRole labRole
-        AuthRole expertRole
-        AuthRole devRole
 
         String defaultpassword = loc.defaultTestUserPassword
 
-        devRole = AuthRole.find{authority=="ROLE_DEV"}
-        viewerRole = AuthRole.find{authority=="ROLE_VIEWER"}
-        adminRole = AuthRole.find{authority=="ROLE_ADMIN"}
-        curatorRole = AuthRole.find{authority=="ROLE_CURATOR"}
-        labRole = AuthRole.find{authority=="ROLE_LAB"}
-        expertRole = AuthRole.find{authority=="ROLE_EXPERT"}
+        AuthRole devRole = AuthRole.find{authority=="ROLE_DEV"}
+        AuthRole viewerRole = AuthRole.find{authority=="ROLE_VIEWER"}
+        AuthRole adminRole = AuthRole.find{authority=="ROLE_ADMIN"}
+        AuthRole curatorRole = AuthRole.find{authority=="ROLE_CURATOR"}
+        AuthRole labRole = AuthRole.find{authority=="ROLE_LAB"}
+        AuthRole expertRole = AuthRole.find{authority=="ROLE_EXPERT"}
+        AuthRole unmaskRole = AuthRole.find{authority=="ROLE_UNMASKER"}
+
+        if(!unmaskRole) {
+            unmaskRole = new AuthRole(authority:'ROLE_UNMASKER').save()
+        }
 
         if (AuthUser.findByUsername('pathosviewer') == null)
         {
@@ -189,6 +233,8 @@ class BootStrap
                 //NO ROLE for guest
             }
         }
+
+
     }
 
 
@@ -204,48 +250,55 @@ class BootStrap
     {
         servletContext ->
 
-            //  Make default filtering templates
+            //  create default generic clin context if none exists
             //
-
-
+            def defaultCcCode = ClinContext.defaultClinContextCode
+            def defaultCcDesc = ClinContext.defaultClinContextDescription
+           if(!ClinContext.findByCode(defaultCcCode)) {
+                    def mc = new ClinContext(code:defaultCcCode,description:defaultCcDesc).save(flush:true,failOnError:false)
+           }
 
             //  Bootstrap users for development environment
             //
-            switch(GrailsUtil.environment)
-            {
-                case [ 'pa_uat', 'pa_test', 'pa_dev' ]:
-                    makeBaseSpringRoles()
-                    makeBaseSpringUsers()
-                    makeBaseClinContexts()
-                    break;
-
-                case 'pa_local':
-                    makeBaseSpringRoles()
-                    makeBaseSpringUsers()
-                    makeBaseClinContexts()
-                    break;
-
-                case 'pa_prod':
-                    //makeBaseSpringUsers()
-                    break;
+            if(loc.pathosEnv != 'pa_prod') {
+                makeBaseSpringRoles()
+                makeBaseSpringUsers()
+                makeBaseClinContexts()
+                makeCvWeights()
             }
 
-            // Don't bother reindexing Searchable if the environment is pa_local
-            // On pa_local, just press the "reindex" button in Admin Options to reindex
+            // Check the database version against the PathOS version.
+            //
+            if (true) {
+                // The SQL connection checks the version when created,
+                // so it is sufficient to simply create it then discard it.
+                def db = new DbConnect(loc.pathosEnv)
+                def sql = db.sql()
+                sql.close()
+            }
+
+            // Don't bother reindexing Searchable if the environment is in list of exclusions
+            // On exclusions, just press the "reindex" button in Admin Options to reindex
             // DKGM 6-Sept-2016
-            if(GrailsUtil.environment != 'pa_local' ) {
+
+            ArrayList<String> exclusions = [
+//                'pa_test',
+//                'pa_uat',
+//                'pa_dev',
+                'pa_local'
+            ]
+
+            if( exclusions.indexOf(loc.pathosEnv) == -1 ) {
                 println "Reindexing the search"
                 searchableService.reindex()
             } else {
-                println "GrailsUtil.environment is pa_local, don't bother reindexing the search"
+                println "loc.pathosEnv is in list of exclusions, don't bother reindexing the search"
             }
 
             // Manually start the mirroring process to ensure that it comes after the automated migrations.
             println "Starting Searchable mirroring service"
             searchableService.startMirroring()
-    }
 
-    def destroy =
-    {
+            //println "BootStrap done"
     }
 }

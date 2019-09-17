@@ -9,7 +9,7 @@
 
 <body>
 <a href="#show-patAssay" class="skip" tabindex="-1"><g:message code="default.link.skip.label"
-                                                                 default="Skip to content&hellip;"/></a>
+                                                               default="Skip to content&hellip;"/></a>
 
 <div class="nav" role="navigation">
     <ul>
@@ -58,16 +58,16 @@
             </li>
         </g:if>
 
-        <g:if test="${patAssayInstance?.panel}">
             <li class="fieldcontain">
-                <span id="panel-label" class="property-label"><g:message code="patAssay.panel.label"
-                                                                         default="Panel"/></span>
-
-                <span class="property-value" aria-labelledby="panel-label"><g:link controller="panel" action="show"
-                                                                                   id="${patAssayInstance?.panel?.id}">${patAssayInstance?.panel?.encodeAsHTML()}</g:link></span>
+                <span id="labAssay-label" class="property-label">Lab Assay</span>
+        <g:if test="${patAssayInstance?.labAssay}">
+                <span class="property-value" aria-labelledby="labAssay-label"><g:link controller="labAssay" action="show" id="${patAssayInstance?.labAssay?.id}">${patAssayInstance?.labAssay?.encodeAsHTML()}</g:link></span>
+        </g:if>
+        <g:else>
+            <span class="property-value" aria-labelledby="labAssay-label">No Lab Assays</span>
+        </g:else>
 
             </li>
-        </g:if>
 
         <g:if test="${patAssayInstance?.authDate}">
             <li class="fieldcontain">

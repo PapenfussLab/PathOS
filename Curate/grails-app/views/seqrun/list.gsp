@@ -25,7 +25,7 @@
     <g:javascript src="quasipartikel/jquery.min.js" />
     <g:javascript src="quasipartikel/jquery-ui.min.js" />
     <g:javascript src="quasipartikel/ui.multiselect.js" />
-    <script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
+    <script src="<g:context/>/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
 
     <style type="text/css">
     .ui-jqgrid .ui-jqgrid-htable th     { vertical-align: top; }
@@ -87,7 +87,7 @@
     var tagModule = PathOS.tags.buildModule({
         object: 'Seqrun',
         tags: [],
-        availableTags: <g:allTags/>
+        availableTags: Object.keys(<g:allTags/>)
     });
 
     var current_id = false;

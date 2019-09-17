@@ -62,11 +62,6 @@ class VarFilterService
         HashSet haveregions = getHasRoiVariants(force)
         log.info( "Found ${haveregions.size()} variants with ROI")
 
-        // Get singleton vars (ones that occur only once in a replicate r/ship)
-        //
-        HashSet singletons = getSingletons(force)
-        log.info( "Found ${singletons.size()} singleton variants")
-
         // Re read filter rules from config file
         //
         rules = getRules()
@@ -76,7 +71,6 @@ class VarFilterService
         HashSet inregions = getInRegionSeqVariants(force)
 
         log.info( "Found ${inregions.size()} ROI variants")
-
 
         if ( force )
         {
@@ -88,6 +82,11 @@ class VarFilterService
             //
             def rows = SeqVariant.executeQuery( "select count(*) from org.petermac.pathos.curate.SeqVariant")
             int cnt  = rows[0] as int
+
+            // Get singleton vars (ones that occur only once in a replicate r/ship)
+            //
+            HashSet singletons = getSingletons()
+            log.info( "Found ${singletons.size()} singleton variants")
 
             //  Loop through all SeqVariants
             //
@@ -143,9 +142,19 @@ class VarFilterService
         {
             SeqVariant.withTransaction
                     {
+                        //  Set all replicate sample filterflags to NULL if ANY of the replicates has NULL filterflags
+                        //
+                        setReplicatesToNull()
+
+                        // Get singleton vars (ones that occur only once in a replicate r/ship)
+                        //
+                        HashSet singletons = getSingletons()
+                        log.info( "Found ${singletons.size()} singleton variants")
+
                         //  find all null flag SeqVariants
                         //
                         List<SeqVariant> nullSeqVars = SeqVariant.findAllByFilterFlagIsNull()
+                        log.info( "Found ${nullSeqVars.size()} unfiltered SeqVariants")
 
                         //  set varSamplesSeenInPanel and varSamplesTotalInPanel - variables used to calculate panel frequnecies -
                         //  for these seqvars
@@ -159,7 +168,6 @@ class VarFilterService
                                 {
                                     SeqVariant variant ->
                                         ++mod
-
                                         List initFlagList = []
                                         if (singletons.contains(variant.id ))
                                         {
@@ -197,8 +205,6 @@ class VarFilterService
     {
         def    panelGroup   = variant.seqSample.panel.panelGroup        // panel group of the variant
         //Double varPanelPct  = varfreq ? (varfreq[ variant.variant ]  as Double) : 0.0   // lookup the %
-
-
 
         List flag = applyRules( variant.properties, panelGroup, rules, initFlagList )
         if ( flag )
@@ -541,68 +547,55 @@ class VarFilterService
     }
 
     /**
-     * get singleton variant ids (that is, variants that are in a replicate sample, and are not present in all replicates
-     * @param force get all, even those without null filter flag (otherwise we only get where filterflag is null)
-     * @return  List of ids of singleton variants for samples that are replicates
+     * Set all replicate samples filterflags to NULL for the replicates of a set of seqSamples
+     *
+     * @param seqSamples
      */
-    public static HashSet getSingletons( boolean force = true )
+    private static void setReplicatesToNull()
     {
+        List<SeqSample> nullSeqSamples = SeqSample.executeQuery( "select distinct sv.seqSample from org.petermac.pathos.curate.SeqVariant as sv where sv.filterFlag is null")
+        log.info( "Found ${nullSeqSamples.size()} unfiltered SeqSamples")
 
-        //  grab all seqsamples w replicate relationships
+        List<SeqSample> repSamples = []
+        for ( ss in nullSeqSamples )
+        {
+            for ( sr in ss.relations )
+            {
+                repSamples.addAll(sr.samples())
+            }
+        }
+
+        //  Set filter flags to null
         //
-        SeqRelation.withTransaction
-                {
-                    def qry = """
-                      SELECT    sr.id
-                      FROM      org.petermac.pathos.curate.SeqRelation as sr
-                      WHERE     relation = 'Replicate'
-                      """
-
-                    def srids = SeqSample.executeQuery( qry )
-
-                    log.info( "Found ${srids.size()} Replicate SeqRelations")
-
-                    List vars = []
-
-                    for (srid in srids)
-                    {
-                        def thisSr = SeqRelation.read(srid)
-                        vars = vars + getSingletonsForRelation(thisSr, force)
-                    }
-
-                    def varmap = new HashSet()
-                    for (var in vars)
-                    {
-                        varmap.add(var)
-                    }
-                    return varmap
-                }
+        for ( ss in repSamples.unique())
+        {
+            def nr = SeqVariant.executeUpdate( "update org.petermac.pathos.curate.SeqVariant set filterFlag = null where seqSample = :thisss", [thisss: ss])
+            log.info( "Set ${nr} rows to null filter flags for ${ss}")
+        }
     }
 
     /**
-     * get all singleton samples in a seqrelation
-     * @param sr - seqrelations to get singletons from
-     * @param force get all, even those without null filter flag (otherwise we only get where filterflag is null)
-     * @return
+     * get singleton variant ids (that is, variants that are in a replicate sample, and are not present in all replicates
+     * It only needs to find the singletons in the samples that are replicates AND have null filterflag
+     * @return  List of ids of singleton variants for samples that are replicates
      */
-    private static List getSingletonsForRelation( SeqRelation sr , boolean force  )
+    public static HashSet getSingletons()
     {
-        def ffNullQry = ""
-        if (!force) ffNullQry = " AND sv.filterFlag IS NULL "
 
         def qry2 = """
                    select   sv.id
-                   FROM     org.petermac.pathos.curate.SeqVariant as sv
+                   FROM     org.petermac.pathos.curate.SeqVariant as sv,  org.petermac.pathos.curate.SeqRelation as sr
                    JOIN     sv.seqSample as ss
-                   WHERE    :thisSeqRelation in elements( ss.relations )
-                   ${ffNullQry}
-                   GROUP BY   sv.variant
+                   WHERE    sr in ELEMENTS(ss.relations) AND sr.relation='Replicate' AND sv.filterFlag IS NULL
+                   GROUP BY   sv.variant, sr
                    HAVING     count(*) < 2
                    """
 
-        def theseSvs = SeqVariant.executeQuery(qry2,[thisSeqRelation:sr])
+        def vars = SeqVariant.executeQuery( qry2 )
 
-        return theseSvs
+        HashSet varset = vars.toSet()
+
+        return varset
     }
 
 
@@ -776,6 +769,14 @@ class VarFilterService
         }
 
         def updated = 0
+
+        //  declare vars here before loop to help w/ gc
+        //
+        Map resmap = null
+        String qry = null
+        List res = null
+        Integer nall = null
+
         panelSvs.each
                 {
                     Panel p, HashSet<SeqVariant> panelvars ->
@@ -784,24 +785,24 @@ class VarFilterService
                         //  get samples in panel for varSamplesTotalInPanel
                         //  we do calculations on this resultset because it excludes Cntrl,NTC,Synth
                         //
-                        def qry =   """
+                        qry =   """
                                 SELECT  sv.hgvsg,
                                         ss.id,
                                         ss.sampleType,
                                         sv.id as svid
                                 FROM    org.petermac.pathos.curate.SeqVariant as sv
                                 JOIN    sv.seqSample as ss
-                                WHERE   ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType != 'Synthetic' ) OR ss.sampleType IS NULL)
+                                WHERE   ((ss.sampleType != 'Control' AND ss.sampleType != 'NTC' AND ss.sampleType != 'Derived' ) OR ss.sampleType IS NULL)
                                 AND     ss.panel = :thisPanel
                                 """
-                        def res = SeqVariant.executeQuery(qry, [thisPanel: p])
+                        res = SeqVariant.executeQuery(qry, [thisPanel: p])
 
                         if ( ! res ) return 0
 
-                        def nall = res.groupBy { it[1] }.size()
+                        nall = res.groupBy { it[1] }.size()
                         if ( true ) // even if nall == 0, this should work
                         {
-                            Map resmap = new HashMap<String, Set<Long>>();
+                            resmap = new HashMap<String, Set<Long>>();
 
                             //  Assemble a map from our results
                             //  where key is  hgvsg and val is set of ssamples it appears in (set, so no uniques)

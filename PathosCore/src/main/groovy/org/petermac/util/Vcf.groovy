@@ -924,43 +924,83 @@ class Vcf extends Tsv
     }
 
     /**
+     * Get sample name from VCF header
+     *
+     * @return  Sample name
+     */
+    String sampleName()
+    {
+        def is = this.getInStream()
+        List<String> lines = is.readLines()
+        for ( line in lines )
+        {
+            if ( line.startsWith('#CHROM'))
+            {
+                List cols = line.split('\t')
+                if ( cols.size() >= 10 ) return cols[9]
+
+                return null
+            }
+        }
+
+        return null
+    }
+
+    /**
      * Return a canned VCF header
      *
      * @param   sample  Optional sample name to use
      * @return          Multiline header
      */
-    static String header( String sample = 'Sample')
+    static String header( String source, List<String> infoFields, String sample = 'Sample')
     {
-    return  "##fileformat=VCFv4.1\n" +
-            "##source=VarScan2\n" +
-            "##INFO=<ID=ADP,Number=1,Type=Integer,Description=\"Average per-sample depth of bases with Phred score >= 20\">\n" +
-            "##INFO=<ID=WT,Number=1,Type=Integer,Description=\"Number of samples called reference (wild-type)\">\n" +
-            "##INFO=<ID=HET,Number=1,Type=Integer,Description=\"Number of samples called heterozygous-variant\">\n" +
-            "##INFO=<ID=HOM,Number=1,Type=Integer,Description=\"Number of samples called homozygous-variant\">\n" +
-            "##INFO=<ID=NC,Number=1,Type=Integer,Description=\"Number of samples not called\">\n" +
-            "##INFO=<ID=HGVSg,Number=1,Type=String,Description=\"HGVSg format of variant\">\n" +
-            "##INFO=<ID=numAmps,Number=1,Type=String,Description=\"Number of amplicons with variant / amplicons including locus\">\n" +
-            "##INFO=<ID=amps,Number=1,Type=String,Description=\"Amplicon names with variant\">\n" +
-            "##INFO=<ID=gene,Number=1,Type=String,Description=\"gene of variant\">\n" +
-            "##INFO=<ID=ampbias,Number=1,Type=String,Description=\"is there a bias across amplicons for variant\">\n" +
-            "##INFO=<ID=fsRescue,Number=1,Type=String,Description=\"Can variant be rescued from a frameshift in phase\">\n" +
-            "##INFO=<ID=homopolymer,Number=1,Type=String,Description=\"Is variant next to a homopolymer run\">\n" +
-            "##FILTER=<ID=str10,Description=\"Less than 10% or more than 90% of variant supporting reads on one strand\">\n" +
-            "##FILTER=<ID=indelError,Description=\"Likely artifact due to indel reads at this position\">\n" +
-            "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n" +
-            "##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype Quality\">\n" +
-            "##FORMAT=<ID=SDP,Number=1,Type=Integer,Description=\"Raw Read Depth as reported by SAMtools\">\n" +
-            "##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Quality Read Depth of bases with Phred score >= 20\">\n" +
-            "##FORMAT=<ID=RD,Number=1,Type=Integer,Description=\"Depth of reference-supporting bases (reads1)\">\n" +
-            "##FORMAT=<ID=AD,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases (reads2)\">\n" +
-            "##FORMAT=<ID=FREQ,Number=1,Type=String,Description=\"Variant allele frequency\">\n" +
-            "##FORMAT=<ID=PVAL,Number=1,Type=String,Description=\"P-value from Fisher's Exact Test\">\n" +
-            "##FORMAT=<ID=RBQ,Number=1,Type=Integer,Description=\"Average quality of reference-supporting bases (qual1)\">\n" +
-            "##FORMAT=<ID=ABQ,Number=1,Type=Integer,Description=\"Average quality of variant-supporting bases (qual2)\">\n" +
-            "##FORMAT=<ID=RDF,Number=1,Type=Integer,Description=\"Depth of reference-supporting bases on forward strand (reads1plus)\">\n" +
-            "##FORMAT=<ID=RDR,Number=1,Type=Integer,Description=\"Depth of reference-supporting bases on reverse strand (reads1minus)\">\n" +
-            "##FORMAT=<ID=ADF,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases on forward strand (reads2plus)\">\n" +
-            "##FORMAT=<ID=ADR,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases on reverse strand (reads2minus)\">\n" +
-            "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t${sample}\n"
+        String infoLines = ''
+        for ( infofld in infoFields )
+        {
+            infoLines += "##INFO=<ID=${infofld},Number=1,Type=String,Description=\"${infofld} INFO field\">\n"
+        }
+
+        return  "##fileformat=VCFv4.1\n" +
+                "##source=${source}\n" +
+                "##INFO=<ID=ADP,Number=1,Type=Integer,Description=\"Average per-sample depth of bases with Phred score >= 20\">\n" +
+                "##INFO=<ID=WT,Number=1,Type=Integer,Description=\"Number of samples called reference (wild-type)\">\n" +
+                "##INFO=<ID=HET,Number=1,Type=Integer,Description=\"Number of samples called heterozygous-variant\">\n" +
+                "##INFO=<ID=HOM,Number=1,Type=Integer,Description=\"Number of samples called homozygous-variant\">\n" +
+                "##INFO=<ID=NC,Number=1,Type=Integer,Description=\"Number of samples not called\">\n" +
+                "##INFO=<ID=HGVSg,Number=1,Type=String,Description=\"HGVSg format of variant\">\n" +
+                "##INFO=<ID=numAmps,Number=1,Type=String,Description=\"Number of amplicons with variant / amplicons including locus\">\n" +
+                "##INFO=<ID=amps,Number=1,Type=String,Description=\"Amplicon names with variant\">\n" +
+                "##INFO=<ID=gene,Number=1,Type=String,Description=\"gene of variant\">\n" +
+                "##INFO=<ID=ampbias,Number=1,Type=String,Description=\"is there a bias across amplicons for variant\">\n" +
+                "##INFO=<ID=fsRescue,Number=1,Type=String,Description=\"Can variant be rescued from a frameshift in phase\">\n" +
+                "##INFO=<ID=homopolymer,Number=1,Type=String,Description=\"Is variant next to a homopolymer run\">\n" +
+                infoLines +
+                "##FILTER=<ID=str10,Description=\"Less than 10% or more than 90% of variant supporting reads on one strand\">\n" +
+                "##FILTER=<ID=indelError,Description=\"Likely artifact due to indel reads at this position\">\n" +
+                "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n" +
+                "##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype Quality\">\n" +
+                "##FORMAT=<ID=SDP,Number=1,Type=Integer,Description=\"Raw Read Depth as reported by SAMtools\">\n" +
+                "##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Quality Read Depth of bases with Phred score >= 20\">\n" +
+                "##FORMAT=<ID=RD,Number=1,Type=Integer,Description=\"Depth of reference-supporting bases (reads1)\">\n" +
+                "##FORMAT=<ID=AD,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases (reads2)\">\n" +
+                "##FORMAT=<ID=FREQ,Number=1,Type=String,Description=\"Variant allele frequency\">\n" +
+                "##FORMAT=<ID=PVAL,Number=1,Type=String,Description=\"P-value from Fisher's Exact Test\">\n" +
+                "##FORMAT=<ID=RBQ,Number=1,Type=Integer,Description=\"Average quality of reference-supporting bases (qual1)\">\n" +
+                "##FORMAT=<ID=ABQ,Number=1,Type=Integer,Description=\"Average quality of variant-supporting bases (qual2)\">\n" +
+                "##FORMAT=<ID=RDF,Number=1,Type=Integer,Description=\"Depth of reference-supporting bases on forward strand (reads1plus)\">\n" +
+                "##FORMAT=<ID=RDR,Number=1,Type=Integer,Description=\"Depth of reference-supporting bases on reverse strand (reads1minus)\">\n" +
+                "##FORMAT=<ID=ADF,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases on forward strand (reads2plus)\">\n" +
+                "##FORMAT=<ID=ADR,Number=1,Type=Integer,Description=\"Depth of variant-supporting bases on reverse strand (reads2minus)\">\n" +
+                "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t${sample}\n"
+    }
+
+    /**
+     * Return a canned VCF header for VEP proccessing
+     *
+     * @return          Minimal VCF header
+     */
+    static String vepHeader()
+    {
+        return "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSample\n"
     }
 }

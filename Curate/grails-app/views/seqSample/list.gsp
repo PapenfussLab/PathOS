@@ -17,7 +17,7 @@
     <g:javascript src="quasipartikel/jquery.min.js" />
     <g:javascript src="quasipartikel/jquery-ui.min.js" />
     <g:javascript src="quasipartikel/ui.multiselect.js" />
-    <script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
+    <script src="<g:context/>/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
 
     <style type="text/css">
     .ui-jqgrid .ui-jqgrid-htable th     { vertical-align: top; }
@@ -52,8 +52,8 @@
         <grid:grid  name="seqsample" >
             <grid:set caption='Sequenced Samples'/>
             <grid:set col="sampleName"       width="70"  />
+            <grid:set col="patSample"           width="70"  />
             <grid:set col="seqrun"           width="170"  />
-            <grid:set col="sample"           width="70"  />
             <grid:set col="panel"            width="170"  />
             <grid:set col="userEmail"        width="140"  />
             <grid:set col="analysis"         width="140"  />
@@ -69,11 +69,11 @@
 
 </div>
 <script>
-    var availableTags = <g:allTags/>;
+    var allTags = <g:allTags/>;
     var tagModule = PathOS.tags.buildModule({
         object: 'SeqSample',
         tags: [],
-        availableTags: availableTags
+        availableTags: Object.keys(allTags)
     });
 
     var current_id = false;

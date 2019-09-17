@@ -1,0 +1,19 @@
+apply from: '../../scripts/common.gradle'
+
+group = "org.broadinstitute"
+version = '2.1.8'
+
+jar {
+    baseName = 'broad-sting-util'
+}
+
+artifacts {
+    archives file('broad-sting-util-2.1.8.jar')
+}
+
+uploadArchives {
+    repositories.mavenInstaller {
+    	files('./broad-sting-util-2.1.8.jar')
+    }
+}
+

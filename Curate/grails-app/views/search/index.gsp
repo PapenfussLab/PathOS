@@ -16,6 +16,8 @@
     <title><g:if test="${params.q}">${params.q} - </g:if>PathOS Search</title>
 
     <parameter name="hotfix" value="off" />
+</head>
+
 <section id="search-page">
     <div class="container">
         <div class="row">
@@ -26,7 +28,7 @@
             </div>
             <div id="loading_box" class="col-sm-offset-3 col-sm-6 col-xs-offset-1 col-xs-10 outlined-box">
                 <h1><span id="loaded_data">0</span> of 5 result sets loaded<br><span id="average_time"></span></h1>
-                <img class="loading_logo" src="/PathOS/dist/img/pathos_logo_animated.svg">
+                <img class="loading_logo" src="<g:context/>/dist/images/pathos_logo_animated.svg">
             </div>
         </div>
 
@@ -107,7 +109,7 @@ $(document).ready(function(){
 var timestamp = Date.now();
 var data = {};
 
-$.ajax('/PathOS/search/getAverageTime', {
+$.ajax('<g:context/>/search/getAverageTime', {
         data: {
             q: PathOS.params().q
         },
@@ -119,18 +121,18 @@ $.ajax('/PathOS/search/getAverageTime', {
     }
 });
 
-$.ajax('/PathOS/search/quickSearch?q='+PathOS.params().q, {success: function(d){
+$.ajax('<g:context/>/search/quickSearch?q='+PathOS.params().q, {success: function(d){
     update_loaded();
     handleSearchableData(d);
 }});
 
-$.ajax('/PathOS/search/search?q='+PathOS.params().q, {success: function(d){
+$.ajax('<g:context/>/search/search?q='+PathOS.params().q, {success: function(d){
     data = d;
     update_loaded();
     handleSearchableData(d);
 }});
 
-$.ajax('/PathOS/search/searchSeqSamples?q='+PathOS.params().q, {success: function(d){
+$.ajax('<g:context/>/search/searchSeqSamples?q='+PathOS.params().q, {success: function(d){
     data.seqSample = d.seqSample;
     update_loaded();
     handleSearchableData(data);
@@ -138,7 +140,7 @@ $.ajax('/PathOS/search/searchSeqSamples?q='+PathOS.params().q, {success: functio
 
 seqSampleData = null;
 function loadSeqSamples(){
-    $.ajax('/PathOS/search/searchSeqSamples?q='+PathOS.params().q, {success: function(d){
+    $.ajax('<g:context/>/search/searchSeqSamples?q='+PathOS.params().q, {success: function(d){
         seqSampleData = d;
         update_loaded();
         handleSearchableData(d);
@@ -148,14 +150,14 @@ function loadSeqSamples(){
 
 var searchDepth = 10;
 console.log("Requesting Deeper Data... "+searchDepth);
-$.ajax('/PathOS/Search/deepSearch?o=10&q='+PathOS.params().q, {success: handleDeepData});
+$.ajax('<g:context/>/Search/deepSearch?o=10&q='+PathOS.params().q, {success: handleDeepData});
 
-$.ajax('/PathOS/Search/svTags?q='+PathOS.params().q, {success: function(d){
+$.ajax('<g:context/>/Search/svTags?q='+PathOS.params().q, {success: function(d){
     update_loaded();
     handleSvData(d);
 }});
 
-$.ajax('/PathOS/Search/svExact?q='+PathOS.params().q, {success: function(d){
+$.ajax('<g:context/>/Search/svExact?q='+PathOS.params().q, {success: function(d){
     update_loaded();
     handleSvData(d);
 }});
@@ -183,7 +185,7 @@ function handleSvData(data){
                 score: 1,
                 title: sv.gene+':'+sv.hgvsc,
                 data: sv,
-                link: '/PathOS/seqVariant/show/',
+                link: '<g:context/>/seqVariant/show/',
                 type: 'seqVariant',
                 typetitle: 'Sequenced Variant'
             });
@@ -196,7 +198,7 @@ function handleSvData(data){
         buildLegend([{
             count: resultData.length,
             key: 'seqVariant',
-            link: '/PathOS/seqVariant/allsvlist',
+            link: '<g:context/>/seqVariant/allsvlist',
             tags: tags,
             title: 'Sequenced Variants',
             total: data.count
@@ -325,7 +327,7 @@ function buildLegend(data){
                             } else {
                                 handleSearchableData(deepData);
                                 console.log("Requesting Deeper Data... "+searchDepth);
-                                $.ajax('/PathOS/Search/deepSearch?o='+searchDepth+'&q='+PathOS.params().q, {success: handleDeepData});
+                                $.ajax('<g:context/>/Search/deepSearch?o='+searchDepth+'&q='+PathOS.params().q, {success: handleDeepData});
                             }
 
                             d3.selectAll(".legend-box .hider").text("[show]");
@@ -495,7 +497,7 @@ drawResultBox = {
         div.select(".col-xs-8")
             .append("h3")
             .append("a")
-            .attr("href", "/PathOS/seqVariant/svlist/"+ d.data.seqSample.id)
+            .attr("href", "<g:context/>/seqVariant/svlist/"+ d.data.seqSample.id)
             .text(d.data.sampleName);
 
         var row = div.append("row").classed("row", true);
@@ -518,7 +520,7 @@ drawResultBox = {
             var last = null;
             d.data.pubmed.split(",").forEach(function(article){
                 pubmed_stuff.append("a")
-                        .attr("href", "/PathOS/Pubmed?pmid="+article)
+                        .attr("href", "<g:context/>/Pubmed?pmid="+article)
                         .text(article);
                 last = pubmed_stuff.append("span").text(", ");
             });
@@ -553,18 +555,21 @@ drawResultBox = {
     },
     seqSample: function(div, d){
         var loading = div.append("img")
-            .attr("src", "/PathOS/dist/img/pathos_logo_animated.svg")
+            .attr("src", "<g:context/>/dist/images/pathos_logo_animated.svg")
             .style("width", "200px");
 
-        $.ajax("/PathOS/search/seqSampleLookup/"+ d.gormid, {
+        var seqrun = div.select(".col-xs-8")
+            .append("h3")
+            .append("a")
+            .attr("href", "<g:context/>/seqrun/show/?id="+d.result.seqrun.id)
+            .text("[looking up seqrun...]");
+
+        $.ajax("<g:context/>/search/seqSampleLookup/"+ d.gormid, {
             success: function(extra){
                 loading.remove();
                 d.extra = extra;
-                div.select(".col-xs-8")
-                        .append("h3")
-                        .append("a")
-                        .attr("href", "/PathOS/seqrun/show/?id="+d.result.seqrun.id)
-                        .text(d.extra.seqrun);
+
+                seqrun.text(d.extra.seqrun);
 
                 var row = div.insert("row", ".resultTagBox").classed("row", true);
                 var block = row.append("div").classed("col-xs-8 block", true);
@@ -574,7 +579,7 @@ drawResultBox = {
                     {
                         title: 'Patient Sample',
                         words: d.result.sampleName,
-                        link: d.result.patSample ? '/PathOS/patSample/show/'+d.result.patSample.id : ''
+                        link: d.result.patSample ? '<g:context/>/patSample/show/'+d.result.patSample.id : ''
                     },
                     {
                         title: 'First Reviewed Date',
@@ -609,7 +614,16 @@ drawResultBox = {
                 });
 
                 // This stuff needs to be dug up using "extra"
-                if(d.extra.curVariants.length > 0) {
+                if (!d.extra.reviewed) {
+                    var row = div.append("div").classed("row", true)
+                        .append("div")
+                        .classed("col-xs-12", true)
+                        .styles({
+                            "padding-bottom": "15px"
+                        });
+                    row.append('p').text("Sequenced Sample has not be reviewed yet.");
+                    row.append('p').text("Genemask: "+d.extra.mask);
+                } else if(d.extra.curVariants.length > 0) {
                     var box = div.insert("div", ".resultTagBox")
                             .style("padding", "10px")
                             .classed('block outlined-box', true);
@@ -640,13 +654,14 @@ drawResultBox = {
                         row.append('td')
                                 .append('a')
                                 .attr("href", "#")
-                                .attr("onclick", 'PathOS.svlist.showCVs('+d.id+')')
+                                .attr("onclick", 'PathOS.variant.viewer({svid:'+d.id+'})')
                                 .text(d.hgvsg);
 
+                        var maxPmClass = PathOS.criteria.acmgClasses[d.maxPmClass] || "Unclassified";
                         row.append('td')
                                 .append('span')
-                                .classed("C"+d.maxPmClass, true)
-                                .text(PathOS.pmClasses[d.maxPmClass]);
+                                .classed("C"+maxPmClass.slice(1,2), true)
+                                .text(maxPmClass);
                     });
 
                 } else {
@@ -683,17 +698,19 @@ drawResultBox = {
             .append("div").classed("col-xs-12", true);
         var evidence = [];
 
+if(d.result.evidence) {
         Object.keys(PathOS.evidence).forEach(function(e){
             if(d.result.evidence[e]){
                 evidence.push(PathOS.evidence[e]);
             }
         });
-        var link = row.append('a').attr("href", '/PathOS/evidence/edit/'+ d.result.id);
+}
+        var link = row.append('a').attr("href", '<g:context/>/evidence/edit/'+ d.result.id);
 
         if(evidence.length > 0) {
             link.append('h3').text("Evidence");
             link.append('p').text(evidence.join(", "));
-            if(d.result.evidence.justification) {
+            if(d.result.evidence && d.result.evidence.justification) {
                 row.append('p').datum(d.result.evidence.justification).html(highlight);
             }
         } else {
@@ -708,23 +725,23 @@ drawResultBox = {
 
         if(d.result.reportDesc) {
             row.append('a')
-                .attr("href", '/PathOS/curVariant/edit/'+ d.result.id)
+                .attr("href", '<g:context/>/curVariant/edit/'+ d.result.id)
                 .append('h3')
                 .text("Report");
             row.append('p').datum(d.result.reportDesc).html(highlight);
         } else {
             row.append('a')
-                .attr("href", '/PathOS/curVariant/edit/'+ d.result.id)
+                .attr("href", '<g:context/>/curVariant/edit/'+ d.result.id)
             .append('h3')
                 .text("No report added yet");
         }
     },
     patSample: function(div, d){
         var loading = div.append("img")
-                .attr("src", "/PathOS/dist/img/pathos_logo_animated.svg")
+                .attr("src", "<g:context/>/dist/images/pathos_logo_animated.svg")
                 .style("width", "200px");
 
-        $.ajax("/PathOS/search/patSampleLookup/"+ d.gormid, {
+        $.ajax("<g:context/>/search/patSampleLookup/"+ d.gormid, {
             success: function(extra) {
                 loading.remove();
                 d.extra = extra;
@@ -734,11 +751,11 @@ drawResultBox = {
                 block.append("p");
 
                 <sec:ifAnyGranted roles="ROLE_DEV">
-                block.append("p").text("Patient Name: ").append('a').attr("href", "/PathOS/patient/show/"+d.result.patient.id).text("######");
+                block.append("p").text("Patient Name: ").append('a').attr("href", "<g:context/>/patient/show/"+d.result.patient.id).text("######");
                 </sec:ifAnyGranted>
 
                 <sec:ifAnyGranted roles="ROLE_ADMIN,ROLE_CURATOR,ROLE_LAB,ROLE_VIEWER,ROLE_EXPERT">
-                block.append("p").text("Patient Name: ").append('a').attr("href", "/PathOS/patient/show/"+d.result.patient.id).text(d.extra.patient.fullName.split(",").join(", "));
+                block.append("p").text("Patient Name: ").append('a').attr("href", "<g:context/>/patient/show/"+d.result.patient.id).text(d.extra.patient.fullName.split(",").join(", "));
                 </sec:ifAnyGranted>
 
                 block.append("p").text("Date of Birth: " + PathOS.formatDate(d.extra.patient.dob));
@@ -775,12 +792,12 @@ drawResultBox = {
 
                             row.append('td')
                                     .append('a')
-                                    .attr("href", "/PathOS/seqVariant/svlist/" + seqSample.id)
+                                    .attr("href", "<g:context/>/seqVariant/svlist/" + seqSample.id)
                                     .text(sampleName);
 
                             row.append('td')
                                     .append('a')
-                                    .attr("href", "/PathOS/seqrun/show?id=" + seqSample.seqrun.id)
+                                    .attr("href", "<g:context/>/seqrun/show?id=" + seqSample.seqrun.id)
                                     .text(d.extra.seqruns[i]);
 
                             if(i >= 9 && seqSamples.length > 10) {
@@ -866,7 +883,7 @@ drawResultBox = {
 
                 row.append('td')
                     .append('a')
-                    .attr("href", '/PathOS/seqVariant/svlist/'+ d.title +'/'+ entry[1])
+                    .attr("href", '<g:context/>/seqVariant/svlist/'+ d.title +'/'+ entry[1])
                     .text(entry[1]);
 
                 PathOS.printQC({
@@ -960,7 +977,7 @@ function applyOptions(){
                 u: '<authdetails:displayName/>'
             };
 
-            $.ajax('/PathOS/search/putTime',{
+            $.ajax('<g:context/>/search/putTime',{
                 data: params
             });
 

@@ -143,7 +143,7 @@ class PipeLogger
 
         //  Calculate total pipeline run time
         //
-        def sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")            // 2016-08-05 15:36:11
+        def sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")            // 2016-08-05 15:36:11
         Date sd = sdf.parse(start)
         Date ed = sdf.parse(end)
         TimeDuration diff = TimeCategory.minus( ed, sd )

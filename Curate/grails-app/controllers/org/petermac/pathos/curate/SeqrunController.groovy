@@ -9,8 +9,6 @@ package org.petermac.pathos.curate
 
 import grails.converters.JSON
 import org.grails.plugin.easygrid.Easygrid
-
-import java.text.MessageFormat
 import java.text.SimpleDateFormat
 
 
@@ -21,6 +19,8 @@ class SeqrunController
     //
     static scaffold = Seqrun
     def SpringSecurityService
+    def AuditService
+    def utilService
 
     /**
      * Action to authorise (or not) a Seqrun
@@ -120,24 +120,14 @@ class SeqrunController
         //  Set audit record for authorisation
         //
         def audit_msg = "Set QC authorisation on ${sr.seqrun} to ${sr.passfailFlag ? 'Pass' : 'Fail'} Comment: ${sr.qcComment} "
-        def audit     = new Audit(  category:    'curation',
-                                    seqrun:      sr.seqrun,
-                                    complete:    new Date(),
-                                    elapsed:     0,
-                                    software:    'PathOS',
-                                    swVersion:   meta(name: 'app.version'),
-                                    task:        'seqrun qc',
-                                    username:    currentUser.getUsername(),
-                                    description: audit_msg )
 
-        if ( ! audit.save( flush: true ))
-        {
-            audit?.errors?.allErrors?.each
-            {
-                log.error( new MessageFormat(it?.defaultMessage)?.format(it?.arguments))
-            }
-            log.error( "Failed to log audit message: ${audit_msg}")
-        }
+        AuditService.audit([
+            category    : 'curation',
+            seqrun:      sr.seqrun,
+            task:        'seqrun qc',
+            description : audit_msg
+        ])
+
 
         redirect(action: "show", id: id)
     }
@@ -185,10 +175,7 @@ class SeqrunController
             panelList
             {
                 label           'Panels'
-
-                property    panelList
-
-
+                property        panelList
             }
 
             library
@@ -222,15 +209,25 @@ class SeqrunController
     }
 
     def show() {
-        def seqrunInstance
+        Seqrun seqrunInstance
         def seqrunparam
-        if (params.id) {
+        if ( params.id ) {
             def id = params.id
             seqrunInstance = Seqrun.get(id)
             seqrunparam = id
-        } else if (params.seqrunName ) {
+        } else if ( params.seqrunName ) {
             seqrunInstance = Seqrun.findBySeqrun(params.seqrunName)
+            if(!seqrunInstance) {
+                try {
+                    seqrunInstance = Seqrun.get(params.seqrunName.toInteger())
+                } catch (Exception e){
+                    seqrunInstance = null
+                }
+            }
             seqrunparam = params.seqrunName
+        } else if ( params.seqSample ) {
+            seqrunInstance = SeqSample.get(params.seqSample)?.seqrun
+            seqrunparam = params.seqSample
         } else { seqrunparam = null }
 
         if (!seqrunInstance) {
@@ -239,11 +236,45 @@ class SeqrunController
             return
         }
 
-        String seqrunTsvLoc =   '/PathOS/payload/seqrun_qc_heatmap/' +  seqrunInstance.seqrun + '.tsv'
-        [seqrunInstance: seqrunInstance,heatmapTsvPath: seqrunTsvLoc]
+        AuthUser currentUser = springSecurityService.currentUser as AuthUser
+        Boolean d3heatmap = Preferences.findByUser(currentUser)?.d3heatmap ?: false
+
+        [seqrunInstance: seqrunInstance, d3heatmap: d3heatmap]
     }
 
-    def getHeatmap(Long id){
+    def ampliconHeatmapData(Long id){
+        Seqrun sr = Seqrun.get(id)
+
+        HashMap amplicons = [:]
+        List data = AlignStats.findAllBySeqrunAndAmpliconNotEqual(sr, "SUMMARY").collect {
+            amplicons[it.amplicon] = it.location
+            return [it.sampleName, it.amplicon, it.readsout]
+        }
+
+        HashMap results = [
+            headers: ["sample_name", "amplicon", "readsout"],
+            amplicons: amplicons,
+            data: data
+        ]
+        render results as JSON
+    }
+
+    def deleteHeatmapTsv(Long id) {
+        try {
+            Seqrun thisSeqrun = Seqrun.get(id)
+            def webroot = servletContext.getRealPath('/')
+            String seqrunQCFileLoc = webroot+"/payload/seqrun_qc_heatmap/" + thisSeqrun.seqrun + '.tsv'
+
+            File heatmapTsv = new File(seqrunQCFileLoc)
+
+            render heatmapTsv.delete()
+        } catch(e) {
+            response.status = 500
+            render e
+        }
+    }
+
+    def fetchHeatmapTsv(Long id){
         Seqrun thisSeqrun = Seqrun.get(id)
 
         //check if we have a .tsv file for this - for the JS heatmap
@@ -296,7 +327,8 @@ class SeqrunController
         }
 
 
-        String heatmapTsvLoc = '/PathOS/payload/seqrun_qc_heatmap/' +  thisSeqrun.seqrun + '.tsv'
+
+        String heatmapTsvLoc = "${utilService.context()}/payload/seqrun_qc_heatmap/${thisSeqrun.seqrun}.tsv"
         if (!statsFound) {
             heatmapTsvLoc = ""  //if he have no align stats - set this to empty and then the view will not show heatmap
             heatmapTsv.delete()     //clean up, it might exist with a blank ehader
@@ -305,7 +337,7 @@ class SeqrunController
         render heatmapTsvLoc;
     }
 
-    def getStats(Long id){
+    def fetchStats(Long id){
         Seqrun seqrunInstance = Seqrun.get(id);
         Map results = [
                 panels: null,
@@ -336,23 +368,112 @@ class SeqrunController
     }
 
     def latestRuns() {
-        ArrayList<Seqrun> seqruns = Seqrun.executeQuery("select x from Seqrun x order by x.runDate desc", [offset: 0, max: 10]);
+        Integer max = params.max ? Integer.parseInt(params.max) : 10
+        List<String> panelList = params?.panelList?.tokenize(",")?.toArray() ?: []
+
+        ArrayList<Panel> panels = Panel.findAllByManifestInList(panelList)
+
+        ArrayList<Seqrun> seqruns = []
+
+        if(panels.empty) {
+            seqruns = Seqrun.executeQuery("select x from Seqrun x order by x.runDate desc", [offset: 0, max: max])
+        } else {
+        seqruns = Seqrun.executeQuery("""select sr 
+from Seqrun sr, SeqSample ss
+where ss.seqrun = sr
+and
+ss.panel in :panels
+group by sr.seqrun
+order by sr.runDate desc""", [offset: 0, max: max, panels: panels])
+
+            if(seqruns.empty) {
+                seqruns = Seqrun.executeQuery("select x from Seqrun x order by x.runDate desc", [offset: 0, max: max])
+            }
+        }
+
         ArrayList<HashMap> results = []
 
         seqruns.each {
             results.push([
-                    runDate: formatDate(date:it.runDate, format:'dd MMM'),
+                    runDate: formatDate(date:it.runDate, format:'dd MMM yyyy'),
                     seqrun: it.seqrun,
                     panelList: it.panelList,
                     library: it.library,
+                    experiment: it.experiment,
                     platform: it.platform,
                     authorised: it.authorised,
                     passfailFlag: it.passfailFlag
             ])
         }
 
-        render results as JSON;
+        render results as JSON
     }
+
+
+
+
+
+    def create() {
+        [seqrunInstance: new Seqrun(params)]
+    }
+
+    def save() {
+        def seqrunInstance = new Seqrun(params)
+        if(params.seqrun.contains(" ")) {
+            flash.message = "Seqrun cannot contain spaces"
+        }
+        if (!seqrunInstance.save(flush: true)) {
+            render(view: "create", model: [seqrunInstance: seqrunInstance])
+            return
+        }
+
+        flash.message = message(code: 'default.created.message', args: [message(code: 'seqrun.label', default: 'Seqrun'), seqrunInstance.id])
+        redirect(action: "show", id: seqrunInstance.id)
+    }
+
+    def edit(Long id) {
+        def seqrunInstance = Seqrun.get(id)
+        if (!seqrunInstance) {
+            flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqrun.label', default: 'Seqrun'), id])
+            redirect(action: "list")
+            return
+        }
+
+        [seqrunInstance: seqrunInstance]
+    }
+
+    def update(Long id, Long version) {
+        def seqrunInstance = Seqrun.get(id)
+        if (!seqrunInstance) {
+            flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqrun.label', default: 'Seqrun'), id])
+            redirect(action: "list")
+            return
+        }
+
+        if (version != null) {
+            if (seqrunInstance.version > version) {
+                seqrunInstance.errors.rejectValue("version", "default.optimistic.locking.failure",
+                        [message(code: 'seqrun.label', default: 'Seqrun')] as Object[],
+                        "Another user has updated this Seqrun while you were editing")
+                render(view: "edit", model: [seqrunInstance: seqrunInstance])
+                return
+            }
+        }
+
+        seqrunInstance.properties = params
+
+        if (!seqrunInstance.save(flush: true)) {
+            render(view: "edit", model: [seqrunInstance: seqrunInstance])
+            return
+        }
+
+        flash.message = message(code: 'default.updated.message', args: [message(code: 'seqrun.label', default: 'Seqrun'), seqrunInstance.id])
+        redirect(action: "show", id: seqrunInstance.id)
+    }
+
+
+
+
 
 }
 

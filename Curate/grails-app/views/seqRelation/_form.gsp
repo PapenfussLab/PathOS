@@ -27,14 +27,14 @@
 	</label>	 <span class="property-value">${seqRelationInstance?.base}</span>
 	<%--<g:textField name="base" value="${seqRelationInstance?.base}"/>--%>
 </div>
-<g:if test="${seqRelationInstance.samples}">
+<g:if test="${seqRelationInstance?.samples()}">
 	<div class="fieldcontain ${hasErrors(bean: seqRelationInstance, field: 'samples', 'error')} ">
 		<label for="samples" style="float:left;text-align:right;">
 			<g:message code="seqRelation.samples.label" default="Samples" />
 			<%--- need a lookup -- select & autocomplete RUN and Sample ... js edit a hidden div to add it. going to be quite agricultural. ----%>
 		</label>
 		<%-- show list of samples --%>
-		<g:each in="${seqRelationInstance.samples.sort{it.id}}" var="s">
+		<g:each in="${seqRelationInstance?.samples().sort{it.id}}" var="s">
 			 <span id="show_${s.seqrun}_${s.sampleName}" class="property-value"><g:link controller="seqSample" action="show" id="${s.id}">${s.seqrun} ${s.sampleName} ${s.sampleType?"(${s.sampleType})":"(no sample type)"}</g:link> <g:checkBox name="remove_${s.id}" value="${s.id}" checked="false"/> Remove <br/></span>
 		</g:each>
 	</div>
@@ -71,13 +71,15 @@
 
 <%-- updateSeqSamplesForSeqrun --%>
 <script>
+
 	//remote function call to remove seqsample
 	$( document ).ready(function() {
-
+		var order = 0
 		//	add a new seqsample to this seqrelation
-		//	this adds a seqsampel to the form - the form must still be submitted for the ss to be added
+		//	this adds a seqsample to the form - the form must still be submitted for the ss to be added
 		//	since this form is for both seqrelation create and edit
 		$('#addSample').click(function(){
+
 			var seqrun = $('#seqrun_add').val()
 			var ss = $('#seqsample_add').val()
             var st = $('#seqsample_set_type').val()
@@ -89,10 +91,13 @@
 				$('<input />').attr('type', 'hidden')
 						.attr('name', "add_"+seqrun+"_"+ss)
 						.attr('id', "add_"+seqrun+"_"+ss)
-						.attr('value', '[{"seqrun":"'+seqrun+'","seqsample":"'+ss+'","sampletype":"'+st+'"}]')
+						.attr('value', '[{"seqrun":"'+seqrun+'","seqsample":"'+ss+'","sampletype":"'+st+'","order":"'+order+'"}]')
 
 
 						.appendTo('#hiddenfields');
+
+				//	we must preserve order (for derived samples, this matters). order is not guaranteed when we get the form data back in the controller.
+				order = order + 1
 
 				//	append to a div to show the user
 			    //
@@ -109,10 +114,12 @@
 			var selectedSample = $('#seqsample_add').val()
 			var selectedRun = $('#seqrun_add').val()
 
-            //update the sample type to have the sample type of the selected
+
 			${remoteFunction(action:'getSampleTypeBySampleNameAndSeqrun', params: '{seqsample: selectedSample,seqrun: selectedRun}', update: [success: 'seqsample_set_type'] )} // ,
 
 		});
+
+
 
 
 

@@ -20,47 +20,47 @@ package org.petermac.util
  */
 class DbCountTest extends GroovyTestCase
 {
-
+    static Locator loc  = Locator.instance
     String DB
 
     void setUp()
     {
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB = loc.pathosEnv
 
     }
 
-    /**
-     * TESTING Map countTables( String dbase, List tables = [] )
-     */
-    void testCountTables()
-    {
-        def dbc = new DbCount()
-        Map m = dbc.countTables( DB, ['auth_user','patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
+//    /**
+//     * TESTING Map countTables( String dbase, List tables = [] )
+//     */
+//    void testCountTables()
+//    {
+//        def dbc = new DbCount()
+//        Map m = dbc.countTables( DB, ['auth_user','patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
+//
+//
+//        assert m.auth_user >= 1 &&
+//                m.patient >= 1 &&
+//                m.sample >= 1 &&
+//                m.seq_sample >= 1 &&
+//                m.seq_variant >= 1 &&
+//                m.seqrun >= 1 &&
+//                m.size() >= 4 : "[T E S T ]: One of the following tables is empty [auth_user, patient, sample, seq_sample, seq_variant, seqrun]  "
+//
+//    }
 
-
-        assert m.auth_user >= 1 &&
-                m.patient >= 1 &&
-                m.sample >= 1 &&
-                m.seq_sample >= 1 &&
-                m.seq_variant >= 1 &&
-                m.seqrun >= 1 &&
-                m.size() >= 4 : "[T E S T ]: One of the following tables is empty [auth_user, patient, sample, seq_sample, seq_variant, seqrun]  "
-
-    }
-
-    /**
-     * TESTING Map countTables( String dbase, List tables = [] ) in a different setting
-     */
-    void testCountUser()
-    {
-        def dbc = new DbCount()
-        Map m = dbc.countTables( DB, ['auth_user','patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
-
-        assert m.size() >= 4 : "[T E S T]: Map contains less than 4 tables ${m} "
-        assert m.sample >= 1 : "[T E S T]: Sample table is empty "
-    }
+//    /**
+//     * TESTING Map countTables( String dbase, List tables = [] ) in a different setting
+//     */
+//    void testCountUser()
+//    {
+//        def dbc = new DbCount()
+//        Map m = dbc.countTables( DB, ['auth_user','patient','sample','seqrun','panel','seq_sample','seq_variant','variant','audit'] )
+//
+//        assert m.size() >= 4 : "[T E S T]: Map contains less than 4 tables ${m} "
+//        assert m.sample >= 1 : "[T E S T]: Sample table is empty "
+//    }
 
     /**
      * TESTING

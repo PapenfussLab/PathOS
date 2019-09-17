@@ -51,7 +51,6 @@
             <g:sortableColumn property="stage" title="${message(code: 'sample.stage.label', default: 'Stage')}"  params="${filterParams}"/>
 
             <g:sortableColumn property="formalStage" title="${message(code: 'sample.formalStage.label', default: 'Formal Stage')}"  params="${filterParams}"/>
-
         </tr>
         </thead>
         <tbody>

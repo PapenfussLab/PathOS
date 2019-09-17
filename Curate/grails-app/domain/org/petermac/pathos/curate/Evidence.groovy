@@ -45,39 +45,46 @@ class Evidence
     String      evidenceClass           = "Unclassified"
     String      justification
 
+
+    static mapping =
+        {
+            justification       (type: 'text')
+            
+        }
+
     static constraints =
         {
-            justification( maxSize: 8000, nullable: true )
+            justification       ( nullable: true )
 
-            pathAloneTruncating()
-            pathAloneKnown()
+            pathAloneTruncating nullable: true
+            pathAloneKnown nullable: true
 
-            pathStrongFunction()
-            pathStrongCase()
-            pathStrongCoseg()
+            pathStrongFunction nullable: true
+            pathStrongCase nullable: true
+            pathStrongCoseg nullable: true
 
-            pathSupportHotspot()
-            pathSupportGene()
-            pathSupportInsilico()
-            pathSupportSpectrum()
-            pathSupportGmaf()
-            pathSupportIndel()
-            pathSupportCoseg()
-            pathSupportLsdb()
-            pathSupportNovelMissense()
+            pathSupportHotspot nullable: true
+            pathSupportGene nullable: true
+            pathSupportInsilico nullable: true
+            pathSupportSpectrum nullable: true
+            pathSupportGmaf nullable: true
+            pathSupportIndel nullable: true
+            pathSupportCoseg nullable: true
+            pathSupportLsdb nullable: true
+            pathSupportNovelMissense nullable: true
 
-            benignAloneGmaf()
-            benignAloneHealthy()
+            benignAloneGmaf nullable: true
+            benignAloneHealthy nullable: true
 
-            benignStrongFunction()
-            benignStrongCase()
-            benignStrongCoseg()
+            benignStrongFunction nullable: true
+            benignStrongCase nullable: true
+            benignStrongCoseg nullable: true
 
-            benignSupportVariable()
-            benignSupportInsilico()
-            benignSupportSpectrum()
-            benignSupportLsdb()
-            benignSupportPath()
+            benignSupportVariable nullable: true
+            benignSupportInsilico nullable: true
+            benignSupportSpectrum nullable: true
+            benignSupportLsdb nullable: true
+            benignSupportPath nullable: true
 
             evidenceClass(  inList: [
                                     "Unclassified",
@@ -87,6 +94,7 @@ class Evidence
                                     "C4: Likely pathogenic",
                                     "C5: Pathogenic"
                                     ])
+
         }
 
     static searchable = true

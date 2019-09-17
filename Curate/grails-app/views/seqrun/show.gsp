@@ -1,532 +1,266 @@
-<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.pathos.curate.SeqVariant; org.petermac.pathos.curate.*" %>
+<%@ page import="org.petermac.pathos.pipeline.UrlLink; org.petermac.util.Locator; org.petermac.pathos.curate.*" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="layout" content="main">
     <g:set var="entityName" value="${message(code: 'seqrun.label', default: 'Seqrun')}"/>
-    <title>${seqrunInstance?.seqrun} - Show Seqrun</title>
-    <g:javascript src="jsapi.js" />
-    <tooltip:resources/>
-
+    <title>${seqrunInstance?.seqrun} - Show Sequencing Run</title>
+    <parameter name="hotfix" value="off" />
     <parameter name="footer" value="on" />
-
-    <link rel="stylesheet" href="${resource(dir: 'css', file: 'jheatmap-1.0.0.css')}" type="text/css">
-    <g:javascript src="jheatmap-1.0.1.js" />
-
-    <style>
-    /* To center the heatmap */
-    table.heatmap {
-        width: auto;
-        background-color: white;
-        background-image: none;
-    }
-    #heatmap th {
-        background-image: none;
-        background-color: white;
-        padding: 0;
-    }
-    #heatmap td {
-        padding: 0;
-    }
-    </style>
 
 </head>
 
 <body>
-<a href="#show-seqrun" class="skip" tabindex="-1"><g:message code="default.link.skip.label"
-                                                             default="Skip to content&hellip;"/></a>
 
-<div class="nav" role="navigation">
-    <ul>
-        <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-        <li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]"/></g:link></li>
-    </ul>
-</div>
+<section id="seqrunInfo">
+    <div class="container">
 
-<div id="show-seqrun" class="content scaffold-show" role="main">
-    <h1><g:message code="default.show.label" args="[entityName]"/></h1>
-    <g:if test="${flash.message}">
-        <div class="message" role="status">${flash.message}</div>
-    </g:if>
-    <ol class="property-list seqrun">
-
-        <g:if test="${seqrunInstance?.seqrun}">
-            <li class="fieldcontain">
-                <span id="seqrun-label" class="property-label">
-                    <g:message code="seqrun.seqrun.label" default="Seqrun"/>
-                </span>
-                <span class="property-value" aria-labelledby="seqrun-label">
-                    <g:fieldValue bean="${seqrunInstance}" field="seqrun"/>
-                </span>
-            </li>
+        <g:if test="${flash.message}">
+            <div class="message" role="status">${flash.message}</div>
         </g:if>
 
-        <g:if test="${seqrunInstance?.runDate}">
-            <li class="fieldcontain">
-                <span id="runDate-label" class="property-label">
-                    <g:message code="seqrun.runDate.label" default="Run Date"/>
-                </span>
-                <span class="property-value" aria-labelledby="runDate-label">
-                    <g:formatDate date="${seqrunInstance?.runDate}" format="dd-MMM-yyyy"/>
-                </span>
-            </li>
-        </g:if>
+        <br>
+        <div class="row">
+            <div class="col-xs-8 col-xs-offset-2 outlined-box">
+                <table class="infoTable">
+                    <tr class="fieldcontain">
+                        <td id="seqrun-label" class="property-label"><b>Sequencing Run</b></td>
+                        <td class="property-value" aria-labelledby="seqrun-label">
+                            ${seqrunInstance.seqrun}
+                        </td>
+                    </tr>
 
-        <g:if test="${seqrunInstance?.platform}">
-            <li class="fieldcontain">
-                <span id="platform-label" class="property-label">
-                    <g:message code="seqrun.platform.label" default="Platform"/>
-                </span>
-                <span class="property-value" aria-labelledby="platform-label">
-                    <g:fieldValue bean="${seqrunInstance}" field="platform"/>
-                    (<g:fieldValue bean="${seqrunInstance}" field="scanner"/>)
-                </span>
-            </li>
-        </g:if>
+                    <g:if test="${seqrunInstance?.runDate}">
+                        <tr class="fieldcontain">
+                            <td id="runDate-label" class="property-label">
+                                <g:message code="seqrun.runDate.label" default="Run Date"/>
+                            </td>
+                            <td class="property-value" aria-labelledby="runDate-label">
+                                <g:formatDate date="${seqrunInstance?.runDate}" format="dd-MMM-yyyy"/>
+                            </td>
+                        </tr>
+                    </g:if>
+
+                    <g:if test="${seqrunInstance?.experiment}">
+                        <tr class="fieldcontain">
+                            <td id="experiment-label" class="property-label">Experiment</td>
+                            <td class="property-value" aria-labelledby="experiment-label-label">
+                                <g:fieldValue bean="${seqrunInstance}" field="experiment"/>
+                            </td>
+                        </tr>
+                    </g:if>
+
+                    <g:if test="${seqrunInstance?.panelList}">
+                        <tr class="fieldcontain">
+                            <td id="panelList-label" class="property-label">Panel List</td>
+                            <td class="property-value" aria-labelledby="panelList-label">
+                                <g:fieldValue bean="${seqrunInstance}" field="panelList"/>
+                            </td>
+                        </tr>
+                    </g:if>
+
+                    <g:if test="${seqrunInstance?.platform}">
+                        <tr class="fieldcontain">
+                            <td id="platform-label" class="property-label">
+                                <g:message code="seqrun.platform.label" default="Platform"/>
+                            </td>
+                            <td class="property-value" aria-labelledby="platform-label">
+                                <g:fieldValue bean="${seqrunInstance}" field="platform"/>
+                                (<g:fieldValue bean="${seqrunInstance}" field="scanner"/>)
+                            </td>
+                        </tr>
+                    </g:if>
+
+                    <g:if test="${seqrunInstance?.readlen}">
+                        <tr class="fieldcontain">
+                            <td id="readlen-label" class="property-label">Reads</td>
+                            <td class="property-value" aria-labelledby="readlen-label">
+                                <g:fieldValue bean="${seqrunInstance}" field="readlen"/>
+                                (<g:fieldValue bean="${seqrunInstance}" field="sepe"/>)
+                            </td>
+                        </tr>
+                    </g:if>
 
 
-        <g:if test="${seqrunInstance?.readlen}">
-            <li class="fieldcontain">
-                <span id="readlen-label" class="property-label">Reads</span>
-                <span class="property-value" aria-labelledby="readlen-label">
-                    <g:fieldValue bean="${seqrunInstance}" field="readlen"/>
-                    (<g:fieldValue bean="${seqrunInstance}" field="sepe"/>)
-                </span>
-            </li>
-        </g:if>
+<g:set var="samplesWithoutSeqVariants" value="${seqrunInstance
+        .seqSamples
+        .findAll { ss -> !ss.sampleName.contains("NTC")}
+        .findAll { ss -> SeqVariant.countBySeqSample(ss) == 0}
+        .size()}"/>
+                    <tr class="fieldcontain">
+                        <td id="run-status" class="property-label">Run Status</td>
+                        <td class="property-value" aria-labelledby="run-status">
+                            <span id="run-status-value">Checking run status...</span>
+                            <span style="font-weight:900;${samplesWithoutSeqVariants > 0 ? "color:red;" : ""}">${samplesWithoutSeqVariants} ${samplesWithoutSeqVariants == 1 ? "sample has" : "samples have"} 0 Sequenced Variants.</span>
+                        </td>
+                    </tr>
 
-        <li class="fieldcontain">
-            <span id="run-status" class="property-label">Run Status</span>
-            <span id="run-status-value" class="property-value" aria-labelledby="run-status">This run is still being processed...</span>
-        </li>
+                    <g:if test="${seqrunInstance.panelList?.contains('Pathology_hyb')}">
+                    <tr class="fieldcontain">
+                        <td>MultiQC</td>
+                        <td><a target="_blank" href="${UrlLink.multiQCUrl( seqrunInstance.seqrun )}">Open Charts</a></td>
+                    </tr>
+                    <tr class="fieldcontain">
+                            <td id="chronqc-label" class="property-label"><g:message code="seqrun.chronqc.label" default="ChronQC"/></td>
+                            <td>
+                            <table>
+                            <g:each in="${seqrunInstance.panelList?.tokenize(", ")}" var="panel">
+                                <tr style="border:0;padding:0">
+                                    <td style="background:0">${panel}:</td>
+                                    <td><a target="_blank" href="${Locator.dataServer}/Pathology/${Locator.samBase}/${seqrunInstance.seqrun}/QC/ChronQC/chronqc_output/${panel}.Run_level.chronqc.html">Run level</a>,
+                                    <a target="_blank" href="${Locator.dataServer}/Pathology/${Locator.samBase}/${seqrunInstance.seqrun}/QC/ChronQC/chronqc_output/${panel}.All_Samples.chronqc.html">All Samples</a>,
+                                    <a target="_blank" href="${Locator.dataServer}/Pathology/${Locator.samBase}/${seqrunInstance.seqrun}/QC/ChronQC/chronqc_output/${panel}.Sample_NA12878.chronqc.html">NA12878</a></td>
+                                </tr>
+                            </g:each>
+                                </table>
+                            </td>
+                    </tr>
 
-        <li class="fieldcontain">
-            <span id="pipelog-label" class="property-label"><g:message code="seqrun.pipelog.label" default="Pipeline Log"/></span>
-            <span class="property-value" aria-labelledby="pipelog-label">
-                <g:link url="${UrlLink.pipelineUrl( seqrunInstance.seqrun )}" target="_blank">bpipe log</g:link>
-            </span>
-        </li>
+                        <tr class="fieldcontain">
+                            <td>GaffaQC</td>
+                            <td><ul style="margin:0;list-style:none;padding:0;">
+                            <g:each in="${seqrunInstance.panelList?.tokenize(", ")}" var="panel">
+                                <li><a target="_blank" href="${Locator.dataServer}/Pathology/${Locator.samBase}/${seqrunInstance.seqrun}/QC/GaffaQC/${panel}_metrics.pdf">${panel}</a></li>
+                            </g:each>
+                            </ul></td>
+                        </tr>
+                    </g:if>
+                    <g:else>
+                        <tr class="fieldcontain">
+                            <td id="pipelog-label" class="property-label"><g:message code="seqrun.pipelog.label" default="Pipeline Log"/></td>
+                            <td class="property-value" aria-labelledby="pipelog-label">
+                                <g:link url="${UrlLink.pipelineUrl( seqrunInstance.seqrun, seqrunInstance.platform )}" target="_blank">bpipe log</g:link>
+                            </td>
+                        </tr>
+                    </g:else>
 
-        <li class="fieldcontain">
-            <span id="passfail-label" class="property-label"><g:message code="seqrun.passfail.label" default="Pass/Fail"/></span>
-            <span class="property-value" aria-labelledby="passfail-label">
-                <g:if test="${ ! seqrunInstance?.authorisedFlag}">
-                    <g:form action="authoriseRun" id="${seqrunInstance?.id}">
-                        <g:select name="passfail" from="${['Pass','Fail']}" value="${params.passfail}" noSelection="['': '-Select QC-']"/>
-                        <g:textField name="qcComment" />
-                        <g:submitButton name="authorise" value="Authorise"/>
-                    </g:form>
+                    <tr class="fieldcontain">
+                        <td id="passfail-label" class="property-label"><g:message code="seqrun.passfail.label" default="Pass/Fail"/></td>
+                        <td class="property-value" aria-labelledby="passfail-label">
+                            <g:if test="${ ! seqrunInstance?.authorisedFlag}">
+                                <g:form action="authoriseRun" id="${seqrunInstance?.id}">
+                                    <g:select name="passfail" from="${['Pass','Fail']}" value="${params.passfail}" noSelection="['': '-Select QC-']"/>
+                                    <g:textField name="qcComment" />
+                                    <g:submitButton name="authorise" value="Authorise"/>
+                                </g:form>
+                            </g:if>
+                            <g:else>
+                                <g:qcPassFail authorised="${seqrunInstance.authorisedFlag}" passfailFlag="${seqrunInstance.passfailFlag}" />
+                            </g:else>
+                            <a id="toggleQC" href="#showQC"><span id="toggleQClabel">Show Run QC Charts</span> <span id="loadingCharts">(Loading Charts...)</span> <span id="loadingHeatmap">(Loading Heatmap...)</span></a>
+                        </td>
+                    </tr>
+
+                    <g:if test="${seqrunInstance?.qcComment}">
+                        <tr class="fieldcontain">
+                            <td id="comment-label" class="property-label">
+                                <g:message code="seqSample.comment.label" default="QC Comments"/>
+                            </td>
+                            <td class="property-value" aria-labelledby="comment-label">
+                                ${seqrunInstance.qcComment}
+                            </td>
+                        </tr>
+                    </g:if>
+
+                    <g:if test="${seqrunInstance?.authorised}">
+                        <tr class="fieldcontain">
+                            <td id="authorised-label" class="property-label"><g:message code="seqrun.authorised.label" default="Authorised"/></td>
+                            <td class="property-value" aria-labelledby="authorised-label">
+                                <g:form action="authoriseRun" id="${seqrunInstance?.id}">
+                                    ${seqrunInstance.authorised}
+                                    <g:submitButton name="authorise" value="Revoke"/>
+                                </g:form>
+                            </td>
+                        </tr>
+                    </g:if>
+
+                    <tr class="fieldcontain" id="showTags">
+                        <td class="property-label">Tags</td>
+                        <td id="showTagBox" class="outlined-box tags_field property-value">
+                            <textarea id="showTagTextArea" placeholder="Enter Tags Here" class="ui-autocomplete-input" autocomplete="off"></textarea>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="seqrunQcCharts">
+    <div class="container">
+        <div id="qc-outlined-box" class="row outlined-box">
+            <h2 style="margin: 0;">Quality Control Charts</h2>
+            <div id="qualityControlCharts">
+
+                <div id="seqrunSummary" class="chartBox">
+                    <h3>Summary Information</h3>
+                    <g:seqrunQC seqrun="${seqrunInstance}"/>
+                </div>
+                <g:render template="googleCharts" />
+
+                <g:if test="${seqrunInstance.panelList?.contains('Pathology_hyb')}">
+                    <g:render template="hybContamination" />
+                    <g:render template="hybROI" />
+                    <r:script>$("#loadingHeatmap").remove();</r:script>
                 </g:if>
                 <g:else>
-                    <g:qcPassFail authorised="${seqrunInstance.authorisedFlag}" passfailFlag="${seqrunInstance.passfailFlag}" />
-                </g:else>
-            </span>
-        </li>
-
-
-        <g:if test="${seqrunInstance?.qcComment}">
-            <li class="fieldcontain">
-                <span id="comment-label" class="property-label">
-                    <g:message code="seqSample.comment.label" default="QC Comments"/>
-                </span>
-                <span class="property-value" aria-labelledby="comment-label">
-                    ${seqrunInstance.qcComment}
-                </span>
-            </li>
-        </g:if>
-
-        <g:if test="${seqrunInstance?.authorised}">
-            <li class="fieldcontain">
-                <span id="authorised-label" class="property-label"><g:message code="seqrun.authorised.label" default="Authorised"/></span>
-                <span class="property-value" aria-labelledby="authorised-label">
-                    <g:form action="authoriseRun" id="${seqrunInstance?.id}">
-                        ${seqrunInstance.authorised}
-                        <g:submitButton name="authorise" value="Revoke"/>
-                    </g:form>
-                </span>
-            </li>
-        </g:if>
-
-        <g:if test="${seqrunInstance?.panelList}">
-            <li class="fieldcontain">
-                <span id="panelList-label" class="property-label">
-                    <g:message code="seqrun.panelList.label" default="Panel List"/>
-                </span>
-                <span class="property-value" aria-labelledby="panelList-label">
-                    <g:fieldValue bean="${seqrunInstance}" field="panelList"/>
-                </span>
-            </li>
-        </g:if>
-
-        <g:showPageTags/>
-
-<h2>Quality Control Charts</h2>
-<a id="toggleQC" href="#showQC" class="disabled" onclick="showQC()"><span id="toggleQClabel">Show Run QC</span> <span id="loadingCharts">(Loading Charts...)</span> <span id="loadingHeatmap">(Loading Heatmap...)</span></a>
-
-<div id="qualityControlCharts">
-    <div id="seqrunSummary" class="chartBox">
-        <h3>Sequenced Run Summary</h3>
-        <g:seqrunQC seqrun="${seqrunInstance}"/>
-    </div>
-
-    <div id="googleCharts" class="chartBox">
-        <h3>Charts</h3>
-        <img class="loading_logo" src="/PathOS/dist/img/pathos_logo_animated.svg">
-    </div>
-
-    <div id="heatmapContainer" class="chartBox">
-        <h3>Heatmap</h3>
-        <img class="loading_logo" src="/PathOS/dist/img/pathos_logo_animated.svg">
-        <div id="heatmap"></div>
-
-        <br/><br/>
-        <%-- HERE YOU PUT the Min Max and Middle values for the HEATMAP! the input boxes that is. --%>
-        Heatmap Saturation (reads) Min: <input type="text" id="heatmapMin" name="heatmapMin" value="0"/>
-        Max: <input type="text" id="heatmapMax" name="heatmapMax" value="1400"/>
-        <input type="button" onclick="changeHeatmapValues()" value="Change"/>
-        <div id="errorDiv" style="color:red"></div>
-    </div>
-
-    <div id="ntcReads" class="chartBox">
-        <h3>NTC Reads</h3>
-
-        <g:if test="${StatsService.ntcAmplicons(seqrunInstance,20)}">
-        <table border="1" style="width: 400pt">
-            <thead>
-            <tr>
-                <th>Sample</th>
-                <th>Amplicon</th>
-                <th>Reads</th>
-            </tr>
-            </thead>
-            <g:each in="${StatsService.ntcAmplicons(seqrunInstance,20)}" var="amp">
-                <tr>
-                    <td>${amp.sampleName}</td>
-                    <td>${amp.amplicon}</td>
-                    <td>${amp.readsout}</td>
-                </tr>
-            </g:each>
-        </table>
-        </g:if>
-        <g:else>
-            <g:if test="${StatsService.ntcAmplicons(seqrunInstance,0)}">
-                <p>There are less than 20 NTC Reads for this Sequenced Run.</p>
-            </g:if>
-            <g:else>
-                <p>This are no NTC Reads for this Sequenced Run.</p>
-            </g:else>
-        </g:else>
-    </div>
-
-    <div id="contamination" class="chartBox">
-        <h3>Contamination Heatmap</h3>
-
-        <g:if test="${seqrunInstance.panelList?.contains('Pathology_hyb')}">
-            <script>
-                var contaminationUrl = "${ UrlLink.contaminationUrl(seqrunInstance.seqrun) }",
-                    contaminationDiv = d3.select("#contamination");
-
-                try {
-                    $.ajax({
-                        url: contaminationUrl,
-                        success: function(d){
-                            contaminationDiv.append("p")
-                                .text("Click the image to open in a new window.");
-
-                            contaminationDiv.append("a")
-                                .attr("href", contaminationUrl)
-                                .attr("target", "_blank")
-                            .append("img")
-                                .attr("id", "contaminationHeatmap")
-                                .attr("src", contaminationUrl);
-
-                        },
-                        error: function(xhr, ajaxOptions, thrownError){
-                            contaminationDiv
-                                    .append("p").text("404 - contamination.png not found in sample folder, has the run finished yet?");
-                        }
-                    })
-                } catch(e){
-                    console.log(e);
-                }
-            </script>
-        </g:if>
-        <g:else>
-            <p>Contamination heatmaps are only generated for Hybrid Capture panels.</p>
-        </g:else>
-    </div>
-
-</div>
-
-
-
-<g:if test="${seqrunInstance?.seqSamples}">
-    <span id="seqSamples-label" class="property-label">
-        <h2>List of Samples</h2>
-        <br/><br/>
-    </span>
-    <table>
-        <thead>
-        <tr>
-            <th>Seq. Sample</th>
-            <th>QC</th>
-            <th>Raw Variants</th>
-            <th>Curated</th>
-            <th>Review</th>
-            <th>Filter Passed</th>
-            <th>Reportable</th>
-            <th>IGV.js</th>
-            <th>IGV</th>
-            <th>Panel</th>
-            <th>Analysis</th>
-            <th>User</th>
-        </tr>
-        </thead>
-
-        <g:each in="${seqrunInstance.seqSamples.sort{a,b -> a.sampleName <=> b.sampleName}}" var="ss">
-            <tr>
-                <td>
-                    <g:link controller="seqVariant" action="svlist" id="${ss?.id}">
-                        ${ss?.encodeAsHTML()}
-                    </g:link>
-                </td>
-                <td>
-                    <g:link controller="seqSample"  action="showQC" id="${ss?.id}">
-                        <g:if test="${ss.authorisedQcFlag}">
-                            <g:qcPassFail authorised="${true}" passfailFlag="${ss.passfailFlag}" />
-                        </g:if>
-                        <g:else>
-                            Set QC
-                        </g:else>
-                    </g:link></td>
-                <td>${SeqVariant.countBySeqSample(ss)}</td>
-                <td>${SeqVariant.executeQuery("select count(*) from SeqVariant sv, CurVariant cv where  cv.grpVariant.accession=sv.hgvsg and sv.seqSample=:ss ", [ss: ss])[0]}</td> <%--- svs with curVars --%>
-                <td>
-                    <g:if test="${ss.finalReviewBy}">
-                        <noop style="color: black; background-color: white; padding-left: 10px; padding-right: 8px; text-decoration: none">Final</noop>
+                    <g:if test="${d3heatmap}">
+                        <g:render template="heatmap" />
                     </g:if>
-                    <g:elseif test="${ss.firstReviewBy}">
-                        <span style="color: black; background-color: #EBEBEB; padding-left: 10px; padding-right: 12px; text-decoration: none">First</span>
-                    </g:elseif>
                     <g:else>
-                        <span>&nbsp;</span>
+                        <g:render template="oldHeatmap" />
                     </g:else>
-                </td>
-                <td>${SeqVariant.countBySeqSampleAndFilterFlag(ss, "pass")}</td>
-                <td>${SeqVariant.countBySeqSampleAndReportable(ss, true)}</td>
-                <td id="igv-open-${ss.sampleName}">
-                    <tooltip:tip code="Open this sample with the in-browser IGV">
-                        <a href="#none" onclick='launchIGV({
-                            seqrun: "${ss.seqrun.seqrun}",
-                            sample: "${ss.sampleName}",
-                            panel:  "${ss.panel}",
-                            dataUrl: "${ UrlLink.dataUrl (ss.seqrun.seqrun, ss.sampleName, '')}"
-                        })'>View Sample</a>
-                    </tooltip:tip>
-                </td>
-                <td>
-                    <tooltip:tip code="seqrun.merge.tip">
-                        <a href="http://localhost:60151/load?file=${org.petermac.pathos.pipeline.UrlLink.dataUrl(ss.seqrun.seqrun,ss.sampleName,ss.sampleName+".vcf")},${org.petermac.pathos.pipeline.UrlLink.dataUrl(ss.seqrun.seqrun,ss.sampleName,ss.sampleName+".bam")}&merge=true">Merge</a>
-                    </tooltip:tip>
-                </td>
-                <td>${ss.panel}</td>
-                <td>${ss.analysis}</td>
-                <td>${ss.userName}</td>
-            </tr>
-        </g:each>
-    </table>
-</g:if>
-    </ol>
-</div>
+                    <g:if test="${ seqrunInstance.seqSamples.findAll{ it.toString().contains("NTC") } }">
+                        <g:render template="ntcReads" />
+                    </g:if>
+                </g:else>
+
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<g:render template="seqrunSamplesList" />
+
 <script>
+    /* To draw tags we need:
+     *
+     * 1) A div in the html
+     * 2) The tag data, to draw existing tags
+     * 3) Activate the textarea so we can enter new tags
+     */
+
+    <g:showPageTagsScript tags="${seqrunInstance?.tags as grails.converters.JSON}" id="${seqrunInstance?.id}" controller="seqrun"/>
 
 
-/* To draw tags we need:
- *
- * 1) A div in the html
- * 2) The tag data, to draw existing tags
- * 3) Activate the textarea so we can enter new tags
- */
-
-<g:showPageTagsScript tags="${seqrunInstance?.tags as grails.converters.JSON}" id="${seqrunInstance?.id}" controller="seqrun"/>
-
-// Chart stuff
-// Refactored to run asynchronously by DKGM 18-July-2016
-var data = false;
-var heatmapTsvLoc = false;
-$.ajax('/PathOS/Seqrun/getStats?id='+${seqrunInstance?.id}, {success:function(d){
-    d3.select("#toggleQC").classed('disabled', data && heatmapTsvLoc);
-    d3.select("#loadingCharts").remove();
-    d3.select("#googleCharts .loading_logo").remove();
-    data = d;
-    console.log("Data loaded!");
-    if($("#qualityControlCharts").hasClass("show")) {
-        drawCharts();
-    }
-}});
-
-$.ajax('/PathOS/Seqrun/getHeatmap?id='+${seqrunInstance?.id}, {success:function(d){
-    d3.select("#toggleQC").classed('disabled', data && heatmapTsvLoc);
-    d3.select("#loadingHeatmap").remove();
-    d3.select("#heatmapContainer .loading_logo").remove();
-    heatmapTsvLoc = d;
-    console.log("Heatmap loaded!");
-    if($("#qualityControlCharts").hasClass("show")) {
-        drawHeatmap();
-    }
-}});
 
 
-google.load('visualization', '1', {packages: ['corechart']});
 
-var chartsHaveBeenDrawn = false;
-var heatMapHasBeenDrawn = false;
-
-if(window.location.hash === "#showQC") {
-    console.log("We should show the QC!");
-    showQC();
-}
-
-function showQC(event) {
-    if(event) {
-        event.preventDefault();
-    }
-    $("#qualityControlCharts").toggleClass("show");
-    if($("#qualityControlCharts").hasClass("show")) {
-        d3.select("#toggleQC").attr("href", "#");
-        d3.select("#toggleQClabel").text("Hide Run QC");
-    } else {
-        d3.select("#toggleQC").attr("href", "#showQC");
-        d3.select("#toggleQClabel").text("Show Run QC");
+    if(window.location.hash === "#showQC") {
+        console.log("We should show the QC!");
+        showQC();
     }
 
-    if(heatmapTsvLoc && !heatMapHasBeenDrawn){
-        drawHeatmap();
-    }
-    if(data && !chartsHaveBeenDrawn) {
-        drawCharts();
-    }
-}
+    d3.select("#toggleQC")
+        .on('click', showQC);
 
-function drawHeatmap() {
-    console.log("Drawing heatmap.");
-    heatMapHasBeenDrawn = true;
-    $('#heatmap').heatmap({
-        data: {
-            values: new jheatmap.readers.TableHeatmapReader({ url: heatmapTsvLoc })
-        },
-        init: function(heatmap) {
-            heatmap.size.width = 850;
-            heatmap.size.height = 550;
-            heatmap.cols.zoom = 3;
-            heatmap.rows.zoom = 15;
+    function showQC() {
+        $("#seqrunQcCharts").toggleClass("show");
 
-            heatmap.cells.decorators["readsout"] = new jheatmap.decorators.Heat({
-                maxColor: [49,130,189],
-                nullColor: [178,178,178],
-                minColor: [222,235,247],
-                midColor: [158,202,225],
-                minValue: 0,
-                midValue: 700,
-                maxValue: 1400
-            });
+        if ($("#seqrunQcCharts").hasClass("show")) {
+            d3.select("#toggleQC").attr("href", "#none");
+            d3.select("#toggleQClabel").text("Hide Run QC");
+        } else {
+            d3.select("#toggleQC").attr("href", "#showQC");
+            d3.select("#toggleQClabel").text("Show Run QC");
         }
-    });
-}
-
-function drawCharts(){
-    console.log("Drawing charts.");
-    chartsHaveBeenDrawn = true;
-    var div = d3.select("#googleCharts");
-
-    data.panels.forEach(function(panel, i){
-        div.append("div").attr('id', 'readChart'+i).classed("GCdiv", true);
-        div.append("div").attr('id', 'sampleChart'+i).classed("GCdiv", true);
-        div.append("div").attr('id', 'ampliconChart'+i).classed("GCdiv", true);
-
-        drawReadChart(JSON.parse(data.readChart[i]), i, panel);
-        drawSampleChart(JSON.parse(data.sampleChart[i]), i);
-        drawAmpliconChart(JSON.parse(data.ampliconChart[i]), i);
-    });
-}
-
-
-function drawReadChart(data, i, panel) {
-    var data = google.visualization.arrayToDataTable( data );
-    new google.visualization.LineChart(document.getElementById("readChart"+i)).
-    draw(data, {
-        title:      "Historical Runs by Panel "+panel,
-        width:      1000, height: 300,
-        vAxis:      {title: "Reads", textStyle: {fontSize: 8}},
-        hAxis:      {title: "Seq Run (Date_Miseq)", slantedText: true, slantedTextAngle:90, textStyle: {fontSize: 8} },
-        chartArea:  {left:100,top:30,width:"50%",height:"60%"}
-    });
-}
-function drawSampleChart(data, i) {
-    var data = google.visualization.arrayToDataTable( data );
-    new google.visualization.ColumnChart(document.getElementById("sampleChart"+i)).
-    draw(data, {
-        title:      "Sample Reads",
-        width:      1000, height: 300,
-        isStacked:  true,
-        vAxis:      {title: "Reads", maxValue: 700000 , textStyle: {fontSize: 8}},
-        hAxis:      {title: "Sample", slantedText: true, slantedTextAngle:90, textStyle: {fontSize: 8} },
-        chartArea:  {left:100,top:30,width:"50%",height:"60%"}
-    });
-}
-function drawAmpliconChart(data, i) {
-    var data = google.visualization.arrayToDataTable( data );
-    new google.visualization.ColumnChart(document.getElementById("ampliconChart"+i)).
-    draw(data, {
-        title:      "Amplicon Reads",
-        width:      1000, height: 300,
-        isStacked:  true,
-        vAxis:      {title: "Amplicons",  maxValue: 1400, textStyle: {fontSize: 8}},
-        hAxis:      {title: "Read Depth", slantedText: true, slantedTextAngle:90, textStyle: {fontSize: 8} },
-        chartArea:  {left:100,top:30,width:"50%",height:"60%"}
-    });
-}
-
-function changeHeatmapValues() {
-    var midval = Math.round($('#heatmapMax').val() / 2)
-    var maxval = Math.round($('#heatmapMax').val())
-    var minval = Math.round($('#heatmapMin').val())
-
-    if($('#heatmapMax').val() % 1 === 0 && $('#heatmapMin').val() % 1 === 0 ){
-
-        $('#heatmap').empty()
-        $('#heatmap').heatmap(
-                {
-                    data: {
-                        values: new jheatmap.readers.TableHeatmapReader({ url: '${heatmapTsvPath}' })
-                    },
-
-                    init: function(heatmap) {
-                        heatmap.size.width = 850;
-                        heatmap.size.height = 550;
-
-
-                        heatmap.cells.decorators["readsout"] = new jheatmap.decorators.Heat({
-                            maxColor: [49,130,189],
-                            nullColor: [178,178,178],
-                            minColor: [222,235,247],
-                            midColor: [158,202,225],
-                            minValue: minval,
-                            midValue: midval,
-                            maxValue: maxval
-                        });
-
-
-                    }
-
-                });
-        $('#errorDiv').text("")
-
-    } else {
-        $('#errorDiv').text("Please use numbers only");
     }
-}
+
+
 </script>
+
+
 <r:script>
     $("#footer-message h1").text('Click "View Sample" to load a sample into IGV.js');
     var igvStarted = false;
@@ -544,25 +278,37 @@ function changeHeatmapValues() {
         } else {
             var igvDiv = document.getElementById("igvDiv");
 
-            PathOS.igv.init(igvDiv, d.dataUrl, d.sample, d.panel, 2500);
-            PathOS.igv.loaded = false;
+            PathOS.igv.init(igvDiv, d.dataUrl, d.sample, d.panel, 2500, "TP53");
             // This is part of TP53, a good a place as any to set our default view
-            PathOS.igv.search("chr17:7,579,423-7,579,856");
+            // PathOS.igv.search("chr17:7,579,423-7,579,856");
+            // PathOS.igv.search("TP53");
+            // PathOS.igv.search({
+            //     "chromsome": "chr17",
+            //     "start": 7579423,
+            //     "end": 759856
+            // });
             igvStarted = true;
         }
-        $("#igv-open-"+d.sample).html("Loaded!");
+        $("#igv-open-" + d.sample).html("Loaded!");
     }
 
-    $.ajax({
-        url: "${UrlLink.pipelineUrl( seqrunInstance.seqrun )}",
-        success: function(d){
-            d3.select("#run-status-value").text("This run is ready!");
-        }
-    })
+    if (PathOS.urlExists("${UrlLink.pipelineUrl( seqrunInstance.seqrun, seqrunInstance.platform )}")) {
+        d3.select("#run-status-value").text("This run is ready.");
+        console.log("It exists");
+    } else {
+        d3.select("#run-status-value").text("This run is still being processed.");
+        console.log("cant find it");
+    };
 
 </r:script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 

@@ -7,11 +7,14 @@ var $ 			= require("gulp-load-plugins")({});
 var rimraf 		= require("rimraf");
 var envProd 	= false;
 var runSequence = require('run-sequence');
+var gutil = require('gulp-util');
+var uglify = require('gulp-uglifyes');
+
 
 // Editable - any file extensions added here will trigger the watch task and will be instantly copied to your /dist folder
 var staticSrc = "src/**/*.{eot,ttf,woff,woff2,otf,json,pdf}";
 var browserSync = require('browser-sync').create();
-var dist = "../../web-app/dist"
+var dist = "../../web-app/dist";
 
 // Clean
 gulp.task("clean", function() {
@@ -24,6 +27,9 @@ gulp.task("cacheclear", function() {
 
 // Copy staticSrc
 gulp.task("copy", function() {
+	gulp.src(['bower_components/jquery-ui/themes/base/images/*', 'bower_components/jquery-ui/themes/cupertino/images/*'])
+		.pipe( gulp.dest(dist+'/css/images') );
+
 	return gulp.src(staticSrc, {
 		base: "src"
 	}).pipe( gulp.dest(dist) );
@@ -49,13 +55,21 @@ gulp.task("jsconcat", function() {
 	return gulp.src([
 			// Editable - Add any additional paths to JS Bower components here
 
+			'node_modules/underscore/underscore-min.js',
 			"bower_components/d3/d3.min.js",
 			'node_modules/d3-selection-multi/build/d3-selection-multi.min.js',
 			"bower_components/jquery/dist/jquery.min.js",
 			"bower_components/jquery-ui/jquery-ui.min.js",
 			'node_modules/highlight-within-textarea/jquery.highlight-within-textarea.js',
 			'bower_components/bootstrap-sass/assets/javascripts/bootstrap.min.js',
-// 			'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
+
+			// 'bower_components/datatables.net/js/jquery.dataTables.min.js',
+			// 'bower_components/datatables.net-colreorder/js/dataTables.colReorder.min.js',
+			// 'bower_components/datatables.net-select/js/dataTables.select.min.js',
+			// 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
+			// 'src/js/datatables.min.js',
+
+			'node_modules/sprintf-js/dist/sprintf.min.js',
 			"src/js/vendor/*.js"
 		]).pipe( $.concat("vendor.min.js"))
 		.pipe( gulp.dest(dist+"/js"));
@@ -86,16 +100,24 @@ gulp.task( "javascript", ["jshint"], function() {
 		out.pipe($.sourcemaps.init({loadMaps: true}))
 			.pipe($.sourcemaps.write());
 	} else {
-		out.pipe($.uglify());
+		out.pipe(uglify().on('error', function(err) {
+            gutil.log(gutil.colors.red('[Error]'), err.toString());
+            this.emit('end');
+        }));
 	}
 	return out.pipe( gulp.dest( dist+"/js" ) );
 });
 
 // Images
 gulp.task("images", function(cb) {
-	return gulp.src('src/img/**/*', {
-		base: "src/img"
-	}).pipe( gulp.dest( dist+"/img" ) );
+	gulp.src([
+		'bower_components/jquery-ui/themes/cupertino/images/*'
+	]).pipe( gulp.dest( dist+"/css/images" ) );
+
+	return gulp.src([
+		'src/images/**/*',
+		'bower_components/datatables.net-dt/images/*'
+	]).pipe( gulp.dest( dist+"/images" ) );
 });
 
 // Fonts
@@ -109,7 +131,17 @@ gulp.task('fonts', function() {
 // Static CSS
 gulp.task("staticCSS", function(cb) {
 	return gulp.src([
-		'bower_components/jquery-ui/themes/base/jquery-ui.min.css',
+		'bower_components/jquery-ui/themes/cupertino/jquery-ui.min.css',
+
+		'bower_components/datatables.net-dt/css/jquery.dataTables.min.css',
+		'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css',
+		'bower_components/datatables.net-colreorder-dt/css/colReorder.dataTables.min.css',
+		'bower_components/datatables.net-select-dt/css/select.dataTables.min.css',
+		// 'src/css/datatables.min.css',
+        // This last one should be used... but it breaks seqrun/show
+		// don't forget to change ApplicationResources.groovy
+		// DKGM 17-Oct-2018
+
 		'node_modules/highlight-within-textarea/jquery.highlight-within-textarea.css'
 	]).pipe( gulp.dest( dist+"/css" ) );
 });

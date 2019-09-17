@@ -40,11 +40,11 @@ class GenSeqrun
         cli.with
         {
             h(  longOpt: 'help',     'this help message' )
-            r(  longOpt: 'seqrun',   args: 1, required: true, 'seqrun file to process' )
+            r(  longOpt: 'seqrun',   args: 1, 'seqrun file to process' )
             o(  longOpt: 'output',   args: 1, 'output file [Seqrun.tsv]' )
             s(  longOpt: 'sample',   args: 1, 'single sample to process' )
             l(  longOpt: 'limsxml',  args: 1, 'lims XML file to process [/pipeline/Runs/*/<seqrun>/LIMS_<seqrun>.xml]' )
-            p(  longOpt: 'pipeline', args: 1, 'name of pipeline to run [mp_dualAmplicon]' )
+            p(  longOpt: 'pipeline', args: 1, 'name of pipeline to run [mp_Amplicon]' )
             b(  longOpt: 'base',     args: 1, 'base directory for pipeline output [/pathology/NGS/Samples/Testing]' )
             d(  longOpt: 'debug',    'Turn on debugging' )
         }
@@ -62,10 +62,21 @@ class GenSeqrun
         if ( opt.debug ) Logger.getRootLogger().setLevel(Level.DEBUG)
         log.debug( "Debugging turned on!" )
 
+        //  Load LIMS_<sr>.xml file
+        //
+        if ( ! opt.seqrun && ! opt.limsxml )
+        {
+            log.fatal( "Must supply either --seqrun or --limsxml option")
+            return
+        }
+
+        String seqrun = opt.seqrun ?: null
+        File lf = findLimsXml( seqrun, opt.limsxml ?: null )
+        if ( ! lf ) return
 
 		log.info( "Starting: GenSeqrun " + args )
 
-        boolean ok = new GenSeqrun().processSeqrun( opt.seqrun, opt.sample ?: null, opt.limsxml ?: null, opt.pipeline ?: 'mp_dualAmplicon', opt.base ?: '/pathology/NGS/Samples/Testing', opt.output ?: 'Seqrun.tsv'  )
+        boolean ok = processSeqrun( seqrun, opt.sample ?: null, lf, opt.pipeline ?: 'mp_Amplicon', opt.base ?: '/pathology/NGS/Samples/Testing', opt.output ?: 'Seqrun.tsv'  )
 
         if ( ok )
             log.info( "Finished: GenSeqrun " )
@@ -79,20 +90,30 @@ class GenSeqrun
      * @param pipeline
      * @return
      */
-    static boolean processSeqrun( String seqrun, String sample, String limsxml, String pipeline, String baseDir, String outfile )
+    static boolean processSeqrun( String seqrun, String sample, File limsxml, String pipeline, String baseDir, String outfile )
     {
-        def lf = findLimsXml( seqrun, limsxml )
-        if ( ! lf ) return false
-
         File of = new File( outfile )
         of.delete()
 
+        //  print TSV headers
+        //
         List headers = []
         headers.addAll( 'seqrun sample panel pipeline pipein outdir'.split(' '))
         of << "##  Created by GenSeqrun.groovy\n##\n#"
         of << headers.join("\t") + "\n"
 
-        Map srm = new SeqrunLims().parseLims( lf.absolutePath )
+        //  parse the LIMS XML file
+        //
+        Map srm = new SeqrunLims().parseLims( limsxml.absolutePath )
+        if ( ! srm ) return false
+        if ( seqrun && seqrun != srm.seqrun )
+        {
+            log.warn( "Supplied seqrun ${seqrun} doesn't match LIMS_*.xml seqrun ${srm.seqrun}: Using ${seqrun}")
+        }
+        else
+        {
+            seqrun = srm.seqrun
+        }
 
         //  Process all sequenced samples
         //
@@ -111,7 +132,9 @@ class GenSeqrun
             //
             List flds = []
 
-            String fastqDir = samplePath(lf.parentFile, sam.sample)
+            //  Set the usual directory of FASTQ files
+            //
+            String fastqDir = samplePath( limsxml.parentFile, sam.sample, "${baseDir}/${seqrun}/${sam.sample}/FASTQ")
             if ( pipeline == 'mp_vcfAmplicon' )
             {
                 fastqDir = "${baseDir}/${seqrun}/${sam.sample}/${sam.sample}.vcf"
@@ -158,7 +181,7 @@ class GenSeqrun
         {
             //  loop through repositories
             //
-            for ( repos in ['Runs','Archives'])
+            for ( repos in ['Runs','Archives','Testing'])
             {
                 limsfile = new File( "/pipeline/${repos}/${pf}/${seqrun}/LIMS_${seqrun}.xml" )
                 log.debug( "Checking for LIMS.xml in ${limsfile.absolutePath} ${limsfile.exists()}")
@@ -166,7 +189,7 @@ class GenSeqrun
             }
         }
 
-        log.fatal( "LIMS XML file wasn't found for ${seqrun}")
+        log.error( "LIMS XML file wasn't found for ${seqrun}")
         return null
     }
 
@@ -177,10 +200,16 @@ class GenSeqrun
      * @param sample   Sample dir to find
      * @return         Path to sample FASTQ files
      */
-    static String samplePath( File root, String sample )
+    static String samplePath( File root, String sample, String fastqDefaultDir )
     {
+        String ret  = null
+
+        if ( ! root )
+        {
+            return fastqDefaultDir
+        }
+
         File base = new File( root, "ProjectFolders")
-        def ret = ""
         if ( base.exists())
         {
             base.traverse
@@ -196,9 +225,52 @@ class GenSeqrun
             }
         }
 
-        if ( ! ret ) log.error( "Sample ${sample} not found under ${root}")
+        if ( ! ret )
+        {
+            log.error( "Sample ${sample} not found under ${root}")
+            return fastqDefaultDir
+        }
 
         return ret
+    }
+
+    /**
+     * Extract full Seqrun details from LIMS meta data file
+     *
+     * @param seqrun   Name of seqrun
+     * @return         Map of run meta data
+     */
+    static Map seqrunLimsMap( String seqrun )
+    {
+        File lf = findLimsXml( seqrun, null )
+
+        //  If we have a valid LIMS file return a seqrun Map
+        //
+        if ( ! lf ) return [:]
+
+        Map srm = SeqrunLims.parseLims( lf.absolutePath )
+
+        //  Load in Illumina [Rr]unParameters details
+        //
+        String rpFile = "${lf.parent}/runParameters.xml"
+        if ( seqrun =~ /.*_NS.*/ ) rpFile = "${lf.parent}/RunParameters.xml"   // Illumina changed the name for NextSeq !!
+
+        //  Parse the file
+        //
+        Map runp = SeqrunLims.parseRunParameters( rpFile )
+        if ( ! runp )
+        {
+            log.warn( "Couldn't parse RunParameters ${rpFile}")
+            return srm
+        }
+
+        //  Add meta data to seqrun Map
+        //
+        srm.experiment = runp.experiment
+        srm.scanner    = runp.scanner
+        srm.readlen    = runp.readlan
+
+        return srm
     }
 }
 

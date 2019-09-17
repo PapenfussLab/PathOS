@@ -13,7 +13,9 @@
 			<ul>
 				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
+<sec:ifAnyGranted roles="ROLE_DEV">
 				<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
+</sec:ifAnyGranted>
 			</ul>
 		</div>
 		<div id="show-seqRelation" class="content scaffold-show" role="main">
@@ -41,17 +43,26 @@
 				</li>
 				</g:if>
 			
-				<g:if test="${seqRelationInstance?.samples}">
+				<g:if test="${seqRelationInstance?.samples()}">
 				<li class="fieldcontain">
 					<span id="samples-label" class="property-label"><g:message code="seqRelation.samples.label" default="Samples" /></span>
 					
-						<g:each in="${seqRelationInstance.samples}" var="s">
-						<span class="property-value" aria-labelledby="samples-label"><g:link controller="seqSample" action="show" id="${s.id}">${s?.encodeAsHTML()} ${s.sampleType?"("+s.sampleType+")":"(No sample type)"}</g:link></span>
+						<g:each in="${seqRelationInstance.samples()}" var="s">
+						<span class="property-value" aria-labelledby="samples-label"><g:link controller="seqVariant" action="svlist" id="${s.id}">${s?.encodeAsHTML()} ${s.sampleType?"("+s.sampleType+")":"(No sample type)"}</g:link></span>
 						</g:each>
 					
 				</li>
 				</g:if>
-			
+
+				<%-- TODO if derived sample relation, link to derived sample --%>
+
+				<g:if test="${derivedSample}">
+					<li class="fieldcontain">
+						<span id="base-label" class="property-label"><g:message code="seqRelation.base.label" default="DerivedSample" /></span>
+						<span class="property-value" aria-labelledby="base-label"><g:link controller="seqVariant" action="svlist" id="${derivedSample.id}">${derivedSample.toString()}</g:link> <g:link controller="seqrun" action="show" id="${derivedSample.seqrun.id}">${derivedSample.seqrun}</g:link> </span>
+
+					</li>
+				</g:if>
 			</ol>
 			<g:form>
 				<fieldset class="buttons">

@@ -22,7 +22,7 @@
 	<link href="<g:resource plugin='easygrid' dir='jquery.jqGrid-4.6.0/plugins' file='ui.multiselect.css'/>" type="text/css" rel="stylesheet" media="screen, projection" />
 
 	%{--Javascript Files--}%
-	<script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
+	<script src="<g:context/>/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
 	<g:javascript src='jquery/jquery.jgrowl.js' plugin='spring-security-ui'/>
 
 
@@ -97,7 +97,7 @@
 <div id="list-pubmed" class="content scaffold-list" role="main"
 	 style="white-space: nowrap; overflow-x:auto">
 	<br>
-	<input style="margin-left: .5em" placeholder="Enter a PMID" type="text" id="pmid_box">
+	<input style="margin-left: 35px" placeholder="Enter a PMID" type="text" id="pmid_box">
 	<input type="button" value="Look up Pubmed Article" onclick="findPMID()">
 
 	<g:if test="${flash.message}">
@@ -114,6 +114,7 @@
 			<grid:set col="authors"         width="120" />
 			<grid:set col="affiliations"         width="120" />
 			<grid:set col="abstrct"         width="120" />
+			<grid:set col="citation"         width="120" />
 		</grid:grid>
 		<grid:exportButton name="pubmed" formats="['csv', 'excel']"/>
 	</div>
@@ -155,6 +156,7 @@ datastore = {
             doi: obj[11],
             pdf: obj[12],
             abstract: obj[13],
+            citation: obj[14]
         }
     },
     addJSON: function(d){
@@ -179,7 +181,7 @@ var colModel = [
             if(val){
                 var array = []
                 val.forEach(function(d){
-                    array.push('<a href="/PathOS/search/search?q='+d.label+'">'+d.label+'</a>');
+                    array.push('<a href="<g:context/>/search/search?q='+d.label+'">'+d.label+'</a>');
                 });
                 string = array.join(", ")
             }
@@ -314,12 +316,18 @@ var colModel = [
             }
             return string
         }
+    },
+    {
+    	name: "citation",
+    	label: "Citation",
+        search: false,
+    	width: 300
     }
 ];
 
 
 jQuery("#pubmed_table").jqGrid({
-    url: '/PathOS/pubmed/pubmedRows',
+    url: '<g:context/>/pubmed/pubmedRows',
     loadError: easygrid.loadError,
     pager: '#pubmedPager',
     viewrecords: true,
@@ -344,7 +352,9 @@ jQuery("#pubmed_table").jqGrid({
     },
     colModel: colModel,
 	onSelectRow: function(id){
-	   PathOS.tags.update_object(getCurrentpmid());
+        if ($('#'+id+' td[aria-describedby="pubmed_table_pmid"]').text().indexOf("SAVE ROW") == -1) {
+            PathOS.tags.update_object(getCurrentpmid());
+        }
 	}
 });
 
@@ -413,7 +423,7 @@ function fixNavGrid(){
     var pmid = $("#v_pmid span a").html();
     nav_data = datastore[pmid];
 
-    window.history.replaceState({}, pmid, "/PathOS/Pubmed?pmid="+pmid);
+    window.history.replaceState({}, pmid, "<g:context/>/Pubmed?pmid="+pmid);
 	document.title = pmid + " - Show PubMed";
 
 	PathOS.history.add({
@@ -457,8 +467,45 @@ function fixNavGrid(){
 
     $("#v_pdf").prepend('<form id="pdf_form" action="upload_pdf" style="float:right; margin-top: 10px; margin-right: 10px;" method="POST"><input type="file" accept=".pdf" id="pdf" name="pdf" disabled/><input type="text" id="pdf_pmid" name="pdf_pmid" style="display:none;"/><input type="button" value="Upload" onclick="upload_pdf()"></form>');
 
+	d3.select("#v_citation").html("")
+		.append("textarea")
+		.attr("id", "citationTextarea")
+		.attr("style", "width: 100%; min-height: 60px;")
+		.text(datastore[pmid].citation);
+
+	d3.select("#v_citation").append("input")
+		.attr("type", "button")
+		.attr("value", "Save Custom Citation")
+		.on("click", function(d){
+			var citation = $("#citationTextarea").val();
+			$.post("<g:context/>/pubmed/saveCitation?pmid="+pmid+"&citation="+encodeURI(citation), {
+				success: function(d){
+
+				    var id = $("#v_id").text().trim();
+				    $("tr[id='"+id+"'] td[aria-describedby='pubmed_table_citation']").text(citation);
+				    alert("Custom Citation saved.");
+
+					console.log(d);
+				}
+			});
+			console.log("click!!!!");
+		});
+
+	d3.select("#pubmedRefreshButton").remove();
+	d3.select("#Act_Buttons .EditButton").insert("a", "a").attrs({
+		id: "pubmedRefreshButton",
+		class: "fm-button ui-state-default ui-corner-all fm-button-icon-left"
+	}).on('click', function(){
+		$.get("<g:context/>/pubmed/update_article?pmid="+pmid, {
+			success: function(d){
+				alert("Article Updated.");
+				window.location.reload();
+			}
+		});
+	}).text("Re-download from Pubmed").append("span").classed("ui-icon ui-icon-refresh", true);
+
 	$.ajax({
-		url: "/PathOS/pubmed/check_pmid?pmid="+pmid,
+		url: "<g:context/>/pubmed/check_pmid?pmid="+pmid,
 		success: function(d){
 			if(d == "null") {
 				var save = '<br><a href="#" onclick="addPMID('+pmid+');return false">[SAVE ROW]</a>';
@@ -486,7 +533,7 @@ function fixNavGrid(){
 
                $.ajax({
                    type: "POST",
-                   url: "/PathOS/pubmed/upload_pdf",
+                   url: "<g:context/>/pubmed/upload_pdf",
                    data: formData,
                    success: function (d) {
                        console.log("File upload response: "+d);
@@ -521,7 +568,7 @@ function fixNavGrid(){
    function addPMID(pmid){
        console.log("Adding PMID: "+pmid);
 
-        var url = "/PathOS/Pubmed/add_pmid?pmid="+pmid;
+        var url = "<g:context/>/Pubmed/add_pmid?pmid="+pmid;
         $.ajax({
             url: url,
             method: "POST",
@@ -565,15 +612,15 @@ function fixNavGrid(){
                affiliations: d.affiliations,
                id: d.pmid,
                abstrct: d.abstract,
-               pdf: d.pdf
-
+               pdf: d.pdf,
+               citation: d.citation
            }, 'first');
 
            $("#" + d.pmid).click();
 		   $('#view_pubmed_table').click();
        } else {
            var filters = encodeURIComponent('{"groupOp":"AND","rules":[{"field":"id","op":"eq","data":"'+id+'"}]}');
-           var url = '/PathOS/pubmed/pubmedRows?_search=true&filters='+filters;
+           var url = '<g:context/>/pubmed/pubmedRows?_search=true&filters='+filters;
 
 
            $.ajax({
@@ -615,7 +662,7 @@ function findPMID(pmid){
 
            $("html").addClass("cursorWait");
            var http = new XMLHttpRequest();
-           http.open("POST", "/PathOS/Pubmed/fetch_pmid", true);
+           http.open("POST", "<g:context/>/Pubmed/fetch_pmid", true);
            http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
            var params = "pmid=" + pmid;
            http.send(params);
@@ -748,7 +795,7 @@ function findPMID(pmid){
 	function unselect_article() {
 		$("#cData").click()
 		$(".ui-state-highlight").toggleClass('ui-state-highlight');
-		window.history.replaceState({}, "Pubmed", "/PathOS/Pubmed");
+		window.history.replaceState({}, "Pubmed", "<g:context/>/Pubmed");
 	}
 
    function getCurrentSelection(){
@@ -780,7 +827,7 @@ function findPMID(pmid){
 $(document).ready( function(){
 
 	if(!PathOS.params().pmid && !PathOS.params().id) {
-		window.history.replaceState({}, "Pubmed", "/PathOS/Pubmed");
+		window.history.replaceState({}, "Pubmed", "<g:context/>/Pubmed");
 	}
 
 	if (PathOS.params().pmid) {
@@ -790,7 +837,7 @@ $(document).ready( function(){
 	} else if (PathOS.params().id) {
 	   $.ajax({
 		   type: "GET",
-		   url: '/PathOS/Pubmed/check_id/'+PathOS.params().id,
+		   url: '<g:context/>/Pubmed/check_id/'+PathOS.params().id,
 		   success: function (pmid) {
 		   		if(pmid != "Fail") {
 					findPMID(pmid);
@@ -803,11 +850,11 @@ $(document).ready( function(){
 	}
 
 
-	var availableTags = <g:allTags/>;
+	var allTags = <g:allTags/>;
 	var tagModule = PathOS.tags.buildModule({
 		object: 'Pubmed',
 		tags: [],
-		availableTags: availableTags,
+		availableTags: Object.keys(allTags),
 		closeModule: unselect_article
 	});
 })

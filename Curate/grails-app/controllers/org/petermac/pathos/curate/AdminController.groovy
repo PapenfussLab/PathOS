@@ -7,79 +7,97 @@
 
 package org.petermac.pathos.curate
 
+import grails.converters.JSON
 import org.petermac.util.Locator
 
 class AdminController
 {
     def loc = Locator.instance                      // file locator
 
-    //  PathOS variant filtering services
-    //
-    def varFilterService
-
-    //  PathOS evidence classification services
-    //
-    def evidenceService
-
+    def AuditService
     def springSecurityService
 
-    def admin()
-    {
-    }
 
-    /**
-     * Set the filtering flags action
-     *
-     * @return
-     */
-    def filter()
-    {
-        //  Apply all filter rules to all Variants
-        //
-        def mod = varFilterService.applyFilter( session, true )
+    def migrateOverall() {
+        List<CurVariant> curVariants = CurVariant.list()
 
-        flash.message = "Filter applied to ${mod} variants"
+        int counter = 0
 
-        redirect( controller: "admin", action: "admin" )
-    }
-
-    def reclassify()
-    {
-        int mod = 0
-
-        //  reclassify all curated Variants
-        //
-        for ( var in CurVariant.findAllByClassifiedIsNotNull())
-        {
-            def reclass = evidenceService.inferClass( var.evidence )
-            if ( var.evidence.evidenceClass != reclass )
-            {
-                log.info( "Modifying ${var} from ${var.evidence.evidenceClass} to ${reclass}" )
-                var.evidence.evidenceClass = reclass
-                if ( var.authorisedFlag ) var.pmClass = reclass
-                if ( ! var.save())
-                {
-                    log.error( "Failed to modify classification for ${var}")
-                }
-                mod++
+        curVariants.each { cv ->
+            if (cv.overallClass == null) {
+                cv.overallClass = "Unclassified"
+                cv.save()
+                counter++
             }
         }
 
-        flash.message = "Reclassified ${mod} variants"
-
-        redirect( controller: "admin", action: "admin" )
+        render counter
     }
+
+    def migrateAMP() {
+        List<CurVariant> curVariants = CurVariant.list()
+
+        int counter = 0
+
+        curVariants.each { cv ->
+            if (cv.fetchAmpEvidence() == null) {
+                AmpEvidence ampEvidence = new AmpEvidence( curVariant: cv )
+                cv.ampClass = "Unclassified"
+                ampEvidence.save()
+                counter++
+            }
+        }
+
+        render counter
+    }
+
+    def migrateACMG() {
+        List<CurVariant> curVariants = CurVariant.list()
+
+        int counter = 0
+
+        curVariants.each { cv ->
+
+            if (cv.fetchAcmgEvidence() == null) {
+                EvidenceService.migrateACMG( cv )
+                counter++
+            }
+        }
+
+//        Saving is done by the service
+//        CurVariant.saveAll(curVariants)
+
+        render counter
+    }
+
+
+    def fetchCurVariants() {
+
+//        Long[] curVariants = new JsonSlurper().parseText(request.JSON.curVariants)
+
+        Long[] curVariants = request.JSON.curVariants
+
+
+        Map results = [
+            curVariants: curVariants.collect { CurVariant.get(it) },
+            numberOfTimesReported: curVariants.collect { it ->
+                CurVariant cv = CurVariant.get(it)
+                [
+                    id: cv.id,
+                    count: CurVariantReport.countByCurVariant(cv)
+                ]
+            }
+        ]
+
+        render results as JSON
+    }
+
+
 
     def reportUpload() {
         HashMap map = [
-            seqruns: Seqrun.list().take(20).collect { it.seqrun } as Set<String>,
-            panels: Panel.getAll().collect { it.panelGroup } as Set<String>,
-            tests: PatAssay.getAll().collect {
-                if(it.testName =~ /^(FLD_REP.*|FAM1.*)$/) {
-                    return it.testName
-                }
-            } as Set,
-            outcomes: ["Var", "Neg", "Fail"]
+            tests: LabAssay.getAll().collect { it.testSet } as Set<String>,
+            outcomes: ["var", "neg", "fail"]
         ]
 
         return map
@@ -106,19 +124,11 @@ class AdminController
 
                 //  Create audit message
                 //
-                def audit_msg = "New Report Template docx uploaded: ${filename}"
-                def audit     = new Audit(
-                        category:    'report',
-                        task:        'template upload',
-                        complete:    new Date(),
-                        elapsed:     0,
-                        software:    'PathOS',
-                        swVersion:   meta(name:'app.version') as String ?: "",
-                        username:    (springSecurityService.currentUser as AuthUser).username ?: "",
-                        description: audit_msg
-                )
-
-                audit.save( flush: true )
+                AuditService.audit([
+                    category    : 'report',
+                    task        : 'template upload',
+                    description : "New Report Template docx uploaded: ${filename}"
+                ])
 
                 render "success"
             } catch (all) {

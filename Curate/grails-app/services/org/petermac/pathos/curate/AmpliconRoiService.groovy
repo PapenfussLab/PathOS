@@ -29,31 +29,6 @@ class AmpliconRoiService
 
     static def statsService = new StatsService()    // only need a new because stand alone doesn't have Spring
 
-    //  Genes in assay: this is now stored in the SampleTest table Todo: use database not this hard coded table
-    //
-    static Map assayGenes  =    [
-                                FLD_REP_CRC:        ['BRAF', 'KRAS', 'NRAS', 'RNF43', 'PIK3CA' ],
-                                FLD_REP_MEL:        ['BRAF', 'KIT',  'NRAS', 'RAC1' ],
-                                FLD_REP_LUNG:       ['BRAF', 'EGFR', 'KRAS', 'MET' ],
-                                FLD_REP_GIST:       ['KIT', 'PDGFRA' ],
-                                FAM1_FAM_ONE:	    ['AIP', 'APC', 'ATM', 'AXIN2', 'BAP1', 'BMPR1A', 'BRCA1', 'BRCA2', 'BRIP1', 'BUB1B', 'CDC73', 'CDH1', 'CDK4', 'CDKN1B', 'CDKN2A', 'CHEK2', 'CSDE1', 'DICER1', 'ENGLN1', 'EGLN2', 'EPAS1', 'EPCAM', 'EXT1', 'EXT2', 'FH', 'FLCN', 'GATA2', 'GREM1', 'HOXB13', 'IDH1', 'KIF1B', 'MAX', 'MDH2', 'MEN1', 'MET', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'NF1', 'NF2', 'NTHL1', 'PALB2', 'PMS2', 'POLD1', 'POLE', 'POT1', 'PRKAR1A', 'PTCH1', 'PTEN', 'RAD51C', 'RAD51D', 'RB1', 'RET', 'RUNX1', 'SCG5', 'SDHA', 'SDHAF2', 'SDHB', 'SDHC', 'SDHD', 'SMAD4', 'SMARCA4', 'SMARCB1', 'SMARCE1', 'STK11', 'SUFU', 'TMEM127', 'TP53', 'TSC1', 'TSC2', 'VHL' ],
-                                FAM1_SPECTRUM:	    ['APC', 'ATM', 'BAP1', 'BMPR1A', 'BRCA1', 'BRCA2', 'BRIP1', 'CDH1', 'CDK4', 'CDKN2A', 'CHEK2', 'EPCAM', 'GREM1', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'PALB2', 'PMS2', 'POLD1', 'POLE', 'PTEN', 'RAD51C', 'RAD51D', 'SMAD4', 'STK11', 'TP53' ],
-                                FAM1_BRCA:	        ['BRCA1', 'BRCA2' ],
-                                FAM1_BRCA_PLUS:	    ['ATM', 'BRCA1', 'BRCA2', 'PALB2', 'TP53' ],
-                                FAM1_BR_OV_PR_PA:	['ATM', 'BRCA1', 'BRCA2', 'BRIP1', 'CDH1', 'CDKN2A', 'CHEK2', 'HOXB13', 'PALB2', 'PTEN', 'RAD51C', 'RAD51D', 'STK11', 'TP53' ],
-                                FAM1_CRC_ENDOM:	    ['APC', 'EPCAM', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'NTHL1', 'PMS2', 'POLD1', 'POLE', 'PTEN', 'STK11' ],
-                                FAM1_OV_CRC:	    ['BRCA1', 'BRCA2', 'BRIP1', 'EPCAM', 'MLH1', 'MSH2', 'MSH6', 'PMS2', 'RAD51C', 'RAD51D' ],
-                                FAM1_MMR:	        ['EPCAM', 'MLH1', 'MSH2', 'MSH6', 'PMS2' ],
-                                FAM1_POLY:	        ['APC', 'AXIN2', 'BMPR1A', 'BUB1B', 'GREM1', 'MUTYH', 'NTHL1', 'POLD1', 'POLE', 'PTEN', 'SMAD4', 'STK11' ],
-                                FAM1_CRC_POLY:	    ['APC', 'AXIN2', 'BMPR1A', 'BUB1B', 'EPCAM', 'GREM1', 'MLH1', 'MSH2', 'MSH6', 'MUTYH', 'NTHL1', 'PMS2', 'POLD1', 'POLE', 'PTEN', 'SMAD4', 'STK11' ],
-                                FAM1_PARA_PHEO:	    ['CSDE1', 'EGLN1', 'EGLN2', 'EPAS1', 'FH', 'IDH1', 'KIF1B', 'MAX', 'MDH2', 'NF1', 'RET', 'SDHA', 'SDHAF2', 'SDHB', 'SDHC', 'SDHD', 'TMEM127', 'VHL' ],
-                                FAM1_SKIN:	        ['BAP1', 'CDK4', 'CDKN2A', 'FH', 'FLCN', 'POT1', 'PTCH1', 'RB1', 'SUFU' ],
-                                FAM1_ENDOC:	        ['AIP', 'CDC73', 'CDKN1B', 'MEN1', 'PRKAR1A', 'PTEN', 'RET', 'VHL' ],
-                                FAM1_RENAL:	        ['FH', 'FLCN', 'MET', 'SDHB', 'SDHC', 'SDHD', 'TSC1', 'TSC2', 'VHL' ],
-                                FAM1_SARC:	        ['APC', 'EXT1', 'EXT2', 'RB1', 'TP53' ],
-                                FAM1_HAEM:          ['ADAMTS13', 'C3', 'CALR', 'CD46', 'CEBPA', 'CFB', 'CFH', 'CFHR1', 'CFI', 'CSF3R', 'CTC1', 'DGKE', 'DKC1', 'EGLN1', 'ELANE', 'EPAS1', 'EPOR', 'G6PC3', 'GATA1', 'GATA2', 'GFI1', 'HAX1', 'JAK2', 'LYST', 'MPL', 'NHP2', 'NOP10', 'PRF1', 'RAB27A', 'RPL11', 'RPL35A', 'RPL5', 'RPS10', 'RPS17', 'RPS19', 'RPS24', 'RPS26', 'RPS7', 'RTEL1', 'RUNX1', 'SBDS', 'SH2B3', 'SH2D1A', 'SRP72', 'STX11', 'STXBP2', 'TERC', 'TERT', 'THBD', 'THPO', 'TINF2', 'UNC13D', 'VHL', 'VWF', 'WAS', 'WRAP53', 'XIAP', 'TP53']
-                                ]
-
     /**
      * Calculate report amplicon QC stats
      *
@@ -267,13 +242,20 @@ class AmpliconRoiService
     /**
      * Find set of genes in a Sample Test for variant filtering
      *
-     * @param   sampleTest  Assay test set name
-     * @return              List of genes (if any) in a sampleTest
+     * @param   testSet  Assay test set
+     * @return           List of genes (if any) in a testSet
      */
-    static List<String> sampleTestGenes( String sampleTest)
+    static List<String> sampleTestGenes( String testSet)
     {
-        List genes = assayGenes[sampleTest.trim()] as List
+        LabAssay labAssay = LabAssay.findByTestSet( testSet.trim())
+        String   genes    = labAssay?.genes
+        if ( ! genes ) return []
 
-        return genes
+        //  Convert a comma separated list of genes into a List
+        //
+        List geneList = genes.replaceAll(/ /,'').tokenize(',')
+
+        return geneList
     }
+
 }

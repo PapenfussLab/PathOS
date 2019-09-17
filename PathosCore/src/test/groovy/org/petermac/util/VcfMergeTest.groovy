@@ -43,8 +43,8 @@ class VcfMergeTest extends GroovyTestCase
         List<Map> rows = mrg.rowMaps
         for ( row in rows )
         {
-            for ( varcall in (row.identified as String).tokenize(','))
-            assert varcall in ['Tumour','Normal','Intersection']
+            for ( varcall in (row.identified as String)?.tokenize(','))
+                assert varcall in ['Tumour','Normal','Intersection']
         }
 
         //  Merge is a union of two VCFs

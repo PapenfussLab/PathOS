@@ -1,7 +1,9 @@
+/*jshint esversion: 6 */
 var PathOS = PathOS || {};
 
-PathOS.version = "PathOS.js build: 29th of March 2017";
+PathOS.version = "PathOS.js build: 16th of September 2019";
 
+PathOS.application = application || "/PathOS";
 
 // Simple way for PathOS to store data
 // Currently uses localStorage but could be upgraded in future.
@@ -10,32 +12,85 @@ PathOS.data = {
 	// Provide a key and a default object
 	load: function(key, obj) {
 		var result = obj || {};
-		if (localStorage["PathOS-"+key]) {
-			result = JSON.parse(localStorage["PathOS-"+key]);
+		if (localStorage[`PathOS${PathOS.application}-${key}`]) {
+			result = JSON.parse(localStorage[`PathOS${PathOS.application}-${key}`]);
 		}
 		return result;
 	},
 	// Save the object with the key
 	save: function(key, obj) {
-		localStorage["PathOS-"+key] = JSON.stringify(obj);
+		localStorage[`PathOS${PathOS.application}-${key}`] = JSON.stringify(obj);
 	},
 	// Clear the key's data
 	clear: function(key) {
-		delete localStorage["PathOS-"+key];
+		delete localStorage[`PathOS${PathOS.application}-${key}`];
 	},
 	clean: function() {
-		delete localStorage['PathOS-history'];
-		delete localStorage['PathOS-modules'];
+		delete localStorage[`PathOS${PathOS.application}-history`];
+		delete localStorage[`PathOS${PathOS.application}-modules`];
 	}
 };
 
-PathOS.pmClasses = {
-	0: "Unclassified",
-	1: "C1: Not pathogenic",
-	2: "C2: Unlikely pathogenic",
-	3: "C3: Unknown Pathogenicity",
-	4: "C4: Likely pathogenic",
-	5: "C5: Pathogenic"
+PathOS.criteria = {
+    acmgClasses: {
+        0: "Unclassified",
+        1: "C1: Not pathogenic",
+        2: "C2: Unlikely pathogenic",
+        3: "C3: Unknown pathogenicity (Level A)",
+        4: "C3: Unknown pathogenicity (Level B)",
+        5: "C3: Unknown pathogenicity",
+        6: "C3: Unknown pathogenicity (Level C)",
+        7: "C4: Likely pathogenic",
+        8: "C5: Pathogenic"
+    },
+    drawAcmg: function(div, options) {
+        const span = d3.select("#"+div).html("").append("div"),
+              text = options.text || "Unclassified";
+
+        let classes = options.classes || "";
+        if (text == 'Unclassified') {
+        	classes += " cv-Unclassified";
+		} else {
+            classes += " cv-C"+text.slice(1,2);
+		}
+
+		classes += " bordered-classification";
+
+		span.classed(classes, true)
+			.text(text);
+    },
+	drawAmp: function(div, options) {
+        const span = d3.select("#"+div).html("").append("div"),
+              text = options.text || "Unclassified";
+
+        let classes = options.classes || "";
+        classes += " amp-"+text.replace(" ","-");
+
+        classes += " bordered-classification";
+
+        span.classed(classes, true)
+            .text(text);
+	},
+	drawOverall: function(div, options) {
+        const span = d3.select("#"+div).html("").append("div"),
+            text = options.text || "Unclassified";
+
+        let classes = options.classes || "";
+
+        var overallMapping = {
+            "Unclassified": "overall-Unclassified",
+            "CS: Clinically Significant": "overall-CS",
+            "UCS: Unclear Clinical Significance": "overall-UCS",
+            "NCS: Not Clinically Significant": "overall-NCS"
+        };
+
+        classes += " "+overallMapping[text];
+
+        classes += " bordered-classification";
+
+        span.classed(classes, true)
+            .text(text);
+	}
 };
 
 /**
@@ -44,6 +99,372 @@ PathOS.pmClasses = {
  */
 PathOS.formatDate = function(string) {
 	return string ? new Date(string).toLocaleDateString("en-GB", {day: 'numeric', month: 'long', year: 'numeric'}) : "No date in system";
+};
+
+PathOS.graphSpace = function(config) {
+	const graphSpace = this;
+	graphSpace.toBeLoaded = null;
+	graphSpace.graphs = [];
+
+	const graphWidth = 800;
+	const graphHeight = 600;
+
+	const div = config.div;
+	const infoBar = div.append("div")
+		.classed("infoBar", true);
+
+	infoBar.append("h1").text(config.title);
+	const table = infoBar.append("table");
+	const thead = table.append("thead").append("tr");
+
+    thead.append("th").text("Sample");
+    thead.append("th").text("Type");
+	thead.append("th").text("Intersect");
+    thead.append("th").text("Action");
+
+	const tbody = table.append("tbody");
+
+
+	div.append("div").classed("workspace", true);
+	const tabs = div.append("div").classed("tabs", true);
+
+	const graphSvg = div.append("div").classed("graphdiv", true)
+		.append("svg").attr("viewBox", "0 0 "+graphWidth+" "+graphHeight)
+		.append("g").attrs({
+			width: graphWidth,
+			height: graphHeight
+		});
+
+    graphSvg.append("rect") // throw a background & border in?
+        .attrs({
+            width: graphWidth,
+            height: graphHeight,
+            fill: "white",
+            stroke: "black",
+            'stroke-width': '2px'
+        });
+
+	this.control = null;
+	this.samples = [];
+	this.currentGraph = null;
+
+	this.applyData = function(samples) {
+        graphSpace.toBeLoaded = samples.length;
+
+        graphSpace.color = d3.scaleOrdinal(config.colours)
+            .domain(samples.map((d) => d.name));
+
+            tbody.selectAll("tr")
+            .data(samples)
+            .enter()
+            .append("tr")
+            .each(function(d){
+				const that = d3.select(this)
+					.attr("id", "tr-"+d.name);
+                that.append("td").text(d.name);
+                that.append("td").text(d.type);
+                let intersect = that.append("td").text("?");
+
+                const last = that.append("td").classed("action", true);
+                const loading = last.append("img")
+                    .style("width", "46px")
+                    .attr("src", `${PathOS.application}/dist/images/pathos_logo_animated.svg`);
+
+                d3.tsv(d.tsv_url, function(data){
+                    loading.remove();
+                    let sample = new Sample({
+                        id: d.name,
+                        info: d,
+                        data: data,
+                        intersect: intersect,
+						td: last,
+                        action: last,
+                        color: graphSpace.color(d.name),
+						// min: data.map((d)=>parseInt(d["Mean coverage"])).reduce((a,b) => Math.min(a,b)),
+						// max: data.map((d)=>parseInt(d["Mean coverage"])).reduce((a,b) => Math.max(a,b)),
+                        values: data.map(function(d){ return { region: d.Region, coverage: d["Mean coverage"] };})
+                    });
+					graphSpace.samples.push(sample);
+					if(d.type === "control") {
+						graphSpace.control = sample;
+					}
+
+                    if(--graphSpace.toBeLoaded <= 0) {
+                        $("#loadingCharts").remove();
+                    	if(graphSpace.control) {
+                            initGraphs(graphSpace.control);
+						} else {
+                    		table.selectAll("td:last-child")
+								.text("Control?")
+								.on("click.pickControl", function(d){
+									$("#tr-"+d.id).insertBefore(".infoBar table tbody tr:first-child");
+
+									table.selectAll("td:last-child")
+										.text("Loaded!")
+										.on("click.pickControl", null);
+
+									graphSpace.control = sample;
+                                    initGraphs(graphSpace.control);
+								});
+						}
+					}
+                });
+            });
+    };
+
+	function initGraphs(control) {
+		console.log(control);
+
+		control.data.intersect.text("N/A");
+		control.data
+			.action.text("N/A")
+			.on("click", null)
+			.style("color", "")
+			.style("background", "");
+
+        // I guess we could calculate the intersect here..?
+		// control.data.data.forEach(function(d){
+		// 	console.log(d);
+		// });
+
+		graphSpace.graphs.forEach(function(graph){
+			graph.init(control);
+			graph.hideGraph();
+		});
+        graphSpace.currentGraph.showGraph();
+	}
+
+	this.addGraph = function(config) {
+		let graph = new Graph(config);
+
+		graphSpace.graphs.push(graph);
+		if(!graphSpace.currentGraph) {
+			graphSpace.currentGraph = graph;
+		}
+	};
+
+	const Graph = function(config) {
+		const graph = this;
+
+		this.id = config.id;
+		this.name = config.name;
+		this.displayedData = displayedData = {};
+
+        tabs.append("div")
+            .classed("tab", true)
+            .append("a")
+            .attr("href", "#linegraph")
+            .on("click", function(){
+                graph.showGraph();
+            })
+            .text(config.name);
+
+
+        let svg = graphSvg.append("g")
+			.classed("graph", true)
+			.attr("id", "graph-"+config.id);
+
+		this.margin = margin = {top: 20, right: 20, bottom: 30, left: 50};
+		this.width = graphWidth - margin.left - margin.right;
+		this.height = graphHeight - margin.top - margin.bottom;
+		this.g = g = svg.append("g").attr("transform", "translate("+margin.left+" "+margin.top+")");
+
+        this.xAxis = g.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(0," + this.height + ")");
+
+        this.xLabel = this.xAxis.append("text")
+            .style("text-anchor", "middle")
+            .style("font-size", "16px")
+            .attr("x", this.width/2)
+            .attr("y", 6)
+            .attr("dy", "0.9em")
+            .attr("fill", "#000");
+
+        this.yAxis = g.append("g")
+            .attr("class", "axis axis--y");
+        this.yLabel = this.yAxis.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", "0.71em")
+            .attr("fill", "#000");
+
+        this.scatterNodes = scatterNodes = g.append("g")
+            .classed("scatterNodes", true);
+
+        var mask = g.append("g");
+        mask.append("rect")
+            .attrs({
+                x: 0,
+                y: -(this.margin.top - 1),
+                width: this.width + this.margin.right - 1,
+                height: this.margin.top - 1,
+                fill: "white"
+            });
+
+        this.yBounds = function() {
+        	let min = -100,
+				max = 100;
+        	const data = this.displayedData;
+
+        	Object.keys(data).forEach(function(sample){
+                min = data[sample].reduce((a,b) => Math.min(a,b));
+                max = data[sample].reduce((a,b) => Math.max(a,b));
+			});
+
+        	return [min, max];
+		};
+
+        this.expand = function(){
+            console.log("expanding...");
+            graph.y.domain(graph.yBounds());
+
+            graph.yAxis.transition()
+                .duration(750)
+                .call(d3.axisLeft(graph.y));
+            expando.text("").on("click", graph.collapse);
+            graph.repaint();
+        };
+
+        this.collapse = function(){
+            console.log("collapsing...");
+            graph.y.domain(graph.defaultYdomain);
+            graph.yAxis.transition()
+                .duration(750)
+                .call(d3.axisLeft(graph.y));
+            expando.text("").on("click", graph.expand);
+            graph.repaint();
+        };
+
+        this.repaint = function(){
+            console.log("Repainting...");
+            d3.select("#linegraph .control path")
+                .transition()
+                .duration(750)
+                .attr("d", function(d) { return line(d.values); });
+
+            this.scatterNodes.selectAll(".sample circle")
+                .transition()
+                .duration(750)
+                .attr("cy", function(d){
+                    return graph.y(d);
+                });
+        };
+
+
+
+
+        var expando = mask.append("g")
+            .style("text-anchor", "middle")
+            .style("font-size", "20px")
+            .style("transform", "translate("+this.width/2+"px, 0)")
+            .style("cursor", "pointer")
+            .append("text")
+            .classed("fa", true)
+            .text("")
+            .on("click", graph.expand);
+
+
+
+        this.showGraph = function() {
+            if(graphSpace.currentGraph) {
+				graphSpace.currentGraph.hideGraph();
+            }
+            graphSpace.currentGraph = this;
+            this.g.style("display", "inherit");
+        };
+
+        this.hideGraph = function() {
+            this.g.style("display", "none");
+		};
+
+		this.add = config.add;
+        this.init = config.init;
+	};
+
+
+	const Sample = function(blob) {
+		this.data = blob;
+        blob.action.text("Loaded!")
+            .datum(blob)
+            .style("cursor", "pointer")
+            .style("user-select", "none")
+            .style("color", blob.color)
+            .on("click", toggleSample);
+	};
+
+    this.removeSample = function(sample) {
+        delete displayedData[sample];
+
+        var svg = d3.selectAll(".svg-"+sample);
+
+        svg.selectAll("circle")
+            .transition()
+            .duration(500)
+            .attr("r", 0)
+            .remove();
+
+        setTimeout(function(){
+            svg.remove();
+        }, 600);
+    };
+
+
+	function toggleSample(d) {
+        var that = d3.select(this);
+
+        if(that.classed("loaded")) {
+            that.classed("loaded", false);
+            that.styles({
+                background: "none",
+                color: graphSpace.color(d.id)
+            });
+            graphSpace.removeSample(d.id);
+        } else {
+            that.classed("loaded", true);
+            that.styles({
+                background: graphSpace.color(d.id),
+                color: "black"
+            });
+
+            if(graphSpace.control) {
+				graphSpace.graphs.forEach(function(graph){
+					graph.add(d);
+				});
+            }
+        }
+	}
+};
+
+
+
+
+
+
+
+/**
+ * Apparently this is from mustache.js
+ * https://stackoverflow.com/a/12034334
+ *
+ * Added for svlist, to sanitise titles, but it doesn't seem to be working.
+ * So I'm commenting it out.
+ * DKGM 22-Nov-2017
+ */
+PathOS.escapeHtml = function(string) {
+    var entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;',
+        '`': '&#x60;',
+        '=': '&#x3D;'
+    };
+
+    return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+        return entityMap[s];
+    });
 };
 
 /**
@@ -107,13 +528,19 @@ PathOS.module = function(config) {
 	function buildHistoryRow(d){
 
 		var type = '';
-		if(d.title.toLowerCase().indexOf('seqrun') >= 0) {
+		if( d.title.toLowerCase().indexOf('seqrun') >= 0 ||
+			d.title.toLowerCase().indexOf('show sequencing run') >= 0) {
 			type = 'Seqrun';
 		} else if(d.title.toLowerCase().indexOf('pubmed') >= 0) {
 			type = 'Pubmed';
-		} else if(d.title.toLowerCase().indexOf('sequenced variants list') >= 0) {
+		} else if(
+			d.title.toLowerCase().indexOf('sequenced variants list') >= 0 ||
+			d.title.toLowerCase().indexOf('edit report') >= 0 ||
+            d.title.toLowerCase().indexOf('show sequenced samples') >= 0 ||
+            d.title.toLowerCase().indexOf('sequenced samples list') >= 0
+		) {
 			type = 'SeqSample';
-		} else if(d.title.toLowerCase().indexOf('curvar') >= 0) {
+		} else if(d.title.toLowerCase().indexOf('curvar') >= 0 || d.title.toLowerCase().indexOf('curated variants list') >= 0) {
 			type = 'CurVariant';
 		} else if(d.title.toLowerCase().indexOf('patient') >= 0) {
 			type = 'PatSample';
@@ -135,6 +562,20 @@ PathOS.module = function(config) {
 	if(config.type) {
 		var content = div.append('div').classed('content', true);
 		switch (config.type) {
+			case 'changelog':
+
+				var versions = Object.keys(config.data);
+
+				versions.forEach(function(version){
+					content.append("h4").text(version).styles({
+						margin: "0 5px"
+					});
+					var list = content.append("ul");
+					config.data[version].forEach(function(d){
+						list.append("li").text(d);
+					});
+				});
+				break;
 			case 'tags':
 
 				var edit = title.append('td').attr('id', 'tags_edit_button')
@@ -211,8 +652,11 @@ PathOS.module = function(config) {
 									};
 									$.ajax({
 										type: "DELETE",
-										url: "/PathOS/tag/removeLink?" + $.param(params),
-										success: function (result) {
+										url: `${PathOS.application}/tag/removeLink?${$.param(params)}`,
+                                        error: function(d){
+                                            alert("You are currently logged out, please refresh the page and log back in.");
+                                        },
+                                        success: function (result) {
 											if(result != 'fail') {
 												$('.tag-'+data.id).remove();
 												if(reloadGrid) {
@@ -235,8 +679,11 @@ PathOS.module = function(config) {
 									};
 									$.ajax({
 										type: "DELETE",
-										url: "/PathOS/tag/removeLink?" + $.param(params),
-										success: function (result) {
+										url: `${PathOS.application}/tag/removeLink?${$.param(params)}`,
+                                        error: function(d){
+                                            alert("You are currently logged out, please refresh the page and log back in.");
+                                        },
+                                        success: function (result) {
 											if(result != 'fail') {
 												$('.tag-'+data.id).remove();
 												if(reloadGrid) {
@@ -337,19 +784,157 @@ PathOS.module.prototype.data = function(){
 	console.log(d);
 };
 
+
+
+
+PathOS.history = {
+    json: [],
+
+    /**
+     * Add a webpage to the history
+     *
+     * example:
+     * PathOS.history.add({
+	 *	title: document.title,
+	 *	url: window.location.href,
+	 *	time: Date()
+     * @param title, url, time
+     */
+    add: function (d){
+        PathOS.history.json.forEach(function(old, i){
+            if(old.title == d.title){
+                PathOS.history.json.splice(i, 1);
+            }
+        });
+        PathOS.history.json.push(d);
+        if(PathOS.history.json.length > 50) {
+            PathOS.history.json = PathOS.history.json.slice(20);
+        }
+        PathOS.data.save("history", PathOS.history.json);
+    },
+    clear: function() {
+        PathOS.history.json = [];
+        PathOS.data.clear("history");
+    },
+    show: function(d) {
+        var arr = PathOS.history.json;
+        var n = d || 10;
+        return (arr.length < n ? arr : arr.slice(arr.length - n)).reverse();
+    },
+    more: function() {
+        var arr = PathOS.history.json;
+        var n = 50;
+
+        return (arr.length < n ? arr : arr.slice(arr.length - n)).reverse().slice(10);
+    },
+    init: function(){
+        PathOS.history.json = PathOS.data.load("history", []);
+    }
+};
+
+
+
+
+
+
+
+
+
 /**
  *
  * @type {{menuVisible: boolean, settings: {}, map: {}, init: PathOS.modules.init, menu: {show: PathOS.modules.menu.show, hide: PathOS.modules.menu.hide}}}
  */
 
+menuItems = [
+	{
+		category: "Sample page",
+        type: "boolean",
+		title: "Compressed view",
+		description: "Use a compressed version of the Sequenced Sample Page.",
+		field: "compressedView"
+	},
+	// {
+	// 	category: "Sample page",
+	// 	type: "boolean",
+	// 	title: "Gene Mask",
+	// 	description: "Skip Gene Mask verification on Sequenced Sample Page.",
+	// 	field: "skipGeneMask"
+	// },
+	{
+		category: "Sample page",
+		type: "dropdown",
+		title: "Number of Sequenced Variants to show",
+		options: [ 20, 100, 200, 1000 ],
+		description: "Default number of Sequenced Variants to load per page on the datagrid.",
+		field: "svlistRows"
+	},
+	{
+        category: "Sample page",
+        type: "dragAndDrop",
+        title: "Sequenced Variants Sorting priority",
+        options: {
+            acmgCurVariant: "ACMG in current Clinical Context",
+            allCuratedVariants: "ACMG in all Clinical Contexts",
+            ampCurVariant: "AMP classifcation",
+            overallCurVariant: "Clinical Significance",
+			reportable: "Reportable"
+		},
+        description: "What values should the Sequenced Variants be sorted on for you?",
+        field: "sortPriority"
+	},
+	{
+		category: "Home page",
+		type: "number",
+		title: "Latest Sequenced Runs",
+		description: "How many sequenced runs should be shown on the home page?",
+		field: "numberOfSeqruns",
+		default: 10
+	},
+	{
+		category: "Home page",
+		type: "panels",
+		title: "Panel Groups",
+		description: "Which panels do you want to see on your home page?"
+	},
+	{
+		category: "Seqrun page",
+		type: "boolean",
+		title: "New Heatmap",
+		description: "Use the new D3 based heatmap.",
+		field: "d3heatmap"
+	},
+	{
+		category: "History",
+        type: "button",
+		title: "Clear History",
+		description: "Clear recently visited PathOS pages.",
+		action: PathOS.history.clear
+	},
+	{
+		category: "Help",
+		type: "links",
+		links: [
+			{
+				title: "Jira",
+				url: "https://atlassian.petermac.org.au/jira/secure/Dashboard.jspa"
+			},
+			{
+				title: "Confluence",
+				url: "https://atlassian.petermac.org.au/confluence/display/PVS/PathOS+Variant+System"
+			}
+		]
+	}
+];
+
+
 PathOS.modules = {
 	menuVisible: false,
 	settings: {},
 	map: {},
-	init: function( options ) {
+	init: function( options ){
 		//get settings if they exist, or use default settings
 
-		console.log("loading module settings");
+		// console.log("loading module settings");
 
 		// Load settings
 		PathOS.modules.settings = PathOS.data.load("modules");
@@ -360,6 +945,7 @@ PathOS.modules = {
 		// If user's settings exist...
 		if (options.user) {
 			PathOS.user = options.user;
+			PathOS.username = options.username;
 			if (PathOS.modules.settings[PathOS.user]) {
 				//set things like reordering tables and history
 				Object.keys(PathOS.modules.settings[PathOS.user].hide).forEach(function (d) {
@@ -374,7 +960,6 @@ PathOS.modules = {
 					}
 				});
 
-
 				if(PathOS.modules.settings[PathOS.user].sidebar[window.location.pathname]) {
 					if (PathOS.modules.settings[PathOS.user].sidebar[window.location.pathname] == 'show') {
 						d3.select("#wrapper").classed("toggled", false);
@@ -387,15 +972,6 @@ PathOS.modules = {
 					}
 				}
 
-
-
-
-
-
-
-
-
-
 			} else {
 				PathOS.modules.settings[PathOS.user] = {
 					sidebar: {},
@@ -405,7 +981,6 @@ PathOS.modules = {
 				PathOS.data.save("modules", PathOS.modules.settings);
 			}
 		}
-
 
 
 		d3.select("#sidebar-footer")
@@ -424,119 +999,370 @@ PathOS.modules = {
 	},
 	menu: {
 		show: function(){
-			console.log("showing settings!");
+			var menu = PathOS.overlay.init();
 
-			var menubox = d3.select('body')
-				.append('div')
-				.attr('id', 'overlay')
-				.on('click', PathOS.modules.menu.hide)
-			.append('div').on('click', function() { d3.event.stopPropagation(); })
-				.attr('id', 'moduleMenu')
-				.classed('outlined-box', true);
+			menu.attr("id", "PathOS-options");
 
-			menubox.append('a').attr('href', '#').on('click', PathOS.modules.menu.hide)
-				.append("i").classed("fa fa-close fa-lg", true);
-
-			menu = menubox.append("div");
-
-			header = menu.attr('id', 'mmHeader')
+			menu.append("div").attr('id', 'mmHeader')
 				.append('h1').text("PathOS Options");
 
+			$.ajax({
+				url: `${PathOS.application}/preferences/fetchPreferences`,
+                error: function(d){
+                    alert("You are currently logged out, please refresh the page and log back in.");
+                },
+                success: function(d){
+                    preferences = d.preferences;
+                    // console.log(preferences);
 
-			function deselectIGV(){
-				d3.selectAll("#IGV-options a").classed("selected", false);
-			}
+                    if(PathOS.user) {
+                        var prevCategory = "";
 
-			if(PathOS.user) {
-				var igv = menu.append("p")
-					.attr('id', "IGV-options")
-					.text("IGV.js Options: ");
+                        menu.append("table")
+							.attr("id", "menuItems")
+                            .selectAll("tr")
+                            .data(menuItems)
+                            .enter()
+                            .append("tr")
+                            .each(function(d, i){
+                                var row = d3.select(this);
 
-				igv.append("p").text("In-browser IGV (also known as IGV.js) can load in the background while you browse PathOS. It can also downsample reads, which will make larger runs easier for your computer to handle.");
+                                if(prevCategory == d.category) {
+                                    row.append('td');
+                                } else {
+                                    row.append('td').text(d.category);
+                                }
+                                prevCategory = d.category;
 
-				igv.append("a")
-					.attr('href',"#")
-					.attr('id', "svlist-igv-auto")
-					.text("Auto Load (no downsampling)")
-					.on("click", function(){
-						deselectIGV();
-						d3.select(this).classed("selected", true);
-						PathOS.modules.settings[PathOS.user].svlistIGV = "auto";
-						PathOS.data.save("modules", PathOS.modules.settings);
-					});
-				igv.append("a")
-					.attr('href', "#")
-					.attr('id',"svlist-igv-downsample")
-					.text("Auto Load (downsample to 2500)")
-					.on("click", function(){
-						deselectIGV();
-						d3.select(this).classed("selected", true);
-						PathOS.modules.settings[PathOS.user].svlistIGV = "downsample";
-						PathOS.data.save("modules", PathOS.modules.settings);
-					});
-				igv.append("a")
-					.attr('href',"#")
-					.attr('id', "svlist-igv-ask")
-					.text("Ask Before Loading IGV.js")
-					.on("click", function(){
-						deselectIGV();
-						d3.select(this).classed("selected", true);
-						PathOS.modules.settings[PathOS.user].svlistIGV = "ask";
-						PathOS.data.save("modules", PathOS.modules.settings);
-					});
+                                var box = row.append('td');
+                                box.append("h3").text(d.title);
+                                // box.append("p").text(d.description);
+
+                                switch (d.type) {
+                                    case "boolean":
+										var thisBoolean = false;
+										if(preferences && preferences[d.field]) {
+                                            thisBoolean = preferences[d.field];
+										}
+
+                                        var div = box.append("div").classed("checkbox-div", true);
+                                        div.append("input").attrs({
+                                            type: "checkbox",
+                                            id: d.field
+                                        }).property("checked", thisBoolean);
+                                        div.append("label").attrs({
+                                            for: d.field
+                                        }).text(d.description);
+                                        break;
+
+									case "dropdown":
+                                        var select = box.append("select")
+											.attr("id", d.field);
+                                        box.append("p").text(d.description);
+                                        d.options.forEach(function(option){
+                                            var thing = select.append("option")
+                                                .attr("value", option)
+                                                .text(option);
+                                            if(preferences && option == preferences[d.field]) {
+                                                thing.attr("selected", true);
+											}
+                                        });
+                                        break;
+
+									case "dragAndDrop":
+                                        console.log(preferences);
+
+										var dsp = box.append('ol').attr("id", 'draggable-sortPriority');
+										var priority = preferences.sortPriority || "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable";
+
+										priority = priority.split(",");
+
+										console.log(priority);
+										priority.forEach(function(field) {
+											dsp.append("li").classed("ui-state-default ui-sortable-handle", true)
+												.datum(field)
+												.append("span").text(d.options[field]);
+										});
+
+										$("#draggable-sortPriority")
+											.sortable()
+											.disableSelection();
+
+										break;
+
+                                    case "number":
+
+                                    	var thisNumber = d.default;
+                                    	if(preferences && preferences[d.field]) {
+                                    		thisNumber = preferences[d.field];
+										}
+
+                                        box.append("p").text(d.description);
+                                        box.append("input")
+											.attr("id", d.field)
+											.style("width", "150px")
+											.attr("value", thisNumber);
+                                        break;
+
+                                    case "button":
+                                        box.append("input")
+											.classed("menuButton", true)
+                                            .attr("type","button")
+                                            .attr("value", d.description)
+											.on("click", d.action);
+                                        break;
+
+                                    case "links":
+                                        d.links.forEach(function(link){
+                                            box.append("a")
+                                                .attrs({
+                                                    target: "_blank",
+                                                    href: link.url
+                                                }).text(link.title);
+                                        });
+                                        break;
+
+                                    case "panels":
+                                    	var thisPanelList = "";
+										if (preferences && preferences.panelList) {
+                                            thisPanelList = preferences.panelList;
+										}
 
 
-				if(PathOS.modules.settings[PathOS.user]) {
-					var svlistIGV = PathOS.modules.settings[PathOS.user].svlistIGV;
-					if (typeof svlistIGV  == 'undefined' || svlistIGV == 'ask') {
-						d3.select("#svlist-igv-ask").classed("selected", true);
-					} else if (svlistIGV == 'downsample' ) {
-						d3.select("#svlist-igv-downsample").classed("selected", true);
-					} else if (svlistIGV == 'auto' ) {
-						d3.select("#svlist-igv-auto").classed("selected", true);
-					}
-				}
+                                    	var panelDiv = box.append("div");
+										panelDiv.append("p")
+											.text("Panels being shown: ")
+											.append("span")
+											.datum(thisPanelList)
+											.text(thisPanelList ? thisPanelList.split(",").join(", ") : "All panels.")
+											.attr("id", "previousPanels");
+
+                                        panelDiv.append("a").attrs({
+											id: "lookUpPanelButton",
+                                            href: "#lookupPanels"
+                                        }).on("click", function(d){
+                                            panelDiv.remove();
+
+                                            $.ajax({
+                                                url: `${PathOS.application}/Panel/fetchAllData`,
+                                                error: function(d){
+                                                    alert("You are currently logged out, please refresh the page and log back in.");
+                                                },
+                                                success: function(data){
+                                                    // console.log(data);
+
+                                                    var groups = {};
+                                                    data.forEach(function(panel){
+                                                        var blob = {
+                                                            manifest: panel[0],
+                                                            group: panel[1],
+                                                            description: panel[2]
+                                                        };
+
+                                                        groups[blob.group] = groups[blob.group] || [];
+                                                        groups[blob.group].push(blob);
+
+                                                    });
+
+                                                    var groupNames = Object.keys(groups).sort();
+
+                                                    var panels = box
+                                                        .append("div")
+														.attr("id", "panelMenu");
+
+                                                    panels.selectAll("div.panelSelector")
+                                                        .data(groupNames)
+                                                        .enter()
+                                                        .append("div")
+														.classed("panelSelector", true)
+                                                        .each(function(group, i){
+                                                            var panelSelector = d3.select(this);
+                                                            panelSelector.attr("id", `panelSelectorDiv-${i}`);
 
 
-				menu.append("p")
-					.text("PathOS History: ")
-				.append("a")
-					.text("Clear History")
-					.attr("href", "#")
-					.attr('id', 'clearHistory')
-					.on("click", function(){
-						PathOS.data.clear("history");
-						alert("History Cleared!");
-					});
-			}
+                                                            var data = groups[group].sort((a,b) => b.manifest - a.manifest);
 
-			var links = menu.append('p').attr('id','pathos-menu-links').text("Links to: ");
+                                                            var header = panelSelector.append("span")
+																.classed("panelGroupHeader", true);
+                                                            header.append("input").attrs({
+                                                                // checked: preferences[d.field],
+                                                                type: "checkbox",
+                                                                id: "panelSelector-"+i
+                                                            }).on("change", function(d){
+                                                            	var newSetting = d3.select(this).property("checked");
 
-			links.append("a")
-				.attr('href', "https://vm-115-146-91-157.melbourne.rc.nectar.org.au/jira/secure/Dashboard.jspa")
-				.text("Jira");
-			links.append("span").text(" - ");
-			links.append('a').attr('href', 'https://vm-115-146-91-157.melbourne.rc.nectar.org.au/confluence/display/PVS/PathOS+Variant+System').text("Confluence");
-			links.append("span").text(" - ");
-			links.append('a').attr('href', 'http://pathos.co/help').text("Help");
+                                                                panelSelector.selectAll("input[type='checkbox']")
+																	.property("checked", newSetting);
+															});
+
+                                                            // property('checked', true);
+
+                                                            header.append("label").attrs({
+                                                                for: "panelSelector-"+i
+                                                            }).text(group);
+
+                                                            var body = panelSelector.append("div")
+																.attr("id", `panelSelectorManifests-${i}`);
+
+                                                            data.forEach(function(manifest, j){
+                                                                var span = body.append("span")
+																	.attr("title", manifest.description);
+
+                                                                var checkbox = span.append("input").attrs({
+                                                                    // checked: preferences[d.field],
+                                                                    type: "checkbox",
+																	class: "manifestCheckbox",
+                                                                    id: `manifest-${i}-${j}`
+                                                                }).datum(manifest.manifest).on("change", function(d){
+                                                                    var newSetting = d3.select(this).property("checked");
+
+                                                                    if(newSetting) {
+                                                                    	var anyUnchecked = false;
+                                                                    	body.selectAll("input[type='checkbox']")
+																			.each(function(d){
+																				if(!d3.select(this).property("checked")) {
+                                                                                    anyUnchecked = true;
+																				}
+																			});
+                                                                    	if(!anyUnchecked) {
+                                                                    		header.select("input[type='checkbox']").property("checked", true);
+																		}
+																	} else {
+                                                                        header.select("input[type='checkbox']").property("checked", false);
+																	}
+																});
+
+                                                                if(thisPanelList.indexOf(manifest.manifest) >= 0) {
+                                                                    checkbox.property("checked", true);
+                                                                    var anyUnchecked = false;
+                                                                    body.selectAll("input[type='checkbox']")
+                                                                        .each(function(d){
+                                                                            if(!d3.select(this).property("checked")) {
+                                                                                anyUnchecked = true;
+                                                                            }
+                                                                        });
+                                                                    if(!anyUnchecked) {
+                                                                        header.select("input[type='checkbox']").property("checked", true);
+                                                                    }
+																}
+
+                                                                span.append("label").attrs({
+                                                                    for: `manifest-${i}-${j}`
+                                                                }).text(manifest.manifest);
+															});
+
+                                                        });
+
+                                                }
+                                            });
+                                        }).text("Look up panels");
+                                        break;
+                                    default:
+                                }
 
 
-			//Turn off hotkeys, and make "esc" hide the menu
-			PathOS.hotkeys.off();
-			$('body').on('keydown', function(e){
-				if(e && e.keyCode && e.keyCode == 27 && !$(document.activeElement).is("input") && !$(document.activeElement).is("textarea") && !e.altKey && !e.metaKey && !e.ctrlKey){
-					PathOS.modules.menu.hide();
+
+/*
+$("#compressedView").is(':checked')
+$("#skipGeneMask").is(':checked')
+$('#svlistRows option:selected').text()
+ */
+
+
+
+
+
+                            });
+
+                        var saveAndResetDiv = menu.append("div").attr("id", "saveAndReset");
+
+                        saveAndResetDiv.append("a").attrs({
+							id: "menuSaveButton",
+							href: "#save"
+						}).text("Save")
+							.on("click", function(d){
+
+								var panelList = "";
+								if(d3.select("#previousPanels").data()[0]) {
+                                    panelList = d3.select("#previousPanels").data()[0];
+								} else if(d3.select("#previousPanels").data()[0] === "") {
+									// console.log("Show all panels");
+                                } else if(d3.select("#panelMenu").datum()) {
+									panelList = d3.selectAll(".manifestCheckbox:checked").data().join();
+								}
+
+								var package = {
+									panelList: panelList,
+									numberOfSeqruns: $("#numberOfSeqruns").val(),
+									svlistRows: $("#svlistRows").val(),
+									// skipGeneMask: $("#skipGeneMask").is(':checked'),
+									sortPriority: d3.selectAll("#draggable-sortPriority li").data().join(','),
+									compressedView: $("#compressedView").is(':checked'),
+                                    d3heatmap: $("#d3heatmap").is(':checked')
+								};
+
+								// console.log("Package is", package);
+
+								$.ajax({
+									url: `${PathOS.application}/preferences/saveSettings`,
+									type: "POST",
+									success: function(d){
+										// console.log("Hey!");
+										// console.log(d);
+										alert("Preferences saved, reloading window.");
+										location.reload();
+
+									},
+                                    error: function(e) {
+                                        console.error(e);
+										alert("You are currently logged out, please refresh the page and log back in.");
+                                    },
+                                    contentType: "application/json; charset=utf-8",
+                                    dataType: "json",
+                                    data: JSON.stringify(package)
+								});
+
+							}
+						);
+
+                        saveAndResetDiv.append("a").attrs({
+                            id: "menuResetBUtton",
+                            href: "#reset"
+                        }).text("Reset Settings")
+                            .on("click", function(d){
+                                $.ajax({
+                                    url: `${PathOS.application}/preferences/deleteSettings`,
+                                    success: function(d){
+                                        alert("Your preferences have been reset.");
+                                        location.reload();
+                                    },
+									error: function(e) {
+                                    	console.error(e);
+                                        alert("You are currently logged out, please refresh the page and log back in.");
+									}
+                                });
+                            });
+
+
+                    } else {
+                        var links = menu.append("div")
+                            .attr('id','pathos-menu-links')
+                            .classed("row", true)
+                            .append('p')
+                            .text("Links to: ");
+
+                        links.append("a")
+                            .attr('href', "https://atlassian.petermac.org.au/jira/secure/Dashboard.jspa")
+                            .text("Jira");
+                        links.append("span").text(" - ");
+                        links.append('a').attr('href', 'https://atlassian.petermac.org.au/confluence/display/PVS/PathOS+Variant+System').text("Confluence");
+                        links.append("span").text(" - ");
+                        links.append('a').attr('href', 'http://pathos.co/help').text("Help");
+                    }
+
+
 				}
 			});
-		},
-		hide: function(){
-			console.log("hiding settings!");
-
-			// Get rid of the menu
-			d3.select("#overlay").remove();
-			// Bring back the hotkeys...
-			PathOS.hotkeys.init();
-
 		}
 	}
 };
@@ -547,7 +1373,6 @@ PathOS.modules = {
  *
  * DKGM 21-October-2016
  *
- * @type {{showCV: PathOS.svlist.showCV, closeCV: PathOS.svlist.closeCV}}
  */
 
 PathOS.svlist = {
@@ -556,7 +1381,7 @@ PathOS.svlist = {
 		'pathAloneKnown':"Same missense change as a previously established pathogenic variant",
 		'pathStrongFunction':"Well-established in vitro or in vivo functional studies support a deleterious effect on the gene or gene product",
 		'pathStrongCase':"Case-control studies show enrichment in cases",
-		'pathStrongCoseg':"<b><i>For familial cancer only:</i></b> Proband's family study shows co-segregation with cancer",
+		'pathStrongCoseg':"<b>For familial cancer only:</b> Proband's family study shows co-segregation with cancer",
 		'pathSupportHotspot':"Located near a known mutational hot-spot or within a well-characterised functional domain",
 		'pathSupportGene':"Occurs in a gene with high clinical specificity and sensitivity for the cancer",
 		'pathSupportInsilico':"Multiple types of computational evidence support a deleterious effect on the gene or gene product (PolyPhen, SIFT, Mutation Taster ,conservation, evolution, splicing)",
@@ -565,17 +1390,49 @@ PathOS.svlist = {
 		'pathSupportIndel':"In-frame deletion/insertion in a well characterised functional domain",
 		'pathSupportNovelMissense':"Novel missense change at an amino acid where a different missense change is pathogenic",
 		'pathSupportLsdb':"Noted as pathogenic in a curated locus specific database",
-		'pathSupportCoseg':"<b><i>For familial cancer only:</i></b> Proband's family study shows co-segregation with disease",
+		'pathSupportCoseg':"<b>For familial cancer only:</b> Proband's family study shows co-segregation with disease",
 		'benignAloneGmaf':"Exists in ESP and 1000 Genomes >= 0.4% GMAF",
-		'benignAloneHealthy':"<b><i>For familial cancer only:</i></b> For a fully penetrant cancer syndrome, observed in a healthy adult individual",
+		'benignAloneHealthy':"<b>For familial cancer only:</b> For a fully penetrant cancer syndrome, observed in a healthy adult individual",
 		'benignStrongFunction':"Well-established in vitro or in vivo functional studies shows no deleterious effect on protein function or splicing",
 		'benignStrongCase':"Case control studies show comparable frequencies",
-		'benignStrongCoseg':"<b><i>For familial cancer only:</i></b> Variant fails to co-segregate with disease in a family study",
+		'benignStrongCoseg':"<b>For familial cancer only:</b> Variant fails to co-segregate with disease in a family study",
 		'benignSupportVariable':"Located in a region without a characterised function or away from known mutation hot-spots",
 		'benignSupportInsilico':"Multiple types of computational evidence suggest no impact on gene or gene product (PolyPhen, SIFT, Mutation Taster, conservation, evolution, splicing)",
 		'benignSupportSpectrum':"Type of variant does not fit known mutation spectrum for the gene",
 		'benignSupportLsdb':"Noted as benign in a curated locus specific database",
-		'benignSupportPath':"<b><i>For familial cancer only:</i></b> For a fully penetrant cancer syndrome, observed with another pathogenic variant in the same individual"
+		'benignSupportPath':"<b>For familial cancer only:</b> For a fully penetrant cancer syndrome, observed with another pathogenic variant in the same individual"
+	},
+	acmgCriteria: {
+        PVS1: "Null Variants",
+        PS1: "Established Pathogenic Variant",
+        PS2: "Confirmed de novo variant",
+        PS3: "Functional studies support damaging effect",
+        PS4: "Enrichment in cases",
+        PM1: "Mutational hotspot/functional domain",
+        PM2: "Absent from population studies",
+        PM3: "Detected <i>in trans</i>",
+        PM4: "Protein length changes",
+        PM5: "Novel missense change",
+        PM6: "Assumed de novo",
+        PP1: "Cosegregation with disease",
+        PP2: "Missense variants are a common mechanism of disease",
+        PP3: "Computational evidence shows deleterious effect",
+        PP4: "Patient's phentoype/family history highly specific for the disease",
+        PP5: "Sources report as pathogenic",
+        BA1: "In population studies >5%",
+        BS1: "High allele frequency",
+        BS2: "Observed in a healthy adult",
+        BS3: "Functional studies show no damaging effect",
+        BS4: "Lacking segregation",
+        BP1: "Does not fit mutational spectrum",
+        BP2: "Observed with another pathogenic variant",
+        BP3: "In-frame deletions/insertions in a region without a known function",
+        BP4: "Computational evidence shows no impact",
+        BP5: "Alternate molecular basis for disease",
+        BP6: "Sources report as benign",
+        BP7: "Predicted as benign synonymous variant"
+	},
+	ampCriteria: {
 	},
 	// Clin Context Comparitor
 	// DKGM 18-Nov-2016
@@ -592,456 +1449,499 @@ PathOS.svlist = {
 			}
 		}
 		return result;
-	},
-	createCV: function ( sv ) {
-		console.log("Ok, I guess we're making a CV now...");
-		console.log("Your sv is: "+sv);
-		console.log(this);
-
-		var cc = $("#newCVcc").val();
-
-		var params = {
-			id: sv,
-			cc: cc
-		};
-		$.ajax({
-			type: "POST",
-			url: "/PathOS/CurVariant/newCV?" + $.param(params),
-			success: function (d) {
-				if (typeof d == "string") {
-					alert(d);
-				} else {
-					console.log(d);
-				}
-			},
-			cache: false,
-			contentType: false,
-			processData: false
-		});
-	},
-	saveCV: function ( cv ) {
-		var report = 'fail';
-		var evidence = 'lol';
-
-		report = $("#cv-"+cv+" .report").val();
-		evidence = $("#cv-"+cv+" .evidence").val();
-
-
-		var params = {
-			id: cv,
-			report: report,
-			evidence: evidence
-		};
-		$.ajax({
-			type: "POST",
-			url: "/PathOS/CurVariant/updateCV?" + $.param(params),
-			success: function (d) {
-				if (typeof d == "string") {
-					alert(d);
-				} else {
-					console.log(d);
-					//if (div.select(".tag-"+ d.id).empty()) {
-					//	PathOS.tags.drawTag(div, d, true);
-					//	$('#tag_text_area').val('');
-					//}
-				}
-			},
-			cache: false,
-			contentType: false,
-			processData: false
-		});
-
-		console.log("Trying to save: "+cv);
-		console.log("report is: "+report);
-		console.log("evidence is: "+evidence);
-	},
-
-	/**
-	 * DKGM 21-November-2016
-	 *
-	 * Call this function from the svlist page to build an overlay.
-	 * The overlay will show all Curated Variants for a specified Sequenced Variant.
-	 *
-	 * Build the overlay, then do an ajax call for the information.
-	 * Key info:
-	 * - SeqVariant info
-	 * - List of Curated Variants
-	 *
-	 * @param sv
-     */
-
-	showCVs: function( sv ) {
-		console.log("Showing all Curated Variants for this Sequenced Variant");
-
-
-// Build the Overlay
-		var cvbox = d3.select('body')
-			.append('div')
-			.attr('id', 'overlay')
-			.on('click', PathOS.svlist.closeCV)
-			.append('div').on('click', function() { d3.event.stopPropagation(); })
-			.attr('id', 'show-cv')
-			.classed('outlined-box', true)
-			.classed("container", true);
-
-		cvbox.append('a').attr('href', '#').on('click', PathOS.svlist.closeCV)
-			.append("i").classed("fa fa-close fa-lg", true);
-
-		var cvdiv = cvbox.append("div");
-
-		cvdiv.append("img")
-			.classed("loading_logo", true)
-			.attr("id", "cv-loading")
-			.attr("src", "/PathOS/dist/img/pathos_logo_animated.svg");
-
-		$.ajax("/PathOS/SeqVariant/lookUpCVs?id="+sv, {success:function(d){
-			d3.select("#cv-loading").remove();
-			console.log(d);
-
-			var header = cvdiv.attr('id', 'cvHeader')
-				.append('h1').text("Sequenced Variant: "+ d.sv.hgvsc);
-
-			console.log( "SV id is: " + sv );
-
-			var infobox = cvdiv.append("div")
-				.attr("id", "sv-info")
-				.classed("row", true);
-
-			//infobox.append("div")
-			//	.classed("outlined-box", true)
-			//	.append("h2")
-			//	.text("Info to go in here");
-// Add info about the seqvariant
-//
-			var seqVarBox = infobox.append("div")
-				.classed("outlined-box", true)
-				.classed("col-xs-5 col-xs-offset-1", true)
-				.attr("id", "sv-infobox-div");
-
-			seqVarBox.append("h2").text("Sequenced Variant information:");
-
-			svClinContext = "None";
-			if (d.sv.clinContext) {
-				svClinContext = d.lookup.context(d.sv.context.id);
-			}
-			var box1 = {
-				"Gene": d.sv.gene,
-				"HGVSC": d.sv.hgvsc,
-				"HGVSG": d.sv.hgvsg,
-				"HGVSP": d.sv.hgvsp,
-				"Clinical Context (from sample)": svClinContext,
-				"Consequences": d.sv.consequence,
-				"Variant Caller": d.sv.varcaller,
-				"Amplicon Count": d.sv.numamps,
-				"Amplicon Bias": d.sv.ampbias
-			};
-			var box2 = {
-				"Variant Frequency": d.sv.varFreq,
-				"Variant Depth": d.sv.varDepth,
-				"Panel Var %": d3.format(".4")(d.sv.varPanelPct)+"%",
-				"dbSNP": d.sv.dbsnp,
-				"GMAF %": d.sv.gmaf,
-				"ESP %": d.sv.esp,
-				"ExAC %": d.sv.exac,
-				"Cosmic": d.sv.cosmic ? "<a target='_blank' href='/PathOS/seqVariant/cosmicAction?id='"+ d.sv.id+" title='"+ d.sv.cosmicOccurs+"'>COSM"+ d.sv.cosmic+"</a>" : "",
-				"Exon": d.sv.exon,
-				"Cytoband": d.sv.cytoband,
-				"CADD Raw": d3.format("(.2f")(d.sv.cadd),
-				"CADD Scaled": d3.format("(.2f")(d.sv.cadd_phred)
-			};
-
-			drawTable(box1, seqVarBox);
-
-			var otherBox = infobox.append("div")
-				.classed("outlined-box", true)
-				.classed("col-xs-5", true)
-				.attr("id", "cv-infobox-div");
-
-			drawTable(box2, otherBox);
-
-// Add info about the Preferred Curated Variant
-//			var preferredCVbox = infobox.append("div")
-//				.classed("outlined-box", true)
-//				.classed("col-xs-3", true)
-//				.attr("id", "cv-infobox-div");
-//			preferredCVbox.append("h2").text("Curated Variant Information:");
-//
-//			svClinContext = "None";
-//			if (d.sv.clinContext) {
-//				svClinContext = d.lookup.context(d.sv.context.id);
-//			}
-//
-//			var tempPmClass = null;
-//			if (d.preferred && d.preferred.pmClass) {
-//				tempPmClass = d.preferred.pmClass;
-//			}
-//
-//			var preferredData = {
-//				"Classification": tempPmClass,
-//				"Classified By": d.lookup.classified,
-//				"Authorised By": d.lookup.authorised,
-//				"Or maybe": "The person who classified this variant",
-//				"And also": "The people who verified it"
-//			};
-//			drawTable(preferredData, preferredCVbox);
-//
-//
-//
-//			var buttons = infobox.append("div")
-//				.attr("id", "cv-buttons")
-//				.classed("xs-col-4", true)
-//				.classed("outlined-box", true);
-//
-//
-//			var newCV = buttons.append("div").classed("outlined-box", true);
-//
-//			newCV.append("h4").text("Add a new CV");
-//			newCV.append("input")
-//				.attr("id", "newCVcc")
-//				.attr("placeholder", "Pick a Clinical Context");
-//
-//			var ccArray = [];
-//			d.lookup.listOfCC.forEach(function(cc){
-//				ccArray.push(cc.description);
-//			});
-//			console.log(ccArray);
-//
-//			$("#newCVcc").autocomplete({source: ccArray});
-//
-//			newCV.append("a")
-//				.attr("href","#none")
-//				.attr("onclick", "PathOS.svlist.createCV("+ d.sv.id+")")
-//				.text("Create a new CV");
-//
-//
-//
-//
-//
-//
-//			buttons.append("a").attr("href","#na").text("Add new CV").classed("cv-button", true);
-//			buttons.append("br");
-//			buttons.append("a").attr("href","#na").text("Another button to do another thing").classed("cv-button", true);
-//			buttons.append("br");
-//			buttons.append("a").attr("href","#na").text("More buttons!").classed("cv-button", true);
-
-
-
-			cvdiv.append("h1").text("Curated Variants:");
-			var row = cvdiv.append("div")
-				.classed("row", true)
-				.attr("id", "cv-list");
-
-			var table = row.append('table');
-
-			var thead = table.append("thead").append("tr");
-
-			thead.append("th").text("Context").style("width", "15%");
-			thead.append("th").text("Report Description");
-			thead.append("th").text("Evidence Description");
-			thead.append("th").text("Classification");
-
-			var tbody = table.append("tbody");
-			var cv = null;
-			var evidence = null;
-			if(d.generic) {
-				if(d.currentCV && d.currentCV.id != d.generic.id) {
-					addCVrow(d.generic, false);
-					addCVrow(d.currentCV, true);
-				} else {
-					addCVrow(d.generic, true);
-				}
-			}
-			d.otherCVs.forEach(function(data){
-				addCVrow(data, false);
-			});
-
-			function addCVrow(data, highlight){
-				var label = "Generic",
-					id = data.id;
-				if(data.clinContext) {
-					label = d.lookup.context[data.clinContext.id];
-				}
-				cv = tbody.append("tr")
-					.classed("current-context-cv", highlight);
-				if(highlight){
-					cv.append("td").append("h2").html("Current Context<br>")
-						.append("a")
-						.attr("href", "/PathOS/curVariant/show?id=" + data.id)
-						.text(label);
-				} else {
-					cv.append("td")
-						.append("a")
-						.attr("href", "/PathOS/curVariant/show?id=" + data.id)
-						.text(label);
-				}
-				cv.append("td").append("textarea").attr("readonly", true).style("width", "100%").text(data.reportDesc);
-				cv.append("td").append("textarea").attr("readonly", true).style("width", "100%").text(data.evidence.justification);
-
-				evidence = cv.append("td");
-
-				var pmClass = data.pmClass.split(":")[0];
-				evidence.append("p")
-					.text(data.pmClass)
-					.classed("cvlabel cv-"+pmClass, true);
-
-				var count = 0;
-
-				var button = evidence.append("a")
-					.attr("href", "#none")
-					.on("click", function(d){
-						console.log("cliccckinggggg");
-						$("#evidence-list-"+id).toggleClass("hidden");
-					});
-
-				var list = evidence.append("ul")
-					.attr("id", "evidence-list-"+id)
-					.classed("hidden", true);
-
-				Object.keys(PathOS.svlist.evidence).forEach(function(key){
-					if(data.evidence[key]) {
-						count++;
-						list.append('li').html(PathOS.svlist.evidence[key]);
-					}
-				});
-				button.text("Show Evidence ("+count+")");
-			}
-
-
-
-
-
-
-
-
-            //
-            //
-            //
-			//var name = row.append("div").classed("col-xs-1 outlined-box", true);
-            //
-			//var left = row.append("div").classed("col-xs-3 outlined-box", true);
-            //
-			//var middle = row.append("div").classed("col-xs-3 outlined-box", true);
-            //
-			//var right = row.append("div").classed("col-xs-5 outlined-box", true);
-            //
-			//name.append("h4").text("Name")
-			//	.classed("cv-header", true);
-			//left.append("h4").text("Generic Curated Variant")
-			//	.classed("cv-header", true);
-			//middle.append("h4").text("Preferred Curated Variant")
-			//	.classed("cv-header", true);
-            //
-			//right.append("h4").text("Other Curated Variants")
-			//	.classed("cv-header", true);
-            //
-            //
-            //
-			//name.append("div").append("p").text("Clinical Context").classed("cc-header", true);
-			//name.append("div").append("p").text("Report Description").classed("report", true);
-			//name.append("div").append("p").text("Evidence").classed("evidence", true);
-            //
-            //
-            //
-			//drawCVs(
-			//	left, //.append("table").append("tbody").append("trow").append("td").append("div"),
-			//	d.generic,
-			//	d.lookup
-			//);
-            //
-			//drawCVs(
-			//	middle, //.append("table").append("tbody").append("trow").append("td").append("div"),
-			//	d.preferred,
-			//	d.lookup
-			//);
-            //
-			//var otherCVs = right.append("table").append("tbody").append("trow");
-			//d.otherCVs.forEach(function(cv){
-			//	drawCVs(
-			//		otherCVs.append("td").classed("cv-td", true).append("div"),
-			//		cv,
-			//		d.lookup
-			//	);
-			//});
-            //
-
-
-
-		}});
-
-		function drawCVs(div, cv, lookup) {
-			console.log(cv);
-
-			div.attr("id", "cv-"+cv.id);
-
-			var cc = "Generic";
-			if (cv.clinContext !== null) {
-				cc = lookup.context[cv.clinContext.id];
-			}
-
-			// Clinical Context...
-			div.append("div")
-				.append("p")
-				.text(cc);
-
-			div.append("a")
-				.attr("href","#na")
-				.attr("onclick", "PathOS.svlist.saveCV("+ cv.id +")")
-				.text("Save CV")
-				.classed("cv-button", true);
-
-			// Report Description...
-			div.append("div")
-				.append("textarea")
-				.classed("report", true)
-				.html(cv.reportDesc);
-
-			// Evidence Justification...
-			div.append("div")
-				.append("textarea")
-				.classed("evidence", true)
-				.html(cv.evidence.justification);
-		}
-
-		function drawTable(info, infobox){
-			infobox.select("table").remove();
-
-			var table = infobox.append("table")
-				.attr("id", "svInfoTable")
-				.classed("infoTable", true);
-
-			var tbody = table.append("tbody");
-
-			Object.keys(info).forEach(function(row){
-				var r = tbody.append("tr");
-				r.append("td").html(row).classed("property-label", true);
-				r.append("td").html(info[row]).classed("property-value", true);
-			});
-		}
-
-
-
-
-		//Turn off hotkeys, and make "esc" hide the menu
-		PathOS.hotkeys.off();
-		$('body').on('keydown', function(e){
-			if(e && e.keyCode && e.keyCode == 27 && !$(document.activeElement).is("input") && !$(document.activeElement).is("textarea") && !e.altKey && !e.metaKey && !e.ctrlKey){
-				PathOS.svlist.closeCV();
-			}
-		});
-	},
-	closeCV: function(){
-		console.log("closing CV!");
-
-		// Get rid of the menu
-		d3.select("#overlay").remove();
-		// Bring back the hotkeys...
-		PathOS.hotkeys.init();
-
 	}
 };
 
 
+PathOS.overlay = {
+	init: function(options) {
+		options = options || {};
+		var styles = options.styles || {};
+		var attrs = options.attrs || {};
 
+
+		var overlay = d3.select('body')
+			.append('div')
+                .attr('id', 'overlay')
+                .on('click', PathOS.overlay.close)
+                .append('div')
+                    .on('click', function() { d3.event.stopPropagation(); })
+                    .attr("id", "overlay-dialog-box")
+                    .attrs(attrs)
+                    .styles(styles)
+                    .classed('outlined-box', true)
+                    .classed("container", true);
+
+		overlay.append('a')
+            .attr('href', '#closeOverlay')
+            .on('click', PathOS.overlay.close)
+			.append("i").classed("fa fa-close fa-lg", true);
+
+		var box = overlay.append("div");
+
+		box.append("div")
+			.attr("id", "overlay_loading")
+			.append("img")
+			.classed("loading_logo", true)
+			.attr("src", `${PathOS.application}/dist/images/pathos_logo_animated.svg`);
+
+		PathOS.hotkeys.off();
+		$('body').on('keydown', function(e){
+			if(e && e.keyCode && e.keyCode == 27 && !$(document.activeElement).is("input") && !$(document.activeElement).is("textarea") && !e.altKey && !e.metaKey && !e.ctrlKey){
+				PathOS.overlay.close();
+			}
+		});
+
+		if(options && options.callback) options.callback(PathOS.overlay.loaded);
+		else PathOS.overlay.loaded();
+
+		return box;
+	},
+	loaded: function() {
+		d3.select("#overlay_loading").remove();
+	},
+	close: function() {
+		d3.select("#overlay").remove();
+		d3.select("#overlay-dialog-box").remove();
+		PathOS.hotkeys.init();
+	},
+	drawTable: function(box, info, id){
+		box.select("table").remove();
+
+		var table = box.append("table")
+			.attr("id", id)
+			.classed("infoTable", true);
+
+		var tbody = table.append("tbody");
+
+		Object.keys(info).forEach(function(row){
+			var r = tbody.append("tr");
+			r.append("td").html(row).classed("property-label", true);
+			r.append("td").html(info[row]).classed("property-value", true);
+		});
+	}
+};
+
+
+PathOS.curVariant = {
+	init: function(data) {
+		console.log("Drawing a cur variant?");
+		console.log(data);
+	}
+};
+
+/**
+ * This bundle is for the variant viewer.
+ */
+PathOS.variant = {
+	viewer: function( data ) {
+console.log("loading variant viewer", data);
+
+		var hgvsg = data.hgvsg || "",
+			svid = data.svid || null,
+			contextCode = data.contextCode || "";
+
+		var box = {
+			overlay: PathOS.overlay.init()
+		};
+
+		box.overlay.attrs({
+			id: "variantViewer"
+		});
+
+		box.title = box.overlay.append("h1").text("Variant: "+hgvsg);
+
+
+
+		// First info section
+
+		box.info = {
+			row: box.overlay.append("div").classed('row', true)
+		};
+
+		box.info.left = box.info.row.append("div").classed('col-xs-6', true);
+		box.info.right = box.info.row.append("div").classed('col-xs-6', true);
+
+		box.info.leftTable = box.info.left.append("table")
+			.classed("infoTable", true);
+
+		box.info.hgvs = box.info.leftTable.append("tr");
+		box.info.hgvsTitle = box.info.hgvs.append("td").text("HGVS");
+		box.info.hgvsTd = box.info.hgvs.append("td").text(hgvsg);
+
+		box.info.gene = box.info.leftTable.append("tr");
+		box.info.gene.append("td").text("Gene");
+		box.info.gene.append("td").classed("geneTd", true).text("No gene");
+
+		box.info.samples = box.info.leftTable.append("tr");
+		box.info.samples.append("td").text("Samples");
+		box.info.sampleTd = box.info.samples.append("td").text("No samples");
+
+
+		box.tabs = box.overlay.append("div").attrs({
+			id: 'overlay-tabs'
+		}).append("fieldset");
+
+
+		box.tabs.append("input").attrs({
+			id: 'overlay-acmg-radio',
+			name: 'overlayRadio',
+			type: 'radio',
+			checked: true
+		});
+
+        box.tabs.append("input").attrs({
+            id: 'overlay-amp-radio',
+            name: 'overlayRadio',
+            type: 'radio'
+        });
+
+        box.tabs.append("input").attrs({
+            id: 'overlay-legacy-radio',
+            name: 'overlayRadio',
+            type: 'radio'
+        });
+
+		box.tabs.append("label").attrs({
+			for: 'overlay-acmg-radio'
+		}).append("span").text("ACMG Variants");
+
+        box.tabs.append("label").attrs({
+            for: 'overlay-amp-radio'
+        }).append("span").text("AMP Variants");
+
+        box.tabs.append("label").attrs({
+			class: 'hidden',
+            for: 'overlay-legacy-radio'
+        }).append("span").text("Legacy Variants");
+
+
+
+
+		// ACMG Variant section
+		box.cv = {
+			row: box.tabs.append("div").classed('row', true).attr("id", 'cv-list')
+		};
+
+		box.cv.table = box.cv.row.append('table');
+
+		box.cv.thead = box.cv.table.append("thead").append("tr");
+
+		box.cv.thead.append("th").styles({
+			'padding-left': 0,
+			width: "10px"
+		});
+		box.cv.thead.append("th").text("Context").styles({
+			padding: "2px",
+			width: "15%"
+		});
+		box.cv.thead.append("th").text("Report Description");
+		box.cv.thead.append("th").classed("overlay-acmg-column", true).text("ACMG Evidence");
+		box.cv.thead.append("th").classed("overlay-acmg-column", true).text("ACMG Classification");
+        box.cv.thead.append("th").classed("overlay-amp-column", true).text("AMP Evidence");
+        box.cv.thead.append("th").classed("overlay-amp-column", true).text("AMP Classification");
+        box.cv.thead.append("th").classed("overlay-legacy-column", true).text("Legacy Evidence");
+        box.cv.thead.append("th").classed("overlay-legacy-column", true).text("Legacy Classification");
+		box.cv.tbody = box.cv.table.append("tbody");
+
+		if ( hgvsg !== "" ) {
+			PathOS.variant.doHgvsgStuff(box, hgvsg, contextCode);
+		} else if (svid) {
+			$.ajax(`${PathOS.application}/seqVariant/lookUpSV/${svid}`, {
+				error: function(d){
+					console.log("error", d);
+					PathOS.overlay.close();
+					alert("You are currently logged out, please refresh the page and log back in.");
+				},
+				success: function(d){
+					PathOS.variant.drawSV(box, d);
+					PathOS.variant.doHgvsgStuff(box, d.hgvsg, d.contextCode);
+				}
+			});
+		}
+	},
+	doHgvsgStuff: function(box, hgvsg, contextCode) {
+		box.title.text("Variant: " + hgvsg);
+		PathOS.variant.drawCVs(box, hgvsg, contextCode);
+
+		$.ajax(`${PathOS.application}/seqVariant/countSVs/?hgvsg=${hgvsg}`, {
+            error: function(d){
+                console.log("error", d);
+                PathOS.overlay.close();
+                alert("You are currently logged out, please refresh the page and log back in.");
+            },
+			success: function(d){
+				box.info.sampleTd.html("");
+				box.info.sampleTd.append("a").attrs({
+					target: "_blank",
+					href: `${PathOS.application}/search?q=${hgvsg}`
+				}).text(d + " samples");
+			}
+		});
+	},
+	drawSV: function(box, data) {
+		console.log(box);
+		console.log(data);
+		var hgvs = box.info.hgvsTd.append("ul").attrs({
+			id: 'hgvs-list'
+		}).classed("showList", true);
+
+		var span = box.info.hgvsTitle
+			.html("")
+			.append("a")
+			.attrs({
+				href: "#hgvs"
+			})
+			.on('click', function(d){
+                $("#hgvs-list").toggleClass("showList");
+                $("#hgvsToggle").toggleClass("toggle");
+                $("#hgvsToggle").toggleClass("toggled");
+            })
+			.append("span");
+
+        span.append("i")
+			.attr("id", "hgvsToggle")
+			.classed("fa toggled", true);
+
+		span.append("p").text("HGVS");
+
+		hgvs.append("li").text(data.sv.hgvsg);
+		hgvs.append("li").text("HGVSg: "+data.sv.hgvsg);
+		hgvs.append("li").text("HGVSc: "+data.sv.hgvsc);
+		hgvs.append("li").text("HGVSp: "+data.sv.hgvsp);
+
+
+
+
+
+		var info = {
+			"Sample": data.sv.sampleName,
+			"Clinical Context": data.cc,
+			"Consequences": data.sv.consequence,
+			"Variant Caller": data.sv.varcaller,
+			"Amplicon Count": data.sv.numamps,
+			"Amplicon Bias": data.sv.ampbias,
+			"Variant Frequency": data.sv.varFreq,
+			"Variant Depth": data.sv.varDepth,
+			"Panel Var %": d3.format(".4")(data.sv.varPanelPct)+"%",
+			"dbSNP": data.sv.dbsnp,
+			"GMAF %": data.sv.gmaf,
+			"ESP %": data.sv.esp,
+			"ExAC %": data.sv.exac,
+			"Cosmic": data.sv.cosmic ? `<a target='_blank' href='${PathOS.application}/seqVariant/cosmicAction?id=${data.sv.id}' title='${data.sv.cosmicOccurs}'>COSM${data.sv.cosmic}</a>` : "",
+			"Exon": data.sv.exon,
+			"Cytoband": data.sv.cytoband,
+			"CADD Raw": d3.format("(.2f")(data.sv.cadd),
+			"CADD Scaled": d3.format("(.2f")(data.sv.cadd_phred)
+		};
+
+		PathOS.overlay.drawTable(box.info.right, info, "svInfoTable");
+
+		var firstTd = d3.select("#svInfoTable tbody tr td");
+		var temp = firstTd.html();
+		span = firstTd.html("")
+			.append("a")
+			.attrs({
+				href: "#toggleSvInfoTable"
+			}).on('click', function(d){
+				$("#svInfoTable").toggleClass("showDetails");
+                $("#sampleToggle").toggleClass("toggle");
+                $("#sampleToggle").toggleClass("toggled");
+			}).append("span");
+
+        span.append("i")
+            .attr("id", "sampleToggle")
+            .classed("fa toggle", true);
+
+        span.append("p").text(temp);
+
+
+	},
+	drawCVs: function (box, hgvsg, contextCode) {
+		$.ajax(`${PathOS.application}/curVariant/allCurVariantsFor?hgvsg=${hgvsg}`, {
+            error: function(d){
+                console.log("error", d);
+                PathOS.overlay.close();
+                alert("You are currently logged out, please refresh the page and log back in.");
+            },
+			success: function(d){
+				box.info.gene.select(".geneTd").text(d.gene);
+				if(d.curVariants && d.curVariants.length > 0) {
+					d.curVariants.forEach(function(cv){
+						var row = null;
+						if(cv.contextCode == "Generic") {
+							row = box.cv.tbody.insert("tr", "tr");
+						} else {
+							row = box.cv.tbody.append("tr");
+						}
+						row.attrs({
+							class: "cvRow-"+cv.contextCode
+						});
+						if(contextCode == cv.contextCode) {
+							row.classed("expand", true);
+						}
+
+						row.append('td').styles({
+							'padding-left': '5px',
+							cursor: 'pointer'
+						}).on('click', function(){
+							$(".cvRow-"+cv.contextCode).toggleClass("expand");
+						}).append("i").attrs({
+							'class': "fa toggle",
+							'aria-hidden': "true"
+						});
+
+						PathOS.variant.addCVrow(row, cv);
+					});
+				}
+			}
+		});
+	},
+	addCVrow: function(row, data) {
+
+		var context = row.append("td");
+
+			context.append("a").attrs({
+				target: "_blank",
+				href: `${PathOS.application}/curVariant/show?id=${data.id}`
+			}).text(data.context);
+
+		row.append("td")
+			.classed("description", true)
+			.append('textarea')
+			.text(data.reportDesc);
+
+		var acmgJustification = "",
+			blob = {};
+		if(data.acmgEvidence && data.acmgEvidence.acmgJustification) {
+			try {
+				blob = JSON.parse(data.acmgEvidence.acmgJustification);
+                acmgJustification = blob.acmgJustification;
+            } catch(e) {
+                acmgJustification = data.acmgEvidence.acmgJustification;
+            }
+		}
+
+		row.append("td")
+			.classed("description overlay-acmg-column", true)
+			.append('textarea')
+			.text(acmgJustification);
+
+		var acmgEvidence = row.append("td").classed("evidence-td overlay-acmg-column", true);
+		var pmClass = data.pmClass.split(":")[0];
+        acmgEvidence.append("p")
+			.text(data.pmClass)
+			.classed("cvlabel cv-"+pmClass, true);
+
+		var acmgList = acmgEvidence.append("ul")
+			.attr("id", "evidence-list-"+data.id)
+			.classed("evidence-list", true);
+
+		if (data.acmgEvidence) {
+			Object.keys(PathOS.svlist.acmgCriteria).forEach(function(key){
+				if(data.acmgEvidence[key] == 'yes') {
+                    acmgList.append('li').html(`<b>${key}:</b> ${PathOS.svlist.acmgCriteria[key]}`);
+				}
+			});
+		}
+
+
+		var ampJustification = "",
+			ampblob = {};
+		if(data.ampEvidence && data.ampEvidence.ampJustification) {
+			try {
+				ampblob = JSON.parse(data.ampEvidence.ampJustification);
+				ampJustification = ampblob.ampJustification;
+			} catch (e) {
+				ampJustification = data.ampEvidence.ampJustification;
+			}
+		}
+		row.append("td")
+			.classed("description overlay-amp-column", true)
+			.append('textarea')
+			.text(ampJustification);
+
+		var ampEvidence = row.append("td").classed("overlay-amp-column", true);
+		try {
+            ampEvidence.text(JSON.stringify(data.ampEvidence)).style("word-break","break-all");
+
+            var ampText = [];
+            var text = "";
+
+            if (data.ampEvidence.diagnosisRating != 'unset') {
+            	text = "Diagnosis Rating is " + data.ampEvidence.diagnosisRating;
+            	if (data.ampEvidence.diagnosisCategory != 'unset') {
+            		text += " and "+ data.ampEvidence.diagnosisCategory;
+				}
+                ampText.push(text);
+			}
+
+            if (data.ampEvidence.prognosisRating != 'unset') {
+                text = "Prognosis Rating is " + data.ampEvidence.prognosisRating;
+                if (data.ampEvidence.diagnosisCategory != 'unset') {
+                    text += " and "+ data.ampEvidence.prognosisCategory;
+                }
+                ampText.push(text);
+            }
+
+            if (data.ampEvidence.therapeuticRating != 'unset') {
+                text = "Therapeutic Rating is " + data.ampEvidence.therapeuticRating;
+                if (data.ampEvidence.diagnosisCategory != 'unset') {
+                    text += " and "+ data.ampEvidence.therapeuticCategory;
+                }
+                ampText.push(text);
+            }
+
+			ampEvidence.html("")
+				.append("ul").classed('evidence-list', true)
+				.selectAll('li')
+				.data(ampText)
+				.enter()
+				.each(function(d){
+					d3.select(this).append("li").text(d);
+				});
+        } catch (e) {
+			console.log("Error adding AMP evidence text", e);
+		}
+
+
+		if(data.legacyEvidence) {
+            d3.select('label[for="overlay-legacy-radio"]').classed('hidden', false);
+
+		// Legacy stuff
+			var legacyJustification = "";
+			if(data.legacyEvidence.justification) {
+                legacyJustification = data.legacyEvidence.justification;
+			}
+			row.append("td")
+				.classed("description overlay-legacy-column", true)
+				.append('textarea')
+				.text(legacyJustification);
+
+
+			var evidence = row.append("td").classed("evidence-td overlay-legacy-column", true);
+			pmClass = data.legacyEvidence.evidenceClass.split(":")[0];
+			evidence.append("p")
+				.text(data.pmClass)
+				.classed("cvlabel cv-"+pmClass, true);
+
+			var list = evidence.append("ul")
+				.attr("id", "evidence-list-"+data.id)
+				.classed("evidence-list", true);
+
+
+			if (data.legacyEvidence) {
+				Object.keys(PathOS.svlist.evidence).forEach(function(key){
+					if(data.legacyEvidence[key]) {
+						list.append('li').html(PathOS.svlist.evidence[key]);
+					}
+				});
+			}
+        }
+
+
+	}
+};
 
 
 
@@ -1154,24 +2054,28 @@ PathOS.evidence = {
 					console.log(keys[e.keyCode]);
 				}
 			}
-		}); 
+		});
  	}
  };
 
 
 PathOS.timeSince = function (date) {
 	var val = "",
-		d = Date.parse(date),
+		d = parseInt(date) || Date.parse(date),
 		c = Date.now(),
 		i = c - d;
 
 	if( d > 0 ) {
-		if (i < 3600000 ) {
+		if (i < 60000 ) {
+			val = Math.floor(i / 1000) + "s";
+		} else if (i < 3600000 ) {
 			val = Math.floor(i / 60000) + "m";
 		} else if (i < 86400000 ) {
 			val = Math.floor(i / 3600000) + "h";
-		} else {
+		} else if ( i < 604800000 ) {
 			val = Math.floor(i / 86400000) + "d";
+		} else {
+			val = Math.floor(i / 604800000) + "w";
 		}
 	}
 
@@ -1202,23 +2106,23 @@ PathOS.addOption = function(div, label, key, value){
 	checkbox.html(checkbox.html()+" "+label+"<br>");
 	checkbox.on('change', function(){
 		$('.'+key).toggleClass(key+'-toggle');
-		localStorage[key+'-option'] = document.getElementById("option-"+key).checked;
+		localStorage[PatHOS.application+key+'-option'] = document.getElementById("option-"+key).checked;
 	});
 
 
 	// Set it to true if the default is true or if the flag has been set to true.
 	if(value) {
-		if(typeof localStorage[key+'-option'] == 'undefined' ||
-				localStorage[key+'-option'] === true ||
-				localStorage[key+'-option'] == 'true'
+		if(typeof localStorage[PatHOS.application+key+'-option'] == 'undefined' ||
+				localStorage[PatHOS.application+key+'-option'] === true ||
+				localStorage[PatHOS.application+key+'-option'] == 'true'
 		){
 			checkbox.select('input').attr('checked', value);
 			d3.selectAll('.'+key).classed(key+'-toggle', true);
 		}
 	} else {
-		if(typeof localStorage[key+'-option'] != 'undefined' &&
-			localStorage[key+'-option'] === true ||
-			localStorage[key+'-option'] == 'true'
+		if(typeof localStorage[PatHOS.application+key+'-option'] != 'undefined' &&
+			localStorage[PatHOS.application+key+'-option'] === true ||
+			localStorage[PatHOS.application+key+'-option'] == 'true'
 		){
 			checkbox.select('input').attr('checked', true);
 			d3.selectAll('.'+key).classed(key+'-toggle', true);
@@ -1226,51 +2130,6 @@ PathOS.addOption = function(div, label, key, value){
 	}
 	// The logic here could probably be more elegant, but I cbf thinking right now.
 
-};
-
-PathOS.history = {
-	json: [],
-
-	/**
-	 * Add a webpage to the history
-	 *
-	 * example:
-	 * PathOS.history.add({
-	 *	title: document.title,
-	 *	url: window.location.href,
-	 *	time: Date()
-	 * @param title, url, time
-     */
-	add: function (d){
-		PathOS.history.json.forEach(function(old, i){
-			if(old.title == d.title){
-				PathOS.history.json.splice(i, 1);
-			}
-		});
-		PathOS.history.json.push(d);
-		if(PathOS.history.json.length > 50) {
-			PathOS.history.json = PathOS.history.json.slice(20);
-		}
-		PathOS.data.save("history", PathOS.history.json);
-	},
-	clear: function() {
-		PathOS.history.json = [];
-		PathOS.data.clear("history");
-	},
-	show: function(d) {
-		var arr = PathOS.history.json;
-		var n = d || 10;
-		return (arr.length < n ? arr : arr.slice(arr.length - n)).reverse();
-	},
-	more: function() {
-		var arr = PathOS.history.json;
-		var n = 50;
-
-		return (arr.length < n ? arr : arr.slice(arr.length - n)).reverse().slice(10);
-	},
-	init: function(){
-		PathOS.history.json = PathOS.data.load("history", []);
-	}
 };
 
 /* Initialise stuff, like:
@@ -1322,20 +2181,28 @@ PathOS.tags = {
 		if(params.type && d) {
 			$.ajax({
 				type: 'GET',
-				url: "/PathOS/tag/getTags?" + $.param(params),
+				url: `${PathOS.application}/tag/fetchTags?${$.param(params)}`,
+                error: function(d){
+                    console.log("error", d);
+                    alert("You are currently logged out, please refresh the page and log back in.");
+                },
 				success: function (d){
 					console.log(d);
-					d3.select("#tags").style('display','');
-					$("#object_id").text(d.name);
-					d3.selectAll("#tags .tagdiv").remove();
-					if(d.tags) {
-						d.tags.forEach(function(tag){
-							PathOS.tags.drawTag(d3.select("#tags .outlined-box"), tag, true);
-						});
+					if(d.error) {
+						console.log("There was an error.");
 					} else {
-						PathOS.tags.nullObject(d3.select("#tags .outlined-box"));
-						//alert("Can't find tags on an unsaved object");
-					}
+						d3.select("#tags").style('display','');
+						$("#object_id").text(d.name);
+						d3.selectAll("#tags .tagdiv").remove();
+						if(d.tags) {
+							d.tags.forEach(function(tag){
+								PathOS.tags.drawTag(d3.select("#tags .outlined-box"), tag, true);
+							});
+						} else {
+							PathOS.tags.nullObject(d3.select("#tags .outlined-box"));
+							//alert("Can't find tags on an unsaved object");
+						}
+                    }
 				},
 				cache: false,
 				contentType: false,
@@ -1358,9 +2225,14 @@ PathOS.tags = {
 		div.insert("div",":first-child").classed("tagdiv", true).append("label").text("Sorry, this object has not be saved.");
 	},
 	drawTagById: function(box, id, deletable) {
-		$.ajax("/PathOS/Tag/lookUp?id="+id, {success: function(data){
-			PathOS.tags.drawTag(box, data, deletable);
-		}});
+		$.ajax(`${PathOS.application}/Tag/lookUp?id=${id}`, {
+			error: function(d){
+                alert("You are currently logged out, please refresh the page and log back in.");
+            },
+			success: function(data){
+				PathOS.tags.drawTag(box, data, deletable);
+			}
+		});
 	},
 	drawTag: function ( box, data, deletable ) {
 		if (data == "fail") {
@@ -1384,8 +2256,11 @@ PathOS.tags = {
 						};
 						$.ajax({
 							type: "DELETE",
-							url: "/PathOS/tag/removeLink?" + $.param(params),
-							success: function (result) {
+							url: `${PathOS.application}/tag/removeLink?${$.param(params)}`,
+                            error: function(d){
+                                alert("You are currently logged out, please refresh the page and log back in.");
+                            },
+                            success: function (result) {
 								if(result != 'fail') {
 									$(that).remove();
 									if(reloadGrid) {
@@ -1411,12 +2286,12 @@ PathOS.tags = {
 
 			tooltip.append("button").text("Search").on("click",function(d){
 				d3.event.stopPropagation();
-				window.location.href = "/PathOS/search?q="+d.label;
+				window.location.href = `${PathOS.application}/search?q=${d.label}`;
 			});
 
 			tooltip.append("button").text("View").on("click",function(d){
 				d3.event.stopPropagation();
-				window.location.href = "/PathOS/Tag/Show/"+d.id;
+				window.location.href = `${PathOS.application}/Tag/Show/${d.id}`;
 			});
 
 			tooltip.append("button").text("Edit").on("click", function(d){
@@ -1440,8 +2315,11 @@ PathOS.tags = {
 						};
 						$.ajax({
 							type: "DELETE",
-							url: "/PathOS/tag/removeLink?" + $.param(params),
-							success: function (result) {
+							url: `${PathOS.application}/tag/removeLink?${$.param(params)}`,
+                            error: function(d){
+                                alert("You are currently logged out, please refresh the page and log back in.");
+                            },
+                            success: function (result) {
 								if(result != 'fail') {
 									$('.tag-'+data.id).remove();
 									if(reloadGrid) {
@@ -1471,8 +2349,11 @@ PathOS.tags = {
 							description: $(this).val(),
 							id: data.id
 						};
-						$.ajax("/PathOS/Tag/putDescription?"+ $.param(params), {
-							success: function(){
+						$.ajax(`${PathOS.application}/Tag/putDescription?${$.param(params)}`, {
+                            error: function(d){
+                                alert("You are currently logged out, please refresh the page and log back in.");
+                            },
+                            success: function(){
 								$(".tag-"+data.id+" input").val(params.description);
 								$(".tag-"+data.id+" p").text(params.description);
 								tooltip.classed("edit", false);
@@ -1509,8 +2390,11 @@ PathOS.tags = {
 			};
 			$.ajax({
 				type: "POST",
-				url: "/PathOS/tag/addTag?" + $.param(params),
-				success: function (d) {
+				url: `${PathOS.application}/tag/addTag?${$.param(params)}`,
+                error: function(d){
+                    alert("You are currently logged out, please refresh the page and log back in.");
+                },
+                success: function (d) {
 					if (typeof d == "string") {
 						alert(d);
 					} else {
@@ -1550,25 +2434,23 @@ PathOS.printQC = function(data) {
 		label.text("QC Failed");
 	}
 
-    //
-    //
-	//if(data.passfailFlag) {
-	//	qcLabel.text("QC Passed").classed("passed", true);
-	//} else {
-	//	qcLabel.text("QC Failed");
-	//}
-    //
-	//console.log("data is: ");
-	//console.log(data);
-	//if(data.authorisedQc === null) {
-	//	authorisedLabel.text("QC Authorisation Not Set").classed("unknown", true);
-	//} else if (data.authorisedQcFlag) {
-	//	authorisedLabel.text("QC Authorised").classed("passed", true);
-	//} else if (!data.authorisedQcFlag) {
-	//	authorisedLabel.text("QC Not Authorised");
-	//}
 };
 
+PathOS.urlExists = function (url, callback) {
+    const client = new XMLHttpRequest();
+    if(callback) {
+		client.onloadend = function(d){
+			callback(d.currentTarget.status != 404);
+		};
+
+        client.open('HEAD', url);
+        client.send();
+	} else {
+		client.open('HEAD', url, false);
+		client.send();
+		return client.status!=404;
+    }
+};
 
 
 
@@ -1578,7 +2460,8 @@ PathOS.printQC = function(data) {
 PathOS.igv = {
 	loaded: false,
 	options: {},
-	init: function(igvDiv, dataUrl, sample, panel, samplingDepth) {
+	init: function(igvDiv, dataUrl, sample, panel, samplingDepth, location) {
+		console.log("Running IGV init");
 
 		var baiUrl = dataUrl+sample+".bai",
 			bamUrl = dataUrl+sample+".bam",
@@ -1590,17 +2473,22 @@ PathOS.igv = {
 
 		PathOS.igv.div = igvDiv;
 		PathOS.igv.options = {
-			showKaryo: "hide",
+			//showKaryo: "hide",
+            locus: "17:7,579,423-7,579,856",
 			showNavigation: true,
 			showCenterGuide: true,
-			reference: {
-				fastaURL: "//dn7ywbm9isq8j.cloudfront.net/genomes/seq/hg19/hg19.fasta", //perhaps we should change this to a peter mac hosted hg19?
-				indexFile: "/PathOS/igv/hg19.fasta.fai",
-				cytobandURL: "/PathOS/igv/cytoBand.txt",
-				order: -9999 // This is overridden... you can't set it.... it gets defaulted to -9999, so let's set the order of the other tracks around this value.
-			},
+			genome: "hg19",
+			// reference: {
+			// 	id: "hg19",
+			// 	name: "Human hg19",
+			// 	fastaURL: "//dn7ywbm9isq8j.cloudfront.net/genomes/seq/hg19/hg19.fasta", //perhaps we should change this to a peter mac hosted hg19?
+			// 	indexFile: `${PathOS.application}/igv/hg19.fasta.fai`,
+			// 	cytobandURL: `${PathOS.application}/igv/cytoBand.txt`,
+			// 	order: -9999 // This is overridden... you can't set it.... it gets defaulted to -9999, so let's set the order of the other tracks around this value.
+			// },
 			tracks: [
 				{
+					name: "VCF",
 					url: vcfUrl,
 					type: "vcf",
 					label: "VCF: "+sample,
@@ -1615,8 +2503,8 @@ PathOS.igv = {
 					order: -9998
 				},
 				{
-					url: '/PathOS/igv/hg19-RefSeqGenes.gtf.gz',
-					indexURL: '/PathOS/igv/hg19-RefSeqGenes.gtf.gz.tbi',
+					url: `${PathOS.application}/igv/hg19-RefSeqGenes.gtf.gz`,
+					indexURL: `${PathOS.application}/igv/hg19-RefSeqGenes.gtf.gz.tbi`,
 					name: 'hg19 - Gencode v24',
 					format: 'gtf',
 					order: -9997,
@@ -1624,6 +2512,26 @@ PathOS.igv = {
 				}
 			]
 		};
+
+//  Todo: Better abort handling?
+//	Dress up the window, allow for a retry, etc.
+//  Add this safety to addBam?
+        if(PathOS.urlExists(baiUrl) && PathOS.urlExists(bamUrl)) {
+        	console.log("IGV.js init has found bams");
+            PathOS.igv.search(location);
+        } else {
+            if (confirm("There are missing BAMS. Continue?")) {
+                PathOS.igv.search(location);
+			} else {
+            	console.log("Aborting IGV.js");
+            	d3.select("#igvDiv").append('h1')
+					.text("Error: BAM files missing")
+					.styles({
+						"text-align": "center",
+						"color": "red"
+					});
+			}
+        }
 
 	},
 	search: function(locus) {
@@ -1637,17 +2545,44 @@ PathOS.igv = {
 			igv.browser.search(locus);
 		}
 	},
+	addDirectBAM: function(bamUrl, message, samplingDepth) {
+        samplingDepth = samplingDepth || 2500;
+        message = message || "";
+		if (bamUrl) {
+            var baiUrl = bamUrl.slice(0, bamUrl.length - 4)+".bai";
+            var newTrack = new PathOS.igv.BAM(baiUrl, bamUrl, sample, samplingDepth);
+
+            if(PathOS.igv.loaded) {
+                igv.browser.loadTrack(newTrack);
+            } else {
+            	if(!PathOS.igv.options.tracks) {
+            		alert("Please initialise IGV.js");
+				} else {
+                    PathOS.igv.options.tracks.push(newTrack);
+                    PathOS.notes.add(message+" BAM added to IGV.js");
+                }
+            }
+		} else {
+			alert("There was an error, url not found.");
+		}
+	},
 	addBAM: function(sample, dataUrl, samplingDepth) {
 		if(sample && dataUrl) {
 			var baiUrl = dataUrl+sample+".bai",
 				bamUrl = dataUrl+sample+".bam";
-			var newTrack = new PathOS.igv.BAM(baiUrl, bamUrl, sample, samplingDepth);
 
-			if(PathOS.igv.loaded) {
-				igv.browser.loadTrack(newTrack);
-			} else {
-				PathOS.igv.options.tracks.push(newTrack);
-			}
+			if(PathOS.urlExists(baiUrl) && PathOS.urlExists(bamUrl)) {
+				var newTrack = new PathOS.igv.BAM(baiUrl, bamUrl, sample, samplingDepth);
+
+				if(PathOS.igv.loaded) {
+					igv.browser.loadTrack(newTrack);
+				} else {
+					PathOS.igv.options.tracks.push(newTrack);
+				}
+            } else {
+                console.log("BAM file not found", bamUrl);
+                alert("Warning, BAM file not found");
+            }
 		} else {
 			alert("There was an error, data not found.");
 		}
@@ -1686,13 +2621,288 @@ PathOS.igv = {
 
 
 PathOS.pubmed = {
+	drawReferences: function(cv, id) {
+        var box = d3.select(`#${id}`);
+
+        $.ajax({
+            url: `${PathOS.application}/curVariant/citations/${cv}`,
+            success: function(d){
+                console.log(d);
+
+                drawCitationGroup("Report Description", d.report);
+                box.append("h2").text("ACMG");
+                Object.keys(d.evidence.acmg).forEach(function(criteria){
+                    drawCitationGroup(criteria, d.evidence.acmg[criteria]);
+				});
+                box.append("h2").text("AMP");
+                Object.keys(d.evidence.amp).forEach(function(criteria){
+                    drawCitationGroup(criteria, d.evidence.amp[criteria]);
+                });
+                drawCitationGroup("Archive", d.evidence.archive.evidence);
+            }
+        });
+
+        function drawCitationGroup( label, data ) {
+
+			if(data.pmids.length > 0) {
+				box.append('h2').text(label.charAt(0).toUpperCase() + label.slice(1));
+
+				box.append('ul')
+					.selectAll('li')
+					.data(data.citations)
+					.enter()
+					.append("li").each(function(d, i){
+					const li = d3.select(this),
+						pmid = data.pmids[i];
+
+					if(d) {
+						li.append('h3').text(data.titles[i]);
+						li.append('p').text(d);
+						li.append('a').attr('href', `${PathOS.application}/pubmed?pmid=${pmid}`)
+							.text(`[PMID: ${pmid}]`);
+					} else {
+						li.attr("id", `pubmed-${pmid}`)
+							.text(`Article [PMID: ${pmid}] not found in PathOS database, `)
+							.append('a').attrs({
+							class: 'newPubmedArticle',
+							href: '#lookUpNewArticle',
+							onclick: `PathOS.pubmed.lookUpNewArticle(${pmid})`
+						}).text('click here to find it.');
+					}
+				});
+            }
+		}
+	},
+	findCitations: function(text){
+		var re = /\[PMID: (\d+)(?:, (\d+))*\]/g;
+		var array;
+		var results = [];
+
+		while ((array = re.exec(text)) !== null) {
+			results = results.concat(array[1].split(', '));
+		}
+
+		return results;
+	},
 	// This function applies a highlight to textareas that have a certain class
 	applyHighlight: function(highlightClass){
 		$('textarea.'+highlightClass).highlightWithinTextarea(function() {
-			return /\[PMID: (?:\d+(?:, )?)+\]/g;
+			return /\[PMID: \d+(, \d+)*\]/g;
 		});
+	},
+	lookUpNewArticle: function( pmid ) {
+		console.log("Hey, we're looking for [PMID: %d]", pmid);
+
+		var li =  d3.select("#pubmed-"+pmid).html("");
+
+		li.append("img")
+			.classed("loading_logo", true)
+			.attr("src", `${PathOS.application}/dist/images/pathos_logo_animated.svg`);
+
+		$.ajax({
+			url: `${PathOS.application}/Pubmed/fetch_pmid?pmid=${pmid}`,
+			complete: function(d){
+				li.select("img.loading_logo").remove();
+
+				if(d.status && d.status == 200) {
+					if(true || d.responseJSON && d.responseJSON.citation && d.responseJSON.citation != "Error") {
+
+						var citation = d.responseJSON.citation;
+						var title = d.responseJSON.title;
+
+						li.append("h3").text(title);
+						li.append("p").text(citation);
+						var link = li.append("a").attrs({
+							href: "#add_pmid"
+						}).text("Save [PMID: "+pmid+"]")
+							.classed("newPubmedArticle", true)
+							.on("click", function(){
+								$.ajax({
+									url: `${PathOS.application}/Pubmed/add_pmid?pmid=${pmid}`,
+									complete: function(d){
+										if(d && d.status && d.status == 500 && d.responseText == "saved") {
+											PathOS.notes.addError("Error saving PMID, please try again later.");
+										} else {
+											PathOS.notes.add("Saved Pubmed Article: "+title);
+											link.classed("newPubmedArticle", false)
+												.text("[PMID: "+pmid+"]")
+												.attr('href', `${PathOS.application}/pubmed?pmid=${pmid}`);
+										}
+									}
+								});
+							});
+					} else {
+						PathOS.notes.addError("https://eutils.ncbi.nlm.nih.gov/ was unreachable.");
+					}
+				} else {
+					li.html("Error, couldn't look up PMID. Please refresh page and try again later.");
+					PathOS.notes.addError("Couldn't look up PMID.");
+				}
+			}
+		});
+
+
+
 	}
 };
+
+
+
+
+
+PathOS.notes = {
+	init: function(){
+		PathOS.notes.refresh();
+		d3.select("#notifications thead")
+			.on('click', function(){
+				$("#notifications").toggleClass("shrink");
+			});
+
+		$("body").on('click', PathOS.notes.hide);
+		$("#notifications").on("click", function(event){
+			event.stopPropagation();
+		});
+        $("#notifications a").on("click", function(event){
+            event.stopPropagation();
+        });
+
+		PathOS.hotkeys.add(220, toggleNotifications);
+		function toggleNotifications() {
+			$("#notifications").toggleClass("shrink");
+            $("#notifications").removeClass("peek");
+			PathOS.notes.refresh();
+		}
+		d3.selectAll("#notifications tbody tr").classed("read", true);
+	},
+	hide: function(){
+        $("#notifications").addClass("shrink");
+        $("#notifications").removeClass("peek");
+        PathOS.notes.refresh();
+	},
+	data: PathOS.data.load("notes", []),
+	load: function(){
+		PathOS.notes.data = PathOS.data.load("notes", []);
+	},
+	save: function(notes){
+		PathOS.notes.data = notes || d3.selectAll('.notification').data();
+		PathOS.data.save("notes", PathOS.notes.data);
+	},
+	addError: function(words) {
+		PathOS.notes.add({
+			type: 'error',
+			message: words
+		});
+	},
+	add: function(data) {
+		data = typeof data === 'object' ? data : {
+			message: data
+		};
+
+		data.type = data.type || 'message';
+		data.page = document.title;
+		data.url  = window.location.href;
+		data.time = Date.now();
+
+		d3.select("#notifications").classed("peek", true);
+
+		PathOS.notes.data.unshift(data);
+		PathOS.notes.save(PathOS.notes.data.slice(0,5));
+
+		PathOS.notes.refresh();
+
+        d3.select("#notifications .notification").classed('read', false);
+		setTimeout(function(){
+            d3.select("#notifications").classed("peek", false);
+		}, 2000);
+
+	},
+	refresh: function(){
+		PathOS.notes.load();
+
+		var nodes = d3.select("#notifications tbody")
+			.selectAll("tr")
+			.data(PathOS.notes.data, function(d){
+				return d.time;
+			});
+
+		nodes.enter()
+			.append("tr")
+			.classed("notification", true)
+			.each(function(d){
+				var tr = d3.select(this)
+					.on('click', function(d){
+						d3.select(this).classed('read', true);
+						d.read = d3.select(this).classed('read');
+						PathOS.notes.save();
+					});
+
+				var td = tr.append("td").text(d.message);
+				td.append('br');
+				td.append('a').attrs({
+					href: d.url
+				}).text(d.page);
+
+				td.append('span').classed("timePassed", true);
+
+				var icon = tr.append('td')
+					.append('i')
+					.classed('fa', true)
+					.attrs({
+						'aria-hidden': true
+					});
+				if(d.type == 'error') {
+					tr.classed('error', true);
+					icon.classed("fa-exclamation-triangle", true);
+				} else {
+					tr.classed('warning', true);
+					icon.classed("fa-sticky-note", true);
+				}
+
+			}).merge(nodes)
+			.each(function(d){
+				var tr = d3.select(this);
+
+				// tr.classed('read', true);
+				tr.select('.timePassed')
+					.text(PathOS.timeSince(d.time) + " ago");
+
+			});
+
+		nodes.exit().remove();
+	},
+	markAllAsRead: function(){
+		d3.selectAll(".notification")
+			//.classed("read", (d) => d.read = true)
+			.classed("read", function(d){
+				d.read = true;
+				return true;
+			});
+		PathOS.notes.save();
+	},
+	clearNotes: function(){
+		PathOS.notes.save([]);
+		PathOS.notes.refresh();
+	},
+	open: function(){
+		d3.select("#notifications").classed("shrink", false);
+	},
+	latestIsUnread: function(){
+		return PathOS.notes.data[0] ? !PathOS.notes.data[0].read : false;
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1720,7 +2930,7 @@ PathOS.init = function(options){
 	PathOS.modules.init(options);
 	PathOS.hotkeys.init();
 	PathOS.history.init();
-	//PathOS.safety.init();
+	// PathOS.safety.init();
 };
 
 

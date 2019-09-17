@@ -42,7 +42,8 @@ class DataSource
         Oncotator(  'ONC'),
         Cosmic(     'COS'),
         PeterMac(   'PMC'),
-        Invitae(    'INV')
+        Invitae(    'INV'),
+        MyVariant(  'MYV')
 
         DS( String code ) { this.code = code }
         private final String code
@@ -58,15 +59,24 @@ class DataSource
      * @param rdb   Database of cache eg pa_uat, pa_local, pa_prod
      *              pa_prod is the master production cache and shouldn't be used directly
      */
-    DataSource( String rdb )
-    {
+    DataSource(String rdb) {
+        ensureDatabaseConnection(rdb)
+    }
+
+    /**
+     * Connect to the database if necessary.
+     */
+    static void ensureDatabaseConnection(String rdb) {
+        if (sql && sql.execute('select 1 from dual')) {
+            return
+        }
+
         //  Connect to db
         //
-        def db = new DbConnect( rdb )
+        def db = new DbConnect(rdb)
         sql    = db.sql()
 
-        if ( ! sql.execute('select 1 from dual'))
-        {
+        if (!sql.execute('select 1 from dual')) {
             sql.close()
             throw new Exception("Couldn't connect to database [$rdb]")
         }
@@ -385,16 +395,19 @@ class DataSource
      * @param vars          key to get
      * @return              value in cache
      */
-    static List<Map> getValueMaps( String key )
+    static List<Map> getValueMaps(  String dataSource, List<String> vars )
     {
         def js = new JsonSlurper()
 
-        List<String> vals = getValue( key )
-
         List<Map> vms = []
-
-        for ( val in vals )
-            vms << js.parseText(val) as Map
+        for ( var in vars )
+        {
+            String v = getValue( dataSource, var )
+            if ( v )
+            {
+                vms << ( js.parseText( v ) as Map )
+            }
+        }
 
         return vms
     }

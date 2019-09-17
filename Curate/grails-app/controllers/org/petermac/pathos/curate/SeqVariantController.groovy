@@ -8,24 +8,15 @@
 package org.petermac.pathos.curate
 
 import grails.converters.JSON
-
-import grails.util.Environment
-
+import org.codehaus.groovy.grails.plugins.web.taglib.ApplicationTagLib
 import org.grails.plugin.easygrid.Easygrid
 import org.grails.plugin.easygrid.Filter
 import org.grails.plugin.easygrid.FilterOperatorsEnum
-import org.grails.plugin.easygrid.Filters
-
 import groovy.json.JsonSlurper
 import org.petermac.util.Locator
 
-
-import java.text.MessageFormat
-
 import static org.grails.plugin.easygrid.GormUtils.applyFilter
-
 import org.petermac.pathos.pipeline.UrlLink
-
 
 /**
  * Controller for Sequenced Variants. Contains workflow logic for curating new variants and running reports
@@ -36,20 +27,20 @@ class SeqVariantController
     //  PathOS report services
     //
     def reportService
-
-    //  Curation services for new variants
-    //
-    def curateService
+    def seqSampleService
 
     //  EasyGrid services
     //
     def easygridService
-    def easygridDispatchService
-    def JqGridMultiSearchService
 
     //  Spring security
     //
-    def SpringSecurityService
+    def springSecurityService
+    def AuditService
+
+    def loc = Locator.instance
+
+    def utilService
 
     static scaffold = SeqVariant
 
@@ -95,8 +86,6 @@ class SeqVariantController
                 height          '100%'
                 rowNum          20
                 rowList =       [20, 50, 100]
-                sortname        'seqrun'            //  Initial sort order by seqrun
-                sortorder       'desc'
                 sortable        true
                 filterToolbar = [ searchOperators: false ]
             }
@@ -152,7 +141,7 @@ class SeqVariantController
                                             formatter "showlink"
                                             formatoptions
                                             {
-                                                baseLinkUrl '/PathOS/annoVariant/listAnno/'
+                                                baseLinkUrl '../../annoVariant/listAnno/'
                                                 target '_blank'
                                             }
                                         }
@@ -169,16 +158,21 @@ class SeqVariantController
                 varDepth
                 readDepth
                 varPanelPct
-                varPanelPctFormula  //this is nominator and denominator for VarPanelPct
+                varPanelPctFormula  //this is numerator and denominator for VarPanelPct
                 {
-                             value { SeqVariant sv ->
-                                return sv.varPanelPct?"(${sv.varSamplesSeenInPanel}/${sv.varSamplesTotalInPanel})":""
+                            value { SeqVariant sv ->
+                                if(sv.varSamplesSeenInPanel && sv.varSamplesSeenInPanel) {
+                                    return "${sv.varSamplesSeenInPanel}/${sv.varSamplesTotalInPanel}"
+                                } else {
+                                    return ''
+                                }
+
 
                             }
                             filterClosure
                                     {
                                         Filter filter ->
-                                            applyFilter( delegate,filter.operator, 'varPanelPctForumula', filter.value )
+                                            applyFilter( delegate,filter.operator, 'varPanelPctFormula', filter.value )
                                     }
                             enableFilter false
                             sortable false
@@ -187,16 +181,16 @@ class SeqVariantController
                 numamps
                 ampbias
                 amps
-                dbsnp               { enableFilter false; value { SeqVariant sv -> sv.dbsnp ? 'rs' + sv.dbsnp : '' }; jqgrid { width "70";     formatter "showlink"; formatoptions { baseLinkUrl  'dbsnpAction'; target  '_blank'}}}
-                cosmic              { enableFilter false; value { SeqVariant sv -> sv.cosmic ? 'COSM' + sv.cosmic : '' }; jqgrid { width "75"; formatter "showlink"; formatoptions { baseLinkUrl 'cosmicAction'; target  '_blank'}}}
+                dbsnp               { enableFilter false; value { SeqVariant sv -> sv.dbsnp ?  sv.dbsnp  : '' }; jqgrid { width "70"; formatter "showlink"; formatoptions { baseLinkUrl  'dbsnpAction'; target  '_blank'}}}
+                cosmic              { enableFilter false; value { SeqVariant sv -> sv.cosmic ? sv.cosmic : '' }; jqgrid { width "75"; formatter "showlink"; formatoptions { baseLinkUrl 'cosmicAction'; target  '_blank'}}}
                 cosmicOccurs
                 gmaf
                 esp
                 exac
                 exon
                 cytoband
-                googlelink          { value {'Google'}; enableFilter false; sortable false; jqgrid { align "center"; width "70"; formatter "showlink"; formatoptions {  baseLinkUrl '/PathOS/seqVariant/'; showAction 'googleSearchAction'; target  '_blank' }}}
-                igv                 { value {'IGV'};    enableFilter false; sortable false; jqgrid { align "center"; width "40"; formatter "showlink"; formatoptions { baseLinkUrl '/PathOS/seqVariant/'; seqvar 'sv';  showAction 'igvAction' }}}
+                googlelink          { value {'Google'}; enableFilter false; sortable false; jqgrid { align "center"; width "70"; formatter "showlink"; formatoptions { showAction 'googleSearchAction'; target  '_blank' }}}
+                igv                 { value {'IGV'};    enableFilter false; sortable false; jqgrid { align "center"; width "40"; formatter "showlink"; formatoptions { seqvar 'sv';  showAction 'igvAction'; target '_blank' }}}
                 alamut              { value {'Alamut'}; enableFilter false; sortable false; jqgrid { hidden = true; align "center"; width "70"; formatter "showlink"; formatoptions { baseLinkUrl 'alamutAction'; target  '_blank' }}}
                 alamutClass
                 cadd
@@ -241,98 +235,27 @@ class SeqVariantController
         }
 
     /**
-     * Generate and display PDF Report for sample
+     * Generate a new SeqSampleReport for a given SeqSample
+     * Including the CurVariantReports needed
      *
+     * @param id
      * @return
      */
-    def reportPdf()
+    def buildSeqSampleReport( Long id )
     {
-        //  Get SeqVariant Record
-        //
-        SeqSample sam = SeqSample.get( params.id )
-        Boolean test = params.test as Boolean
-        def noTemplate = false
+        SeqSample ss = SeqSample.get( id )
 
-        //  Generate report
-        //
-        def bytes
-        try
-        {
-            bytes = reportService.sampleReport( sam, hidePatient(), 'pdf', meta(name:'app.version') as String, test)
-        }
-        catch (FileNotFoundException e)
-        {
-            noTemplate = true
+        if ( !ss ) {
+            flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqSample.label', default: 'No seqSample found'), id])
+            redirect(controller: "seqSample", action: "list")
+            return
         }
 
-        if ( bytes && bytes.size())
-        {
-            response.contentType  = "application/pdf"
-            response.contentLength = bytes.size()
-            response.outputStream << bytes
-            response.outputStream.flush()
-        }
-        else
-        {
-            if (noTemplate)
-            {
-                flash.message = "Couldn't generate report - there is no template file for this panel."
-            } else
-            {
-                flash.message = "Couldn't generate report, please check log files"
-            }
+        def currentUser = springSecurityService.currentUser as AuthUser
 
-            //  Go back to original screen
-            //
-            redirect( action: "svlist", id: params.id )
-        }
-    }
+        SeqSampleReport ssr = ReportService.makeNewSeqSampleReport(ss, currentUser)
 
-    /**
-     * Generate MS Word Report for sample
-     *
-     * @return
-     */
-    def reportWord()
-    {
-        //  Get SeqVariant Record
-        //
-        SeqSample sam = SeqSample.get( params.id )
-        Boolean test = params.test as Boolean
-        def noTemplate = false
-
-        //  Generate report
-        //
-        def bytes
-        try
-        {
-            bytes = reportService.sampleReport(sam, hidePatient(), 'docx', meta(name: 'app.version') as String, test)
-        }
-        catch (FileNotFoundException e)
-        {
-            noTemplate = true
-        }
-
-        //  Send Word document to browser as a byte stream
-        //
-        if ( bytes && bytes.size())
-        {
-            response.addHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8")
-            response.contentLength = bytes.size()
-            response.outputStream << bytes
-            response.outputStream.flush()
-        }
-        else
-        {
-            if (noTemplate) {
-                flash.message = "Couldn't generate report - there is no template file for this panel."
-            } else {
-                flash.message = "Couldn't generate report, please check log files"
-            }
-            //  Go back to original screen
-            //
-            redirect( action: "svlist", id: params.id )
-        }
+        redirect(controller: "seqSampleReport", action: "edit", id: ssr.id)
     }
 
     /**
@@ -392,44 +315,13 @@ class SeqVariantController
         return thesePrefs
     }
 
-    def getReviewedSampleGridPrefs(thisSample) {
-        //println ('getting current user grid prefs')
-        def slurper = new JsonSlurper()
-        def currentUser = springSecurityService.currentUser as AuthUser
 
-        Expando thesePrefs
-        thesePrefs = new Expando()
-
-        thesePrefs.prefsColumnsShown = ''
-        thesePrefs.prefsColumnsHidden = ''
-        thesePrefs.prefsGridInfo = ''
-        thesePrefs.prefsColumnRemap = ''
-        thesePrefs.filters = ''
-        //also grab user's filter preferences here. somehow we will pass them to the javascript
-        def thisSamplePrefs = ReviewedSamplePrefs.findBySeqSample(thisSample)
-        if(thisSamplePrefs) {
-
-            thesePrefs.prefsColumnsShown = thisSamplePrefs.getColumnsShown()
-            thesePrefs.prefsColumnsHidden = thisSamplePrefs.getColumnsHidden()
-            thesePrefs.prefsColumnRemap = thisSamplePrefs.getColumnOrderRemap()
-
-            if (thisSamplePrefs.getGridInfoJson()) {
-                thesePrefs.prefsGridInfo = slurper.parseText(thisSamplePrefs.getGridInfoJson())
-                if (thesePrefs.prefsGridInfo.postData.filters) {
-                    thesePrefs.filters = thesePrefs.prefsGridInfo.postData.filters
-
-                }
-            }
-        }
-
-        return thesePrefs
-    }
 
     def cnvGrid =
     {
         dataSourceType          'gorm'
         domainClass             SeqCnv
-        inlineEdit              true
+        inlineEdit              false
         enableFilter            true
         //addFunction             'columnChooser'
         //savePrefsFunction      'saveFilterPrefs'
@@ -469,20 +361,52 @@ class SeqVariantController
         //
         columns
                 {
+                    id                  { type 'id'; key true; jqgrid { hidden true; hidedlg true }}
                     seqSample
-                    gene
-                    cnv_type
+                    tags {
+                        enableFilter true
+                        filterClosure { Filter filter ->
+                            tags {
+                                applyFilter(delegate, filter.operator, 'label', filter.value )
+                            }
+                        }
+                        value { SeqCnv cnv ->
+                            Map results = [
+                                meta: [
+                                    domainClass: 'seqcnv',
+                                    objId: cnv.id
+                                ],
+                                tags: []
+                            ]
+                            cnv.tags.each { tag ->
+                                Map map = [
+                                    id: tag.id,
+                                    label: tag.label,
+                                    isAuto: tag.isAuto,
+                                    createdBy: tag.createdBy,
+                                    description: tag.description
+                                ]
+                                results.tags << map
+                            }
+                            return "${results as JSON}"
+                        }
+                    }
                     chr
-                    startpos
-                    endpos
-                    lr_mean
-                    lr_median
-                    lr_sd
-                    gainloss
-                    pval
-                    n
-                    probes_pct
-                    pval_adj
+                    start
+                    end
+                    resolution
+                    arm
+                    gene
+                    transcript
+                    exon
+                    copyNumber
+                    copyNumberStdDev
+                    zScore
+                    gaffa {
+                        value { SeqCnv cnv ->
+                            Locator.instance.links?.linksForObject('SeqCnv', cnv)?.gaffa ?: ""
+                        }
+                    }
                 }
     }
     /**
@@ -492,7 +416,7 @@ class SeqVariantController
     {
         dataSourceType          'gorm'
         domainClass             SeqVariant
-        inlineEdit              true
+        inlineEdit              false
         enableFilter            true
         addFunction             'columnChooser'
         savePrefsFunction      'saveFilterPrefs'
@@ -510,17 +434,14 @@ class SeqVariantController
         jqgrid
         {
             height      '100%'
-            rowNum      200
             rowList     = [ 20, 100, 200, 1000 ]
             editable    false
             sortable    true
-            sortname    'allCuratedVariants'
-            sortorder   'desc'
 
             //  Pre-fab templates for quick filtering
             //
-            navGrid     =   [ searchOpts:   [   tmplNames:      ["Top Somatic", "Colorectal", "Melanoma", "Lung", "GIST", "Top Germline", "Top Haem", "MPN Simple", "BRCA Only", "Reportable", "Rahman Genes", "TARGET Genes"],
-                                                tmplFilters:    [ 'topSom','topCrc','topMel','topLung','topGist','topGerm','topHaem','mpnSimple','brcaOnly','reportableVars','rahmanGenes','targetGenes']]
+            navGrid     =   [ searchOpts:   [   tmplNames:      ["Top Somatic", "Colorectal", "Melanoma", "Lung", "GIST", "Top Germline", "Top Haem", "MPN Simple", "BRCA Only", "Reportable", "Rahman Genes", "TARGET Genes", "Germline genes list for CCP", "ALLOCATE genes list for CCP", "Traceback","IBMD","PHT"],
+                                                tmplFilters:    [ 'topSom','topCrc','topMel','topLung','topGist','topGerm','topHaem','mpnSimple','brcaOnly','reportableVars','rahmanGenes','targetGenes', 'germlineCCP', 'allocateCCP', 'topTraceback','topIBMD',"topPHT"]]
             ]
             filterToolbar = [ searchOperators: false ]
         }
@@ -538,37 +459,86 @@ class SeqVariantController
         {
             curated_id          { value { SeqVariant sv -> sv.currentCurVariant()?.id }; jqgrid { hidden true; hidedlg true }}
             curated_evd {
-                value {
-
-                    SeqVariant sv ->
-                        def curUser
-                        if (sv.currentCurVariant()?.classified?.username) {
+                value { SeqVariant sv ->
+                    Map result = [
+                        acmg: '',
+                        amp: '',
+                        cs: ''
+                    ]
+                    CurVariant cv = sv.currentCurVariant()
+                    if (cv) {
+                        String curUser
+                        if (cv.classified?.username) {
                             curUser = sv.currentCurVariant().classified.username
                         } else {
                             curUser = "Unknown"
                         }
-                        sv.currentCurVariant()?.evidence?.justification ? sv.currentCurVariant()?.evidence?.justification + " Curated by: " + curUser : (sv.currentCurVariant() ? (curUser ? 'NO EVIDENCE' + " Curated by: ${curUser}" : 'NO EVIDENCE') : null)
+                        String blob = cv.fetchAcmgEvidence()?.acmgJustification
+                        String acmg = 'NO EVIDENCE'
+
+                        if (blob) {
+                            try {
+                                Object jsonObj = new JsonSlurper().parseText( blob )
+                                acmg = jsonObj?.acmgJustification ?: 'NO EVIDENCE'
+                            } catch (e) {}
+                        }
+
+                        result.acmg = "${acmg} Curated By ${curUser}"
+
+                        blob = cv.fetchAmpEvidence()?.ampJustification
+                        String amp = 'NO EVIDENCE'
+                        if (blob) {
+                            try {
+                                Object jsonObj = new JsonSlurper().parseText( blob )
+                                amp = jsonObj?.ampJustification ?: 'NO EVIDENCE'
+                            } catch (e) {
+                                amp = blob
+                            }
+                        }
+                        result.amp = "${amp} Curated By ${curUser}"
+
+                        result.cs = cv.overallReason ?: "Unclassified"
+                    }
+                    return (result as JSON) as String
                 }; jqgrid { hidden true; hidedlg true }
             }
 
 
             id                  { type 'id'; key true; jqgrid { hidden true; hidedlg true }}
+            tags {
+                enableFilter true
+                filterClosure { Filter filter ->
+                    tags {
+                        applyFilter(delegate, filter.operator, 'label', filter.value )
+                    }
+                }
+                value { SeqVariant sv ->
+                    Map results = [
+                            meta: [
+                                    domainClass: 'seqvariant',
+                                    objId: sv.id
+                            ],
+                            tags: []
+                    ];
+                    sv.tags.each { tag ->
+                        HashMap map =
+                                [
+                                        id: tag.id,
+                                        label: tag.label,
+                                        isAuto: tag.isAuto,
+                                        createdBy: tag.createdBy,
+                                        description: tag.description
+                                ]
+                        results.tags << map
+                    }
+                    return "${results as JSON}"
+                }
+            }
             act
             {
-                type        'actions'
-                sortable    false
-                jqgrid
-                {
-                    hidden false;
-                    hidedlg true;
-                    formatoptions
-                    {
-                        delbutton       false;
-                        onSuccess       true;
-                        afterSave       'f:afterEdit';
-                        afterRestore    'f:reloadGrid';
-                   }
-                }
+                value {'Submit'}
+                enableFilter false;
+                sortable false;
             }
             filterFlag
             reportable
@@ -615,13 +585,43 @@ class SeqVariantController
                     align "center";
                 }
             }
-            matchingCurVariant
+            acmgCurVariant
             {
-                sortable     false
+                jqgrid
+                {
+                    firstsortorder 'desc'
+                }
+                sortProperty 'acmgSort'
                 enableFilter false
                 value
                 { return "" //this column is populated from allCuratedVariants in javascript svlist formatter function for this field
                 }
+            }
+            ampCurVariant
+            {
+                jqgrid
+                {
+                    firstsortorder 'desc'
+                }
+                enableFilter false // worry about filtering in a future version -DKGM 1/2/19
+                value
+                { SeqVariant sv ->
+                    sv.currentCurVariant()?.ampClass ?: ""
+                }
+                sortProperty 'ampSort'
+            }
+            overallCurVariant
+            {
+                jqgrid
+                {
+                    firstsortorder 'desc'
+                }
+                enableFilter false // worry about filtering in a future version -DKGM 12/2/19
+                value
+                { SeqVariant sv ->
+                    sv.currentCurVariant()?.overallClass ?: ""
+                }
+                sortProperty 'overallSort'
             }
             allCuratedVariants
             {
@@ -638,6 +638,8 @@ class SeqVariantController
                         HashMap map =
                         [
                             clinContext: cv.clinContext,
+                            authorisedFlag: cv.authorisedFlag,
+                            authorised: cv.authorised,
                             pmClass: cv.pmClass,
                             id: cv.id,
                         ]
@@ -651,6 +653,27 @@ class SeqVariantController
             }
             sampleName
             gene
+            varFreq
+            varPanelPct
+            varDepth
+            readDepth
+            varPanelPctFormula  //this is nominator and denominator for VarPanelPct
+            {
+                value
+                { SeqVariant sv ->
+                    if(sv.varSamplesSeenInPanel && sv.varSamplesSeenInPanel) {
+                        return "${sv.varSamplesSeenInPanel}/${sv.varSamplesTotalInPanel}"
+                    } else {
+                        return ''
+                    }
+                }
+                filterClosure
+                { Filter filter ->
+                    applyFilter( delegate,filter.operator, 'varPanelPctFormula', filter.value )
+                }
+                enableFilter false
+                sortable false
+            }
             variant
             {
                 value   { SeqVariant sv -> return sv.variant }
@@ -658,7 +681,7 @@ class SeqVariantController
                             formatter "showlink"
                             formatoptions
                             {
-                                baseLinkUrl '/PathOS/annoVariant/listAnno/'
+                                baseLinkUrl '../../annoVariant/listAnno/'
                                 target '_blank'
                             }
                         }
@@ -690,33 +713,24 @@ class SeqVariantController
             numamps
             ampbias
             amps
-            varFreq  
-            varDepth
-            readDepth
-            varPanelPct
-            varPanelPctFormula  //this is nominator and denominator for VarPanelPct
-                    {
-                        value { SeqVariant sv ->
-                            return sv.varPanelPct?"(${sv.varSamplesSeenInPanel}/${sv.varSamplesTotalInPanel})":""
-
-                        }
-                        filterClosure
-                                {
-                                    Filter filter ->
-                                        applyFilter( delegate,filter.operator, 'varPanelPctForumula', filter.value )
-                                }
-                        enableFilter false
-                        sortable false
-                    }
             dbsnp
             {
-                value { SeqVariant sv -> sv.dbsnp ? 'rs' + sv.dbsnp : '' }
-                jqgrid { width "75"; formatter "showlink"; formatoptions { baseLinkUrl '/PathOS/seqVariant/'; showAction 'dbsnpAction'; target '_blank' }}
+                value { SeqVariant sv -> sv.dbsnp ? sv.dbsnp : '' }
+                jqgrid { width "75"; formatter "showlink"; formatoptions { baseLinkUrl '../../seqVariant/'; showAction 'dbsnpAction'; target '_blank' }}
                 filterClosure
                 {
                     Filter filter ->
                         def v = filter.value.replaceAll( /\D+/, '')
-                        applyFilter( delegate, FilterOperatorsEnum.CN, 'dbsnp', v )
+                        if (filter.value == 'r' || filter.value == 's' || filter.value == 'rs') {
+                            //search for Not Empty, that is what user's trying to do.
+                            applyFilter( delegate, FilterOperatorsEnum.NE, 'dbsnp', v )
+                        } else {
+                            //if stripping non numeric leaves us w/ a blank string, put it back
+                            if (v == '') {
+                                v = filter.value
+                            }
+                            applyFilter( delegate, FilterOperatorsEnum.CN, 'dbsnp', v )
+                        }
                 }
             }
             gmaf        //{  enableFilter false;  }
@@ -725,20 +739,15 @@ class SeqVariantController
             cosmicOccurs
             cosmic
             {
-                value { SeqVariant sv -> sv.cosmic ? 'COSM' + sv.cosmic : '' }
-                jqgrid { width "75"; formatter "showlink"; formatoptions { baseLinkUrl '/PathOS/seqVariant/'; showAction 'cosmicAction'; target '_blank' }}
-                filterClosure
-                {
-                    Filter filter ->
-                        def v = filter.value.replaceAll( /\D+/, '')
-                        applyFilter( delegate, FilterOperatorsEnum.CN, 'cosmic', v )
-                }
+                value { SeqVariant sv -> sv.cosmic ? sv.cosmic : '' }
+                jqgrid { width "75"; formatter "showlink"; formatoptions { showAction 'cosmicAction'; target '_blank' }}
+                enableFilter false
             }
             exon
             cytoband
-            googlelink      { value {'Google'}; enableFilter false; sortable false; jqgrid { align "center"; width "70"; formatter "showlink"; formatoptions { baseLinkUrl '/PathOS/seqVariant/'; showAction 'googleSearchAction'; target  '_blank' }}}
-            igv             { value {'IGV'};    enableFilter false; sortable false; jqgrid { align "center"; width "40"; formatter "showlink"; formatoptions { baseLinkUrl '/PathOS/seqVariant/'; seqvar 'sv'; showAction 'igvAction' }}}
-            alamut          { value {'Alamut'}; enableFilter false; sortable false; jqgrid { align "center"; width "70"; formatter "showlink"; formatoptions { baseLinkUrl '/PathOS/seqVariant/'; showAction 'alamutAction'; target  '_blank' }}}
+            googlelink      { value {'Google'}; enableFilter false; sortable false; jqgrid { align "center"; width "70"; formatter "showlink"; formatoptions { baseLinkUrl '../../seqVariant/'; showAction 'googleSearchAction'; target  '_blank' }}}
+            igv             { value {'IGV'};    enableFilter false; sortable false; jqgrid { align "center"; width "40"; formatter "showlink"; formatoptions { baseLinkUrl '../../seqVariant/'; showAction 'igvAction'; target '_blank'}}}
+            alamut          { value {'Alamut'}; enableFilter false; sortable false; jqgrid { align "center"; width "70"; formatter "showlink"; formatoptions { baseLinkUrl '../../seqVariant/'; showAction 'alamutAction'; target  '_blank'}}}
             cadd
             cadd_phred
             mutTasteCat
@@ -777,29 +786,7 @@ class SeqVariantController
             vepHgvsp
             mutStatus
             mutError
-            tags
-            {
-                sortable     false
-                enableFilter false
-                value
-                { SeqVariant sv ->
-                    ArrayList<Tag> tags = sv.tags
-                    ArrayList<HashMap> results = [];
-                    tags.each { tag ->
-                        HashMap map =
-                        [
-                            id: tag.id,
-                            label: tag.label,
-                            isAuto: tag.isAuto,
-                            createdBy: tag.createdBy,
-                            description: tag.description
-                        ]
-                        results.push(map)
-                    }
 
-                    return "${results as JSON}"
-                }
-            }
 
         }
     }
@@ -881,9 +868,6 @@ class SeqVariantController
     }
 
 
-
-   
-
     /**
      * Controller list action for Easygrid
      *
@@ -892,8 +876,10 @@ class SeqVariantController
      */
     def svlist()
     {
-        def thisSeqSample
-        def thisSeqrun
+        def currentUser = springSecurityService.currentUser as AuthUser
+
+        SeqSample thisSeqSample
+        Seqrun thisSeqrun
 
         if ( params.id && params.id?.isNumber() ) {
             thisSeqSample = SeqSample.get(params.id)
@@ -917,7 +903,8 @@ class SeqVariantController
 
         def isFirstReviewed = false
         def isFinalReviewed = false
-
+        def ownFirstReview = false
+        def ownSecondReview = false
 
         //also pass a var: if its set we set bg colour and disable
 
@@ -929,45 +916,39 @@ class SeqVariantController
         {
             isFirstReviewed = true
 
+            if (thisSeqSample.firstReviewBy?.username == currentUser.username ) {
+                ownFirstReview = true
+            }
+
+            if (thisSeqSample.secondReviewBy?.username == currentUser.username ) {
+                ownSecondReview = true
+            }
+
             if ( thisSeqSample.finalReviewBy )
             {
                 isFinalReviewed = true
-                thisPrefs = getReviewedSampleGridPrefs(thisSeqSample)
             }
         }
 
-        if (! thisSeqSample.finalReviewBy ) {
-            thisPrefs = getCurrentUserGridPrefs()   //grab user's set grid prefs only if sample has passed Final Review
+
+        Boolean vcfExists = false
+        File vcf = seqSampleService.retrieveSampleVcf(thisSeqSample.seqrun.seqrun, thisSeqSample.sampleName)
+        if (vcf.exists()) {
+            vcfExists = true
         }
 
-        if (thisPrefs.filters) {
+
+        thisPrefs = getCurrentUserGridPrefs()   //grab user's set grid prefs
+
+
+        if (thisPrefs?.filters) {
             def gridconf = easygridService.getGridConfig('seqVariant', 'curation')
             gridconf.userFilter = thisPrefs.filters
             easygridService.setGridConfig('seqVariant', 'curation', gridconf)
         }
 
-        def allSeqVars = SeqVariant.findAllBySeqSample(thisSeqSample)
-        def allCnvs = SeqCnv.findAllBySeqSample(thisSeqSample)
-
-
-        //get current user as well: we need to know if user is admin or not on the svlist view, so we can disable/enable the buttons on the jqgrid
-        def currentUser = springSecurityService.currentUser as AuthUser
-        def isAdmin = false
-        if (currentUser.authorities.any { it.authority == "ROLE_ADMIN" || it.authority == "ROLE_DEV"  }) {
-            isAdmin = true
-        }
-        def isCurator = false
-        if (currentUser.authorities.any { it.authority == "ROLE_CURATOR"  }) {
-            isCurator = true
-        }
-        def isLab = false
-        if (currentUser.authorities.any { it.authority == "ROLE_LAB"  }) {
-            isLab = true
-        }
-        def isDev = false
-        if (currentUser.authorities.any { it.authority == "ROLE_DEV"  }) {
-            isDev = true
-        }
+        int svSize = SeqVariant.countBySeqSample(thisSeqSample)
+        int cnvSize = SeqCnv.countBySeqSample(thisSeqSample)
 
         //  grab reports
         //
@@ -975,10 +956,19 @@ class SeqVariantController
 
         ArrayList<ClinContext> clinContextList = ClinContext.findAll()
 
+        Preferences preferences = Preferences.findByUser(currentUser)
+        Boolean compressedView = preferences?.compressedView ?: false
+        Integer svlistRows = preferences?.getSvlistRows() ?: 200
+        Boolean skipGeneMask = thisSeqSample?.panel?.skipGeneMask ?: false
 
+        String sortPriority = preferences?.sortPriority ?: "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable"
+//        String sortPriority = "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable";
 
-        return  [seqSample: thisSeqSample, isFirstReviewed: isFirstReviewed, isFinalReviewed: isFinalReviewed, isAdmin: isAdmin, isCurator: isCurator, isLab: isLab, isDev: isDev, prefsShowCols: thisPrefs.prefsColumnsShown,prefsHideCols: thisPrefs.prefsColumnsHidden,prefsColumnRemap: thisPrefs.prefsColumnRemap,prefsGridInfo: thisPrefs.prefsGridInfo, svSize:allSeqVars.size(), cnvSize: allCnvs.size(), viewReports: viewReports, clinContextList: clinContextList  ]
+        def labAssays = thisSeqSample.labAssays()
+
+        return  [seqSample: thisSeqSample, isFirstReviewed: isFirstReviewed, isFinalReviewed: isFinalReviewed, ownFirstReview: ownFirstReview, ownSecondReview: ownSecondReview, prefsShowCols: thisPrefs?.prefsColumnsShown,prefsHideCols: thisPrefs?.prefsColumnsHidden,prefsColumnRemap: thisPrefs?.prefsColumnRemap,prefsGridInfo: thisPrefs?.prefsGridInfo, svSize: svSize, cnvSize: cnvSize, viewReports: viewReports, clinContextList: clinContextList, svlistRows: svlistRows, skipGeneMask: skipGeneMask, compressedView:compressedView, labAssays: labAssays, vcfExists: vcfExists, sortPriority: sortPriority ]
     }
+
 
     def googleSearchAction()
     {
@@ -1019,31 +1009,20 @@ class SeqVariantController
      * These parameters can be checked to see what the user wanted to do.
      *
      * @return
+     *
+     *
+     * Refactored by DKGM 29-June-2017 to solve PATHOS-2474
      */
     def curationInlineEdit()
     {
+        def sv = SeqVariant.get( request.JSON.id )
+        HashMap result = [ message: [] ];
 
-        boolean changedReportable = false
-
-        def currentUser = springSecurityService.currentUser as AuthUser
-        def sv = SeqVariant.get( params.id )
-       // def ss = sv.seqSample
-
-        assert sv, "Missing SeqVariant in SeqVariantController.curationInlineEdit()"
-
-        //  Set reportable flag if changed
-        //
-        if ( params.reportable )
-        {
-            if ((params.reportable == 'Yes') != sv.reportable )
-            {
-                sv.reportable = ! sv.reportable
-                changedReportable = true
-            }
+        if(sv.getReportable() != request.JSON.reportable) {
+            result.message.push("Reportable for ${sv} changed to "+request.JSON.reportable);
+            sv.setReportable(request.JSON.reportable)
         }
 
-
-        def postEditMessage = null
         /**
          * DKGM 21-November-2016
          *
@@ -1051,36 +1030,24 @@ class SeqVariantController
          * Mark it as such, if it hasn't already been marked.
          *
          */
-        if ( params?.curate == 'Yes')
+        if ( request.JSON.curate == true )
         {
-
-            if ( sv.curate() )
-            {
-                flash.message = "SV [${sv}] has been marked for Curation in this context"
-            }
-            else
-            {
+            // Try to curate this variant
+            // If it has already been curated, that's fine, nothing will happen.
+            Boolean success = sv.curate()
+            if(success) {
+                String message = "SV [${sv}] has been marked for Curation."
+                result.message.push(message);
+                flash.message = message;
+            } else {
                 log.error("Curation Error: curation failed on SeqVariant id ${sv.id}")
-                flash.message  = "Error: Failed to mark sv [${sv}] for curation. Please contact a PathOS administrator."
+                String message = "Error: Failed to mark sv [${sv}] for curation. Please contact a PathOS administrator.";
+                result.message.push(message);
+                flash.message = message
             }
         }
 
-        //  Update record
-
-        if ( changedReportable && ! sv.save( flush: true ))
-        {
-            sv.errors.each
-            {
-                log.error( "Failed to update SeqVariant [${sv.id}]" + it )
-            }
-
-            //  discard transient object
-            sv.discard()
-        }
-
-
-
-        redirect( action: "svlist", params: [id: sv.seqSampleId ])
+        render result as JSON
     }
 
     /**
@@ -1091,18 +1058,26 @@ class SeqVariantController
     def igvAction()
     {
 
-        def currentUser = springSecurityService.currentUser as AuthUser
-
-
         if ( params.id )
         {
-
             SeqVariant sv = SeqVariant.get( params.id )
-            def env = Environment.getCurrentEnvironment().name
-            def url = UrlLink.igv( sv.seqSample.seqrun.seqrun, sv.sampleName, sv.chr + ':' + sv.pos, env == 'pa_local' )
-            redirect( url: url )
+            if (sv != null ) {
+                def g = new ApplicationTagLib()
+                String baseLink = g.createLink(controller: 'IgvSession', absolute: 'true', action: 'sessionXml')
+                //     String baseLink = grailsLinkGenerator.link(controller: 'igvSession')
+
+                def url = UrlLink.igvSessionXMLUrl(baseLink, sv.seqSample.seqrun.seqrun, sv.seqSample.sampleName, sv.chr + ':' + sv.pos)
+
+// Alternative:
+// def url = UrlLink.igv( sv?.seqSample?.seqrun?.seqrun, sv?.sampleName, sv?.chr + ':' + sv?.pos )
+
+                redirect(url: url)
+            }
+        } else {
+            render "Error, Sequenced Variant not found."
         }
     }
+
 
     /**
      * Link to local Alamut application
@@ -1112,7 +1087,6 @@ class SeqVariantController
     def alamutAction()
     {
         def currentUser = springSecurityService.currentUser as AuthUser
-
 
         if ( params.id )
         {
@@ -1312,146 +1286,6 @@ class SeqVariantController
     }
 
 
-    /*
-     * this gets a list of all variants in current grid that pass filter
-     */
-    def getCurrentGridVariants() {
-        def gridConfig = easygridService.getGridConfig('seqVariant', 'curation')
-        def listParams = easygridDispatchService.callGridImplListParams(gridConfig)
-        listParams.maxRows = null //no maxrows (that paginates)
-
-
-
-        def userfilter = gridConfig.userFilter
-        if (!userfilter) {  //i think sometimes this isnt set if we use the back button instead of reloading a page. so grab the saved version in that case.
-            userfilter = getCurrentUserGridPrefs().filters
-
-        }
-
-
-        Filters filters = new Filters()
-
-        if(userfilter) {
-            filters = JqGridMultiSearchService.multiSearchToCriteriaClosure(gridConfig, userfilter)
-        }
-
-        if (gridConfig.globalFilterClosure) {
-            def f = new Filter()
-            f.global = true
-
-            f.searchFilter = gridConfig.globalFilterClosure
-
-            filters << f
-        }
-
-
-        //we have to add seq sample id filter ourselves
-        filters << easygridDispatchService.callGridImplFilters(gridConfig)
-        // apply the selection component constraint filter ( if it's the case )
-        if (gridConfig.autocomplete) {
-            filters << easygridDispatchService.callACFilters(gridConfig)
-        }
-
-        //add the search form filters
-        if (gridConfig.filterForm) {
-            filters << easygridDispatchService.callFFFilters(gridConfig)
-        }
-
-        def currentVarList = easygridDispatchService.callDSList(gridConfig, listParams, filters)
-
-        return currentVarList
-    }
-
-    /*
-    check all seqvars when final review form submitted and return a map of errors and warnings (or false)
-    our critera:
-    SeqSample must have QC passed
-    A reported seqvar variant must have at least one curvariant
-    All ticked curated variants are curated and authorised
-     */
-    Map checkReviewValidationErrors(String reviewType, ClinContext clinContext) {
-        List<String>  errors = []
-        List<String>  warnings = []
-        Map out = [:]
-        out['errors'] = errors
-        out['warnings'] = warnings
-        def currentVars = getCurrentGridVariants()
-
-        def ss = SeqSample.get(params.id)
-
-        if (!ss.authorisedQcFlag) { //allow to review if QC failed: only block if not set
-            errors.add("Sorry, cannot yet complete review: Sample must pass QC first")
-        }
-
-        def gridConfig = easygridService.getGridConfig('seqVariant', 'curation')
-
-        for ( SeqVariant seqvar in currentVars ) {
-            //REQUIREMENT: A reported seqvar variant must have a curvariant with the current MutContext
-            if (seqvar.reportable && !seqvar.currentCurVariant()) {
-                def reportError = "Sorry, cannot yet complete review: ${seqvar} is Reported but has no CurVariant for the current context"
-                errors.add(reportError)
-            }
-
-            //get variant for the seqvar
-            def var = seqvar.currentCurVariant()
-            //REQUIREMENT: warn if a C5 Pathogenic variants are not reported
-            if (var?.pmClass?.contains('C5') && (!seqvar.reportable)) {
-                warnings.add("Warning: SeqVariant ${seqvar} / CurVariant ${var} is C5 Pathogenic but not reportable.")
-            }
-
-            // below code block is: only check if current (matching clincontext of seqsample) cv is authorised
-            if (seqvar.currentCurVariant()&& reviewType == 'final') {
-                //if our seqvar is curated...
-                //ensure variant for this seqvariant is curated and authorised
-                if (!seqvar.currentCurVariant().authorisedFlag) {
-                    def authVarError = "Sorry, cannot yet complete review: The CurVariant record ${seqvar.currentCurVariant()} for seqVariant ${seqvar} is not Authorised"
-                    errors.add(authVarError)
-                }
-            }
-
-
-        }
-
-        //PATHOS-541: warn if patient has another patsampe with seqsamples
-        if (reviewType == 'final') {
-            def thisSample = ss.patSample
-            if (thisSample) {
-                def thisPatient = thisSample.patient
-                if (thisPatient) {
-                    def thisPatientSamples = PatSample.findAllByPatient(thisPatient)
-                    if (thisPatientSamples.size() > 1) {
-                        for (psample in thisPatientSamples) {
-                            if (psample.id != thisSample.id) {
-                                def ss_string = ''
-                                def pssamples = SeqSample.findAllByPatSample(psample)
-                                if (pssamples) {
-                                    for (pss in pssamples) {
-                                        ss_string = ss_string + "<a href='${request.contextPath}/SeqSample/show/${pss.id}' style='color:red'>${pss}</a> "
-                                    }
-                                    warnings.add("Warning: this patient has another Sample with SeqSamples. Sample: <a href='${request.contextPath}/sample/show/${psample.id}' style='color:red'>${psample}</a> SeqSamples: ${ss_string}")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        if(!errors.isEmpty())
-        {
-            out['errors'] = errors
-        }
-
-
-        if(!warnings.isEmpty())
-        {
-            out['warnings'] = warnings
-        }
-
-
-        return out
-    }
     /** Update mut context for a seqsample
      *
      */
@@ -1465,307 +1299,370 @@ class SeqVariantController
                 def currentUser = springSecurityService.currentUser as AuthUser
                 if (!(currentUser.authorities.any { it.authority == "ROLE_ADMIN" || it.authority == "ROLE_DEV" ||  it.authority == "ROLE_CURATOR" || it.authority == "ROLE_LAB" }))
                 {
-                    flash.message = "Sorry, only Curator and Administrator users can change the clinical context of a sequenced sample."
-                    println "Sorry, only Curator and Administrator users can change the clinical context of a sequenced sample."
+                    flash.message = "Only Curator and Administrator users can change the clinical context of a sequenced sample."
+                    println "Only Curator and Administrator users can change the clinical context of a sequenced sample."
                     redirect( action: "svlist", params: [id: ssid])
                 } else {
 
 
                     def thisMutContext = ClinContext.findByCode(params.clinContext)   //this comes in as code
-                    if (params.thisClinContext == 'None' || params.clinContext == '') {
-                        ss.setClinContext(null)
+                    if (params.thisClinContext == 'None' || params.clinContext == '' || !thisMutContext) {
+                        ss.setClinContext(ClinContext.generic())
                     } else {
                         ss.setClinContext(thisMutContext)
                     }
 
-
                     flash.message = "Set clinical context to " + params.clinContext
+
+                    //  audit log message
+                    //
+                    AuditService.audit([
+                        category:    'context',
+                        task:        'clin context update',
+                        sample:      ss.toString(),
+                        description: "Set clinical context to '" + params.clinContext + "' for SeqSample ${ss.toString()} ID ${ss.id}"
+                    ])
+
 
 
                     redirect(action: "svlist", params: [id: ssid])
                 }
     }
-    /** Update a holly sample
-     *
-     */
-
-    def updateHolly =
-    {
-        Long ssid = (params.seqsampleid ?: null) as Long
-        Long psid = (params.patsampleid ?: null) as Long
-
-        def ss = SeqSample.get(ssid)
-
-        def thisPatSample = ( psid ? PatSample.get(psid) : null )
-
-        if ( thisPatSample && PatSampleController.loadHollyData(thisPatSample.sample))
-        {
-            def thisPatSampleUpdated = PatSample.get(psid)
-            if (params.hollylastupdate != thisPatSampleUpdated.hollyLastUpdated && params.hollylastupdate != '0')
-            {
-                flash.message = "Patient details updated. This data update: " + thisPatSampleUpdated.hollyLastUpdated + " (previous data update: " + params.hollylastupdate + ")"
-            }
-            else if (params.hollylastupdate == '0')
-            {
-                //  new data update
-                //
-                flash.message = "Patient details found and loaded."
-            }
-            else
-            {
-                flash.message = "Patient details already up to date, no new data."
-            }
-        }
-        else
-        {
-            flash.message = "No patient details available"
-        }
-
-        redirect( action: "svlist", params: [id: ssid, seqSample: ss] )
-    }
-
 
     /**
-     * Authorise a review of a sample, either first or final
+     * Check that a user is allowed to revoke something.
+     * Then revoke it.
+     * Then log the message & return the user.
      */
-    def authoriseReview =
-    {
-        Long id = params.id as Long
-        def currentUser = springSecurityService.currentUser as AuthUser
-
-        def warningmessage
-
-        //User must be lab, curator, or admin
-        //
-        if (!(currentUser.authorities.any { it.authority == "ROLE_ADMIN" || it.authority == "ROLE_DEV" ||  it.authority == "ROLE_CURATOR" || it.authority == "ROLE_LAB"}))
-        {
-            flash.message = "You do not have sufficient privileges to perform this action"
-            redirect( action: "svlist", id: id )
+    def revokeReview(Long id, String review) {
+        SeqSample ss = SeqSample.get(id)
+        if (!ss) {
+            flash.error = "Can't find the SeqSample?"
+            redirect( url: "${utilService.context()}/" )
             return
         }
 
-        //  Must be either the first or the final review button
-        //
-        if ( ! params.final && ! params.first && ! params.second ) return
-        def reviewType = (params.final ? 'final' : params.second ? 'second' : 'first')
-        //grab the seqsample
-        //
-        def ss = SeqSample.get(id)
-        if ( ! ss )
-        {
-            flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqSample.label', default: 'SeqSample'), id])
-            redirect( action: "svlist", id: id )
-            return
-        }
+        AuthUser currentUser = springSecurityService.currentUser as AuthUser
 
-
-        //are we revoking a review or authorising one?
-        //
-        def revoke = false
-        //if ( (reviewType == 'final' && ss.finalReviewBy) || (reviewType == 'first' && ss.firstReviewBy) ||  (reviewType == 'second' && ss.secondReviewBy)) {
-        if ( params.revoke )
-        {
-            revoke = true
-            //check privilige to be safe - only Admins can revoke
-            if (!(currentUser.authorities.any { it.authority == "ROLE_ADMIN" || it.authority == "ROLE_DEV" }))
-            {
-                flash.message = "You must be an administrator to revoke a review"
-                redirect( action: "svlist", id: id )
-                return
-            }
-        }
-
-        //do not let revoke first review if second already done
-        //
-        if (reviewType == 'first' && revoke == true &&  ss.secondReviewBy) {
-            flash.message = "Cannot revoke first review because the sample has already undergone second review"
-            redirect( action: "svlist", id: id )
-            return
-        }
-
-        //we could have concurrency issues where reviewers overwrite each other: one last check that we're not clobbering an existing review
-        //
-        if ( !revoke && ((reviewType == 'first' && ss.firstReviewBy) ||  (reviewType == 'second' && ss.secondReviewBy) || (reviewType == 'final' && ss.finalReviewBy))) {
-            flash.message = "Cannot complete ${reviewType} review - this sample has already undergone ${reviewType} review"
-            redirect( action: "svlist", id: id )
-            return
-        }
-
-
-
-        //check for errors
-        //
-        if(! revoke ) {
-            //need to validate our vars
-            def valErrors = checkReviewValidationErrors(reviewType, ss.clinContext)
-            if (valErrors.errors) {
-
-                flash.errors = valErrors['errors']
-                redirect( action: "svlist", id: id )    //if we have errors, return before we set review
-                return
-            }
-            if (valErrors.warnings) {
-                flash.errors = valErrors['warnings']
-
-            }
-        }
-
-        //  Toggle finalReviewBy to current user
-        //
-        if ( reviewType == 'final')
-        {
-            if (!(currentUser.authorities.any { it.authority == "ROLE_ADMIN"  || it.authority == "ROLE_DEV" || it.authority == "ROLE_CURATOR"}))
-            {
-                flash.message = "You do not have sufficient privileges to perform this action"
-                redirect( action: "svlist", id: id )
-                return
-            }
-            //  The sample must be curated to have an authorisation change
-            //
-            if ( ! ss.firstReviewBy )
-            {
-                flash.message = "Sample has not yet passed First Review."
-
-                redirect( action: "svlist", id: id )
-                return
-            }
-
-
-
-
-
-            //  The authoriser cant be the curator.. unless we are revoking
-            //
-            if ( ss.firstReviewBy.displayName == currentUser.getDisplayName()  && !revoke)
-            {
-                def errorList = []
-                errorList.add("Sorry, cannot complete review - Final Reviewer must be different to First Reviewer.")
-                flash.errors = errorList
-                redirect( action: "svlist", id: id )
-                return
-            }
-
-
-
-
-            ss.finalReviewBy = (revoke ? null : currentUser)
-            if (!revoke) {
-                ss.finalReviewedDate = new Date()   //if NOT revoking
-            }
-        }
-        else if (reviewType == 'first')   //first review
-        {
-            if ( ss.finalReviewBy )
-            {
-                flash.message = "Sample has already passed Final Review."
-                redirect( action: "svlist", id: id )
-                return
-            }
-
-
-            ss.firstReviewBy    = (revoke   ? null : currentUser)
-            if (!revoke) {
-                ss.firstReviewedDate = new Date()   //if NOT revoking
-            }
-
-        }  else if (reviewType == 'second')   //first review
-        {
-            if ( ss.finalReviewBy )
-            {
-                flash.message = "Sample has already passed Final Review."
-                redirect( action: "svlist", id: id )
-                return
-            }
-
-            if ( ss.firstReviewBy.displayName == currentUser.getDisplayName()  && !revoke)
-            {
-                def errorList = []
-                errorList.add("Sorry, cannot complete review - Second Reviewer must be different to First Reviewer.")
-                flash.errors = errorList
-                redirect( action: "svlist", id: id )
-                return
-            }
-
-
-            ss.secondReviewBy    = (revoke   ? null : currentUser  )
-
-            if (!revoke) {
-                ss.secondReviewedDate = new Date()   //if NOT revoking
-            }
-
-        }
-
-
-        //  Save updates
-        //
-        if ( ! ss.save(flush: true))
-        {
-            log.error( "Failed to update ${reviewType} for [${ss}]")
-        }
+        String audit_msg = seqSampleService.revokeReview(ss, review)
 
         //  Log an audit message
         //
-        def audit_msg = "Successfully set Curation Review: ${reviewType} on ${ss.sampleName} to Final Review by: ${ss.finalReviewBy} First Review by: ${ss.firstReviewBy}  Second Review by: ${ss.secondReviewBy}"
-        def audit     = new Audit(  category:    'curation',
-                                    seqrun:      ss.seqrun.seqrun,
-                                    sample:      ss.sampleName,
-                                    complete:    new Date(),
-                                    elapsed:     0,
-                                    software:    'PathOS',
-                                    swVersion:   meta(name: 'app.version'),
-                                    task:        "sample curation status",
-                                    username:    currentUser.getUsername(),
-                                    description: audit_msg )
-
-        if ( ! audit.save( flush: true ))
-        {
-            audit?.errors?.allErrors?.each
-            {
-                log.error( new MessageFormat(it?.defaultMessage)?.format(it?.arguments))
-            }
-            log.error( "Failed to log audit message: ${audit_msg}")
-
-        }
+        AuditService.audit([
+            category    : 'curation',
+            seqrun      : ss.seqrun.seqrun,
+            sample      : ss.sampleName,
+            task        : "sample curation status",
+            description : audit_msg
+        ])
 
         flash.message = audit_msg
-        if(warningmessage) {
-            flash.message = flash.message + '\n' + warningmessage
-        }
-
-        redirect( action: "svlist", params: [id: id, seqSample: ss] )
+        redirect( action: "svlist", id: id )
+        return
     }
 
+    /**
+     * Check that the user is allowed to authorise something.
+     * Then Authorise it.
+     * Then log the message & return the user.
+     */
+    def authoriseReview(Long id, String review) {
+        SeqSample ss = SeqSample.get(id)
+        if (!ss) {
+            flash.error = "Can't find the SeqSample?"
+            redirect( url: "${utilService.context()}/" )
+            return
+        }
+
+        AuthUser currentUser = springSecurityService.currentUser as AuthUser
+
+        HashMap messages = seqSampleService.authoriseReview(ss, currentUser, review)
+
+        //  Log an audit message
+        //
+        AuditService.audit([
+            category    : 'curation',
+            seqrun      : ss.seqrun.seqrun,
+            sample      : ss.sampleName,
+            task        : "sample curation status",
+            description : messages.errors.toString() + messages.warnings.toString()
+        ])
+
+        flash.errors = messages.errors
+        flash.messages = messages.warnings
+
+        redirect( action: "svlist", id: id )
+        return
+    }
+
+    /**
+     * Look up CurVariants for CurVariant overlay
+     * @param id
+     * @return
+     */
     def lookUpCVs ( Long id )
     {
+        Long cvid = SeqVariant.get( id )?.currentCurVariant()?.id;
+        redirect(controller: "curVariant", action: "lookUpCV", params: [
+            id: cvid,
+            svid: id
+        ])
+    }
+
+    def countSVs ( String hgvsg )
+    {
+        render SeqVariant.countByHgvsg( hgvsg )
+    }
+
+    def lookUpSV ( Long id )
+    {
         SeqVariant sv = SeqVariant.get( id )
-
-        HashMap context = [:]
-        ArrayList<CurVariant> allCV = sv.allCurVariants()
-        allCV.each { cv ->
-            context[cv.clinContext?.id] = cv.clinContext?.toString()
-        }
-        def generic = sv.allCurVariants().find { it.clinContext == null }
-
-        HashMap m =
-        [
-            sv: sv,
-            generic: generic,
-            currentCV: sv.currentCurVariant(),
-            otherCVs:  sv.allCurVariants().findAll { it.clinContext != null && it != sv.currentCurVariant() },
-            allCV: allCV,
-            lookup: [
-                cc: sv.seqSample.clinContext,
-                context : context,
-                classified: generic?.classified?.displayName,
-                authorised: generic?.authorised?.displayName,
-                listOfCC: ClinContext?.all
+        HashMap results = [error:'SeqVariant not found']
+        if( sv ) {
+            results = [
+                sv: sv,
+                hgvsg: sv.hgvsg,
+                cc: sv.seqSample?.clinContext?.description,
+                contextCode: sv.seqSample?.clinContext?.code,
+                clinContextId: sv.seqSample?.clinContext?.id
             ]
-        ]
+        }
+        render results as JSON
+    }
 
-        render m as JSON
+    /**
+     * Look up Tags for Tags overlay
+     * @param id
+     * @return
+     */
+    def lookUpTags( Long id ) {
+        SeqVariant sv = SeqVariant.get(id);
+        if (sv) {
+            HashMap map = [hgvsg: sv.hgvsg, tags: sv.tags]
+            render map as JSON
+        } else {
+            render "Error"
+        }
+    }
+
+    /**
+     * Generate and display PDF Report for sample using SeqSampleReport instead of SeqSample
+     *
+     * This should live in seqSampleReport controller or a service?
+     * But I'm having trouble getting beans to work.
+     * -DKGM 13-April-2017
+     * @return PDF
+     */
+    def preparedReport()
+    {
+//        We should fail if there is no id...
+//        if(!params.id) render "ERROR"
+
+        SeqSampleReport ssr = SeqSampleReport.get(params.id)
+        String fileExt = params.fileExt ?: "pdf"
+        Boolean test = params.test as Boolean ?: false
+        Boolean publish = params.publish as Boolean ?: false
+
+        if (!ssr) {
+            flash.message = message(code: 'default.not.found.message', args: [message(code: 'seqSampleReport.label', default: 'No seqSampleReport found'), params.id])
+            redirect(controller: "seqSampleReport", action: "list")
+            return
+        }
+
+        String errorMessage = "Couldn't generate report, please check log files"
+
+        //  Generate report
+        //
+        byte[] bytes
+        try
+        {
+            bytes = reportService.generateReport(ssr, meta(name: 'app.version') as String, test, fileExt, publish)
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.message
+        }
+
+        if (bytes && bytes.size())
+        {
+            response.setHeader "Content-disposition", "attachment; filename=${ssr.seqSample.seqrun.seqrun}_${ssr.seqSample.sampleName}.${fileExt}"
+            response.contentType = fileExt == 'docx' ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf"
+            response.contentLength = bytes.size()
+            response.outputStream << bytes
+            response.outputStream.flush()
+        }
+        else
+        {
+
+            // Display error message and go back to seqSampleReport screen
+            //
+            flash.message = errorMessage
+            redirect(controller: "seqSampleReport", action: "edit", id: params.id)
+        }
+    }
+
+    /**
+     * This function should clone the SSR so we have a snapshot of the SSR sent to Auslab
+     * Send the user to the new one
+     */
+    def cloneSSR() {
+        SeqSampleReport ssr = SeqSampleReport.get(params.id)
+        SeqSampleReport newSSR = new SeqSampleReport([
+            seqSample:              ssr.seqSample,
+            reportFilePath:         "none",
+            dateCreated:            ssr.dateCreated,
+            user:                   ssr.user,
+            sample:                 ssr.sample,
+//            patient:	            ssr.patient,
+//            urn:	                ssr.urn,
+//            dob:	                ssr.dob,
+//            age:	                ssr.age,
+//            sex:	                ssr.sex,
+//            requester:	            ssr.requester,
+//            location:	            ssr.location,
+            morphology:	            ssr.morphology,
+            site:	                ssr.site,
+            tumour_pct:	            ssr.tumour_pct,
+            collect_date:	        ssr.collect_date,
+            rcvd_date:	            ssr.rcvd_date,
+            ampReads:	            ssr.ampReads,
+            ampPct:	                ssr.ampPct,
+            lowAmps:            	ssr.lowAmps,
+            rois:               	ssr.rois,
+//            isdraft:	            ssr.isdraft,
+//            clinContext:	        ssr.clinContext,
+//            firstReviewer:	        ssr.firstReviewer,
+//            firstReviewedDate:	    ssr.firstReviewedDate,
+//            secondReviewer:	        ssr.secondReviewer,
+//            secondReviewedDate:	    ssr.secondReviewedDate,
+//            finalReviewer:	        ssr.finalReviewer,
+//            finalReviewedDate:  	ssr.finalReviewedDate,
+            citations:	            ssr.citations,
+            clinicalDetails:	    ssr.clinicalDetails,
+            resultSummary:      	ssr.resultSummary,
+            recommendations:    	ssr.recommendations,
+            address:	            ssr.address,
+            phone:	                ssr.phone,
+            requestAddress:	        ssr.requestAddress,
+            copyTo:             	ssr.copyTo,
+            specimen:	            ssr.specimen,
+            sampleType:	            ssr.sampleType,
+            histologicalFeatures:	ssr.histologicalFeatures,
+            uncoveredRegions:		ssr.uncoveredRegions
+        ])
+        newSSR.save();
+
+        ssr.curVariantReports.each { cvr ->
+            HashMap properties = [
+                seqSampleReport:    newSSR,
+                curVariant:         cvr.curVariant,
+                sample:	            cvr.sample,
+                gene:	            cvr.gene,
+                refseq:	            cvr.refseq,
+                hgvsc:	            cvr.hgvsc,
+                hgvsp:	            cvr.hgvsp,
+                varreaddepth:	    cvr.varreaddepth,
+                totalreaddepth:	    cvr.totalreaddepth,
+                afpct:	            cvr.afpct,
+                exon:	            cvr.exon,
+                pmClass:	        cvr.pmClass,
+                ampClass:           cvr.ampClass,
+                clinicalSignificance: cvr.clinicalSignificance,
+                mut:	            cvr.mut,
+                genedesc:	        cvr.genedesc
+            ]
+            CurVariantReport newCVR = new CurVariantReport(properties);
+            newSSR.addToCurVariantReports(newCVR);
+        }
+
+        newSSR.save();
+
+        redirect(controller: "seqSampleReport", action: "edit", id: newSSR.id);
     }
 
 
+
+
+    def fetchAnnotations( Long id )
+    {
+        SeqVariant sv = SeqVariant.get(id);
+        HashMap result = [
+                fail: "It didn't work"
+        ]
+        if(sv) {
+            result = [
+                ok: "We found a SV!",
+                gene: sv.gene,
+                hgvsc: sv.hgvsc,
+                curatedVariant: sv.currentCurVariant(),
+                reportable: sv.reportable,
+                civic: []
+            ]
+
+            Set<CivicVariant> civicIds = []
+
+            String hgvsg_suffix = ""
+            try {
+                hgvsg_suffix = sv.hgvsg.split(":")[1] ?: ""
+                if(hgvsg_suffix && CivicVariant.findByHgvs_expressionsLike( "%${hgvsg_suffix}%" )){
+                    CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsg_suffix}%" )
+                    civicIds.add(civ)
+                }
+            } catch (e) {}
+
+
+            String hgvsc_suffix = ""
+            try {
+                sv.hgvsc.split(":")[1] ?: ""
+                if(hgvsc_suffix && CivicVariant.findByHgvs_expressionsLike( "%${hgvsc_suffix}%" )){
+                    CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsc_suffix}%" )
+                    civicIds.add(civ)
+                }
+            } catch (e) {}
+
+            if(sv.hgvsp) {
+                String hgvsp_suffix = ""
+                try {
+                    sv.hgvsp.split(":")[1] ?: ""
+                    if(hgvsp_suffix && CivicVariant.findByHgvs_expressionsLike( "%${hgvsp_suffix}%" )){
+                        CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsp_suffix}%" )
+                        civicIds.add(civ)
+                    }
+                } catch (e) {}
+            }
+
+            civicIds.each { CivicVariant civ ->
+                result.civic.push([
+                    civicId: civ.id,
+                    civicInfo: civ.variant + " - " + civ.summary
+                ])
+            }
+
+            if(sv.cosmic) {
+                result.cosmic = sv.cosmic
+                result.cosmicOccurs = sv.cosmicOccurs
+            }
+
+            if(Drug.findByMolecularTargets(sv.gene)) {
+                result.drug = sv.gene;
+                List<Drug> drugs = Drug.findAllByMolecularTargets(sv.gene);
+                result.drugInfo = "${drugs.size()} drugs - " + drugs.join(", ");
+            }
+
+            if(Trial.findByMolecularAlterations(sv.gene)) {
+                result.trial = sv.gene;
+                List<Trial> trials = Trial.findAllByMolecularAlterations(sv.gene);
+                result.trialInfo = "${trials.size()} trials";
+            }
+
+            if(sv.dbsnp) {
+                result.dbsnp = sv.dbsnp
+            }
+
+        }
+
+        render result as JSON
+    }
 
 
 

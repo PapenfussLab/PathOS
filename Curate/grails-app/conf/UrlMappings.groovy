@@ -6,12 +6,19 @@ class UrlMappings {
 				// apply constraints here
 			}
 		}
+
+		"/seqSampleReport/${id}" {
+			controller 	= "seqSampleReport"
+			action 		= "inspect"
+			constraints {
+				id(matches:/\d+/)
+			}
+		}
+
         "/seqVariant/svlist/${seqrunName}/${sampleName}" (controller:"seqVariant",action: "svlist")
         "/seqrun/show/${seqrunName}" (controller:"seqrun",action:"show")
         "/sample/show/${sample}" (controller:"sample",action:"show")
-//		curVariant hgvsg won't work anymore, since we have clinical contexts
-//			DKGM 19-Oct-2916
-//       "/curVariant/show/${hgvsg}" (controller:"curVariant",action:"show")
+		"/igvSession/sessionXml/${seqrunName}/${sampleName}.xml" (controller:"igvSession",action:"sessionXml")
 		"/"(view:"/index")
 		"500"(view:'/error')
 	}

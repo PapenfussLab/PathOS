@@ -40,9 +40,17 @@ class PatSample implements Taggable
     String      pathologist         // Reviewing pathologist
     String      hollyLastUpdated
 
+    String      extSample   //external sample name, if taken from auslab
 
     static hasMany = [ patAssays: PatAssay, seqSamples: SeqSample, tags: Tag ]
 
+    static mapping =
+        {
+            slideComments       (type: 'text')
+            pathComments        (type: 'text')
+            repMorphology       (type: 'text')
+            pathMorphology      (type: 'text')
+        }
 
     static searchable =
         {
@@ -76,10 +84,11 @@ class PatSample implements Taggable
             hollyLastUpdated     nullable: true
             stage          (nullable: true)
             formalStage    (nullable: true)
-            slideComments  (nullable: true, type: 'text', maxSize: 3000)
-            pathComments   (nullable: true, type: 'text', maxSize: 3000)
-            repMorphology  (nullable: true, type: 'text', maxSize: 3000)
-            pathMorphology (nullable: true, type: 'text', maxSize: 3000)
+            slideComments  (nullable: true)
+            pathComments   (nullable: true)
+            repMorphology  (nullable: true)
+            pathMorphology (nullable: true)
+            extSample      (nullable: true)
 
 
         }

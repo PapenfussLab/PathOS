@@ -8,6 +8,7 @@ class FilterflagCheckerTest extends GroovyTestCase
 
     String DB
     Boolean isPaLocal
+    /* DEPRECATED
 
     //TODO WE need to re-assess these functions
     void setUp()
@@ -109,7 +110,7 @@ class FilterflagCheckerTest extends GroovyTestCase
         fc.singletonVars(run,sql)
     }
 
-
+    */
 
 
 

@@ -1,6 +1,0 @@
-# This is a hack to create an empty directory in git.
-# Ignore everything in this  directory
-*
-# Except this file
-!.gitignore
-

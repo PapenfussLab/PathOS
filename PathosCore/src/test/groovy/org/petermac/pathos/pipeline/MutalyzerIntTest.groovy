@@ -9,6 +9,8 @@ import org.petermac.pathos.pipeline.MutalyzerUtil
 
 //LUIS EDIT
 import groovyx.net.http.*
+import org.petermac.util.Locator
+
 import static groovyx.net.http.ContentType.*
 import static groovyx.net.http.Method.*
 import org.apache.http.auth.*
@@ -36,10 +38,10 @@ import org.apache.commons.codec.binary.Base64
 class MutalyzerIntTest extends GroovyTestCase
 {
 
-
+    static Locator loc  = Locator.instance
     def env = System.getenv()
 
-    String DB = env["PATHOS_DATABASE"]
+    String DB = loc.pathosEnv
 
     //  Batch job data
     //
@@ -168,8 +170,12 @@ class MutalyzerIntTest extends GroovyTestCase
     {
 
         if ( ! mut.ping()) assert false, "Can't connect to Mutalyser"
-        def res = mut.batch( muts, "PositionConverter" )
-        log.info res
+        try {
+            def res = mut.batch( muts, "PositionConverter" )
+            log.info res
+        } catch (e) {
+            assert false, "Can't batch process PositionConverter"
+        }
     }
 
     void testParse()
@@ -281,10 +287,10 @@ class MutalyzerIntTest extends GroovyTestCase
         if ( ! mut.ping()) assert false, "Can't connect to Mutalyser"
 
         def http = new HTTPBuilder( 'https://mutalyzer.nl/' )
-        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
-        def proxyPort = 8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
-        if ( proxyHost && proxyPort )
-            http.setProxy( proxyHost, proxyPort, 'http')
+//        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
+//        def proxyPort = 8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
+//        if ( proxyHost && proxyPort )
+//            http.setProxy( proxyHost, proxyPort, 'http')
 
         http.request( POST )
         {
@@ -308,20 +314,20 @@ class MutalyzerIntTest extends GroovyTestCase
         }
     }
 
-    /**
-     *  Test using HTTPBuilder for direct gets of monitor Jobs
-     *  https://mutalyzer.nl/json/monitorBatchJob?job_id=0f826a27-02a2-4cec-8d08-a74f13f35e97
-     */
+    //
+     //  Test using HTTPBuilder for direct gets of monitor Jobs
+     //  https://mutalyzer.nl/json/monitorBatchJob?job_id=0f826a27-02a2-4cec-8d08-a74f13f35e97
+     // 
     void testHttpMonitor()
     {
 
         if ( ! mut.ping()) assert false, "Can't connect to Mutalyser"
 
         def http = new HTTPBuilder( 'https://mutalyzer.nl/' )
-        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
-        def proxyPort =  8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
-        if ( proxyHost && proxyPort )
-            http.setProxy( proxyHost, proxyPort, 'http')
+//        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
+//        def proxyPort =  8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
+//        if ( proxyHost && proxyPort )
+//            http.setProxy( proxyHost, proxyPort, 'http')
 
         def html = http.get( path: '/json/monitorBatchJob', contentType: ContentType.TEXT, query: [ job_id: '0f826a27-02a2-4cec-8d08-a74f13f35e97'] )
 
@@ -344,10 +350,10 @@ class MutalyzerIntTest extends GroovyTestCase
         //Logger.getRootLogger().setLevel(Level.DEBUG)
 
         def http = new HTTPBuilder( 'https://mutalyzer.nl' )
-        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
-        def proxyPort = 8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
-        if ( proxyHost && proxyPort )
-            http.setProxy( proxyHost, proxyPort, 'http')
+//        def proxyHost = 'http://bioinf-pathos-test' //System.properties.find { it.key == 'https.proxyHost'}?.value as String
+//        def proxyPort = 8099 //System.properties.find { it.key == 'https.proxyPort'}?.value as Integer
+//        if ( proxyHost && proxyPort )
+//            http.setProxy( proxyHost, proxyPort, 'http')
 
         http.request( POST )
         {
@@ -386,7 +392,7 @@ class MutalyzerIntTest extends GroovyTestCase
 
         //Logger.getRootLogger().setLevel(Level.DEBUG)
 
-        def http = new HTTPBuilder( 'https://test.mutalyzer.nl' )
+        def http = new HTTPBuilder( 'https://mutalyzer.nl' )
 
         if ( mut.proxyHost && mut.proxyPort )
             http.setProxy( mut.proxyHost, mut.proxyPort, 'http')
@@ -579,4 +585,5 @@ class MutalyzerIntTest extends GroovyTestCase
 //
 //        println( "In ${ml.size()} Out ${mutl.size()} OK ${validMut} Errors ${errors}")
 //    }
+
 }

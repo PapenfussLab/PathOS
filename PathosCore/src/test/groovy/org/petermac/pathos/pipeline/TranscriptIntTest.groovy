@@ -7,6 +7,8 @@
 
 package org.petermac.pathos.pipeline
 
+import org.petermac.util.Locator
+
 /**
  * Created for PathOS.
  *
@@ -20,13 +22,14 @@ package org.petermac.pathos.pipeline
  */
 class TranscriptIntTest extends GroovyTestCase
 {
-
+    static Locator loc  = Locator.instance
     String DB
     void setUp()
     {
         def env = System.getenv()
 
-        DB = env["PATHOS_DATABASE"]
+        DB = loc.pathosEnv
+
 
     }
 

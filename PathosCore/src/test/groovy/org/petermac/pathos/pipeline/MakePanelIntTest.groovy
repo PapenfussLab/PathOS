@@ -1,5 +1,7 @@
 package org.petermac.pathos.pipeline
 
+import java.text.SimpleDateFormat
+
 
 /**
  * Created for PathOS.
@@ -24,7 +26,7 @@ class MakePanelIntTest extends GroovyTestCase
     void testRunAmplicon()
     {
         String panel = 'CancerGNA10212011_170_190_Viewermanifest'
-        String ampfFile = "outFile.tsv"
+        String ampfFile = "outFileTest" + new Date().format("yyyyMMddHHmmss") + ".tsv"
 
         def pan = new MakePanel()
         assert pan.runAmplicon(panel, ampfFile)
@@ -34,7 +36,7 @@ class MakePanelIntTest extends GroovyTestCase
     void testRunBed()
     {
         String panel = 'CancerGNA10212011_170_190_Viewermanifest'
-        String bedFile = "outFile.bed"
+        String bedFile = "outFile" +  new Date().format("yyyyMMddHHmmss") + ".bed"
 
         def pan = new MakePanel()
         assert pan.runBed(  panel,  bedFile )

@@ -272,21 +272,25 @@ class Extractor
     {
         //  mut should be in form: c.1940A>T, p.Asn647Ile
         //
-        if ((gene =~ /\w+/) && (mut =~ /c\..*/))
+        if ((gene =~ /\w+/) && (mut =~ /[cp]\..*/))
         {
+            if ( ! reportMap.genes  ) reportMap.genes  = []
+            if ( ! reportMap.hgvscs ) reportMap.hgvscs = []
+            if ( ! reportMap.hgvsps ) reportMap.hgvsps = []
+
             reportMap.genes << gene
 
             //  split mut into parts
             //
-            String[] parts = mut.split(',')
-            if ( parts.size() == 2 )
+            String[] parts = mut?.split(',')
+            if ( parts?.size() == 2 )
             {
-                reportMap.hgvscs << parts[0].trim()
-                reportMap.hgvsps << parts[1].trim()
+                reportMap.hgvscs << parts[0]?.trim()
+                reportMap.hgvsps << parts[1]?.trim()
             }
             else
             {
-                reportMap.hgvscs << mut.trim()
+                reportMap.hgvscs << mut?.trim()
                 reportMap.hgvsps << '-'
             }
 

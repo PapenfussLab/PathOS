@@ -475,4 +475,89 @@ class StatsService
         return ds + ']'
     }
 
+    /**
+     * Stats by DKGM 7-April-2017
+     *
+     */
+
+    /**
+     * Get array list of curvariants
+     * @return
+     */
+    static ArrayList cur_variants(){
+
+
+        def blah = """
+select seq_variant.hgvsg as hgvsg, count(seq_variant.hgvsg) as count from seq_sample as oss, panel as op, panel as gp, seq_sample as mss, seq_variant, cur_variant
+
+where oss.id = 3200
+
+and
+
+oss.`panel_id` = op.id
+
+and
+
+gp.panel_group = op.panel_group
+
+and
+
+mss.panel_id = gp.id
+
+and
+
+seq_variant.seq_sample_id = mss.id
+
+and
+seq_variant.hgvsg = cur_variant.grp_variant_accession
+
+group by cur_variant.grp_variant_accession
+
+order by 2 desc
+"""
+
+        def query = """
+
+from SeqVariant
+
+
+
+
+
+"""
+
+
+
+        return SeqVariant.executeQuery(query, [max: 10])
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+
+
+
+
+
+
+

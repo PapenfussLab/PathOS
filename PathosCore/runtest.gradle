@@ -1,0 +1,114 @@
+//	runtest.gradle
+//
+//	Build file for running tests on PathosCore
+//
+//  01  Andrei Seleznev   10-Apr-16   
+//
+
+//  Unit testing tasks only
+//
+test
+{
+    jvmArgs '-noverify'
+    //  exclude "**/*IntTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+}
+
+//  Integration testing tasks handled separately
+//
+task intTest(type: Test, dependsOn: testClasses) { include "**/*IntTest.class" }
+
+// Fast computing tests
+//
+task fastTest(type: Test, dependsOn: testClasses) {
+
+    include "**/*util.*"
+    include "**/*pipeline.*"
+
+    exclude "**/*NormaliseVcfTest.class"
+    exclude "**/*MutalyzerIntTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+    exclude "**/*SqlIntTest.class"
+    exclude "**/org.petermac.annotate.*"
+}
+
+
+task longTest(type: Test, dependsOn: testClasses) {
+
+    exclude "**/*util.*"
+    exclude "**/*pipeline.*"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+
+    include "**/*NormaliseVcfTest.class"
+    include "**/*MutalyzerIntTest.class"
+    //include "**/*FilterflagCheckerTest.class"
+    // include "**/*HouseKeepingTest.class"
+    include "**/*AuditLogTest.class"
+}
+
+
+// Running Only Unit tests without DB
+task UnitTestUtil(type: Test, dependsOn: testClasses){
+
+    exclude "**/*IntTest.class"
+    exclude "**/*pipeline.*"
+    exclude "**/*annotate.*"
+    exclude "**/*clarity.*"
+    exclude "**/*DataSourceTest.class"
+    exclude "**/*MutVarDataSourceTest.class"
+    exclude "**/*DbConnectTest.class"
+    exclude "**/*DbConnectIntTest.class"
+    exclude "**/*DbCountTest.class"
+    exclude "**/*DbLockTest.class"
+    exclude "**/*DbUtilTest.class"
+    exclude "**/*MysqlCommandTest.class"
+    exclude "**/*VcfDbCheckTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+    exclude "**/*MutalyzerIntTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+    exclude "**/*SqlIntTest.class"
+    exclude "**/*MutalyzerUtilTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+}
+
+// Running Only Unit tests without DB
+task UnitTestPipe(type: Test, dependsOn: testClasses){
+    exclude "**/*annotate.*"
+    exclude "**/*clarity.*"
+    exclude "**/*DbConnectTest.class"
+    exclude "**/*DbConnectIntTest.class"
+    exclude "**/*DbCountTest.class"
+    exclude "**/*DbLockTest.class"
+    exclude "**/*DbUtilTest.class"
+    exclude "**/*MysqlCommandTest.class"
+    exclude "**/*VcfDbCheckTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+    exclude "**/*MutalyzerIntTest.class"
+    exclude "**/*MutalyzerUtilTest.class"
+    exclude "**/*FilterflagCheckerTest.class"
+    exclude "**/*HouseKeepingTest.class"
+    exclude "**/*SqlIntTest.class"
+    exclude "**/*NormaliseVcfTest.class"
+
+}
+
+
+task DbTesting(type: Test, dependsOn: testClasses){
+    include "**/*DbConnectTest.class"
+    include "**/*DbConnectIntTest.class"
+    include "**/*DbCountTest.class"
+    include "**/*DbLockTest.class"
+    include "**/*DbUtilTest.class"
+    include "**/*MysqlCommandTest.class"
+    include "**/*VcfDbCheckTest.class"
+    include "**/*NormaliseVcfTest.class"
+    include "**/*MutalyzerIntTest.class"
+    include "**/*MutalyzerUtilTest.class"
+    include "**/*SqlIntTest.class"
+    include "**/*NormaliseVcfTest.class"
+    include "**/*MutalyzerIntTest.class"
+}

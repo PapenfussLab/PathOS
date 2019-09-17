@@ -100,6 +100,9 @@ class FilterflagChecker {
 
         while (executeQuery());
 
+        // Clean up the database connection.
+        //
+        sql.close()
     }
 
 

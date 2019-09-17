@@ -129,14 +129,6 @@ class SeqrunLimsTest  extends GroovyTestCase
 
     }
 
-    /**
-     * Test sample normalisation
-     */
-    void testSampleName()
-    {
-        assert SeqrunLims.cleanSampleName('1?2/34_5.67()') == '1-2-34-5-67--'
-    }
-
     void testParseRunInfoMiSeq()
     {
         String resource = "Pipeline"

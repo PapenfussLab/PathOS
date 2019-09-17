@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if test "$#" == '0'
+then
+    echo '--- []'
+    exit 0
+fi
+
+echo '---'
+for arg in $@
+do
+    echo "- '$arg'"
+done

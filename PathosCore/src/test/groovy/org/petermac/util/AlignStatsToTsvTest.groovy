@@ -75,7 +75,7 @@ class AlignStatsToTsvTest extends GroovyTestCase
 
         String parentFolder = new File(AlignStatsToTsvTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath()).getParent()
         def ouf = "${parentFolder}/stats.tsv"
-        def lines = att.filter( inf, ouf, 'seqrun', 'sample', 'panel'  )
+        def lines = att.filter( inf, ouf, 'seqrun', 'sample', 'panel', null  )
 
         assert lines == 160 : "[T E S T] assert 1/3 failed: att.filter(inf, ouf, 'seqrun', 'sample', 'panel') return a different number than 160"  // it was 26
 
@@ -112,15 +112,18 @@ class AlignStatsToTsvTest extends GroovyTestCase
         def ouf = "${parentFolder}/stats.tsv"
         try
         {
-            att.filter("FAIL ME", ouf, 'seqrun', 'sample', 'panel')
+            att.filter("FAIL ME", ouf, 'seqrun', 'sample', 'panel', null)
+
+// Um... this part should never be reached? Because the above code is supposed to crash, isn't it?
             assert true
             println("[T E S T] Succesfully Crashed AlignStatsToTsvTest.filter (\"FAIL ME\", ouf, 'seqrun', 'sample', 'panel') providing invalid input file")
 
         }
         catch (Exception ex)
         {
+            assert ex.localizedMessage == "FAIL ME (No such file or directory)"
 
-            assert false: "[T E S T]: AlignStatsToTsv.Filter(\"FAIL ME\", ouf, 'seqrun', 'sample', 'panel') is not sending an Error message. \n An Error message like TEST [main] ERROR org.petermac.util.AlignStatsToTsv - Stats file doesn't exist: FAIL ME should be printed."
+//            assert false: "[T E S T]: AlignStatsToTsv.Filter(\"FAIL ME\", ouf, 'seqrun', 'sample', 'panel') is not sending an Error message. \n An Error message like TEST [main] ERROR org.petermac.util.AlignStatsToTsv - Stats file doesn't exist: FAIL ME should be printed."
         }
     }
 

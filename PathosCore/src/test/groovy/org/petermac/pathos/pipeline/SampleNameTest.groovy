@@ -20,18 +20,62 @@ package org.petermac.pathos.pipeline
  */
 class SampleNameTest extends GroovyTestCase
 {
-    void testNormalise()
+    void testBaseName() {
+        String sn
+
+        sn = SampleName.baseName("000888")
+
+        assert "000888" == sn, "Testing simple baseName"
+
+        sn = SampleName.baseName("000888-1")
+
+        assert "000888" == sn, "Testing replicate baseName"
+
+        sn = SampleName.baseName("13k1234--080000-1")
+
+        assert "13K1234--080000" == sn, "Testing replicate Tumour--Normal baseName"
+    }
+
+    void testDecomposeTumourNormal() {
+        List tn
+        
+        tn = SampleName.decomposeTumourNormal("000888")
+
+        assert null == tn, "Testing simple decomposeTumourNormal"
+
+        tn = SampleName.decomposeTumourNormal("13k1234--080000")
+
+        assert tn != null, "Testing decomposeTumourNormal on simple Tumour-Normal is non-null"
+        assert tn.size() == 2, "Testing decomposeTumourNormal on simple Tumour-Normal has two components"
+        assert "13K1234" == tn[0], "Testing decomposeTumourNormal on simple Tumour-Normal tumour component"
+        assert "080000" == tn[1], "Testing decomposeTumourNormal on simple Tumour-Normal normal component"
+
+        tn = SampleName.decomposeTumourNormal("13k1234--080000-3")
+
+        assert tn != null, "Testing decomposeTumourNormal on replicate Tumour-Normal is non-null"
+        assert tn.size() == 2, "Testing decomposeTumourNormal on replicate Tumour-Normal has two components"
+        assert "13K1234" == tn[0], "Testing decomposeTumourNormal on replicate Tumour-Normal tumour component"
+        assert "080000" == tn[1], "Testing decomposeTumourNormal on replicate Tumour-Normal normal component"
+    }
+
+    void testPosControl()
     {
-        def sn = SampleName.normalise( "13k1234-20" )
+        assert SampleName.isPosControl( "xxCONTROLyy" )
+        assert SampleName.isPosControl( "xxCTRLyy" )
+        assert SampleName.isPosControl( "xxNA12878yy" )
+    }
 
-        assert "13K1234" == sn, "Testing uppercase"
+    void testNegControl()
+    {
+        assert SampleName.isNegControl( "NTCxx" )
+        assert ! SampleName.isNegControl( "xNTCxx" )
+    }
 
-        sn = SampleName.normalise( "13l1234" )
-
-        assert "13l1234" == sn, "Testing non-detente"
-
-        sn = SampleName.normalise( " 13K1234" )
-
-        assert " 13K1234" == sn, "Testing non-detente"
+    /**
+     * Test sample normalisation
+     */
+    void testSampleName()
+    {
+        assert SampleName.clean('1?2/34_5.67()') == '1-2-34-5-67--'
     }
 }

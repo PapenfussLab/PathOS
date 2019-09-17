@@ -1,0 +1,19 @@
+//  Release version
+//
+version = '1.5.3'
+
+apply from: '../scripts/common.gradle'
+
+group = "org.petermac.pathos"
+
+artifacts {
+    archives file("target/Curate-${version}.war")
+}
+
+uploadArchives {
+    //repositories.mavenInstaller {
+    repositories.mavenDeployer {
+    	files("target/Curate-${version}.war")
+    }
+}
+

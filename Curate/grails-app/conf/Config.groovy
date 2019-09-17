@@ -46,7 +46,8 @@ grails.mime.types = [
 
 // What URL patterns should be processed by the resources plugin
 //
-grails.resources.adhoc.patterns = ['/images/*', '/css/*', '/js/*', '/plugins/*']
+grails.resources.adhoc.patterns = ['/dist/images/*', '/images/*', '/css/*', '/js/*', '/plugins/*']
+grails.resources.adhoc.includes = ['/dist/images/**','/images/**', '/css/**', '/js/**', '/plugins/**']
 
 //  kdd: Overrides default theme for the skin of the JqGrid plugin: lots more at http://jqueryui.com/themeroller/
 //
@@ -114,8 +115,6 @@ environments
         //grails.mail.port = '25'
 
         grails.gsp.enable.reload = true
-
-
     }
     pa_prod
     {
@@ -131,6 +130,7 @@ environments
         grails.mail.host = 'mail.petermac.org'
         grails.mail.port = '25'
     }
+
 }
 
 if ( loc.useADAuthentication == true ) {
@@ -142,15 +142,10 @@ if ( loc.useADAuthentication == true ) {
 } else {
     // This specifically tells us to NOT use LDAP and to use standard db auth instead
     //
-
     grails.plugin.springsecurity.providerNames = [ 'daoAuthenticationProvider' ]
 
 }
 
-
-
-
-//this gies
 // log4j configuration
 //
 log4j = {
@@ -169,7 +164,6 @@ log4j = {
         root
         {
             info 'stdout', 'PathOSFile'
-//            debug 'stdout', 'PathOSFile'          // for debugging only
         }
     }
 
@@ -209,7 +203,7 @@ grails {
     }
 }
 remove this line */
-weakssl.trustedhosts = ['vm-115-146-91-157.melbourne.rc.nectar.org.au'] //our Atlassian stuff lives here, and the cert is self-signed. need this for Jira's REST API to work.
+//weakssl.trustedhosts = ['vm-115-146-91-157.melbourne.rc.nectar.org.au'] //our Atlassian stuff lives here, and the cert is self-signed. need this for Jira's REST API to work. //DEPRECATED we have a real cert
 
 // Added by the Spring Security Core plugin
 //
@@ -253,10 +247,13 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/**/fonts/**':                 ['permitAll'],
             '/**/images/**':                ['permitAll'],
             '/**/favicon.ico':              ['permitAll'],
-            '/dist/**':  ['permitAll'],
-            '/hotfix.js':  ['permitAll'],
-            '/hotfix.css':  ['permitAll'],
-            '/igv/**':  ['permitAll'],
+            '/dist/**':                     ['permitAll'],
+            '/hotfix.js':                   ['permitAll'],
+            '/hotfix.css':                  ['permitAll'],
+             '/igv/**':                      ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'], //['permitAll'],
+            '/circos/**':                   ['permitAll'],
+            '/igvSession/**':                   ['permitAll'],  // dynamic igv xml session generator
+
 
 
             //  Security and Administration
@@ -273,12 +270,14 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/register/register':           ['denyAll'],
             '/register/**':                 ['denyAll'],
             '/admin/**':                    ['ROLE_ADMIN','ROLE_DEV'],
+            '/*/filter':                    ['permitAll'],
 
             // Utility pages
             //
             '/payload/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/filtertemplate/**':           ['ROLE_ADMIN','ROLE_DEV'],
+            '/preferences/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/vcfUpload/*':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
@@ -298,6 +297,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             //
             '/patsample/show/**':           ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patsample/list':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/patsample/updatecomment':     ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
             '/patient/show':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patient/list':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
@@ -305,34 +305,70 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/audit/show':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/audit/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
+            '/drug/create':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/drug/save':                   ['ROLE_ADMIN','ROLE_DEV'],
+            '/drug/edit':                   ['ROLE_ADMIN','ROLE_DEV'],
+            '/drug/update':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/drug/delete':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/drug/**':                     ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+
+            '/trial/create':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/trial/save':                   ['ROLE_ADMIN','ROLE_DEV'],
+            '/trial/edit':                   ['ROLE_ADMIN','ROLE_DEV'],
+            '/trial/update':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/trial/delete':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/trial/**':                     ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+
             '/roi/**':                      ['ROLE_ADMIN','ROLE_DEV'],
 
             '/panel/show':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/panel/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/panel/fetchAllData':          ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/panel/*':                     ['ROLE_DEV'],
 
             '/patassay/show':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patassay/list':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
+            '/labassay/show':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/labassay/list':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/labassay/edit':               ['ROLE_ADMIN','ROLE_DEV'],
+            '/labassay/delete':             ['ROLE_ADMIN','ROLE_DEV'],
+            '/labassay/create':             ['ROLE_ADMIN','ROLE_DEV'],
+            '/labassay/**':                 ['ROLE_ADMIN','ROLE_DEV'],
+
             '/seqrun/create':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/save':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/seqrun/edit':                 ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/seqrun/update':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/seqrun/delete':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
+            '/seqrun/edit':                 ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqrun/update':               ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqrun/delete':               ['ROLE_ADMIN','ROLE_DEV'],
             '/seqrun/authoriseRun/**':      ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/seqrun/**':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
-            '/seqsample/create':            ['ROLE_ADMIN','ROLE_DEV'],
+// Nobody should be allowed to touch these. We're locking them out in case the scaffold creates them:
+            '/seqsample/create':           ['ROLE_ADMIN','ROLE_DEV'],
             '/seqsample/save':              ['ROLE_ADMIN','ROLE_DEV'],
             '/seqsample/edit':              ['ROLE_ADMIN','ROLE_DEV'],
             '/seqsample/update':            ['ROLE_ADMIN','ROLE_DEV'],
-            '/seqsample/delete':            ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqsample/delete':           ['ROLE_ADMIN','ROLE_DEV'],
+
+            '/seqSample/show':              ['ROLE_DEV','ROLE_ADMIN'],
+            '/seqSample/rerunSample':       ['ROLE_UNMASKER','ROLE_DEV'],
+            '/seqsample/editGeneMask':      ['ROLE_UNMASKER','ROLE_DEV'],
+            '/seqsample/updateGeneMask':    ['ROLE_UNMASKER','ROLE_DEV'],
             '/seqsample/**':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+
+// Temporarily lazy allowing all under /seqsamplereport/**, for PATHOS-2269 mockup
+// We should probably lock this down later to certain users and certain actions
+// DKGM 13-April-2017
+            '/seqsamplereport/**':          ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/seqvariant/create':           ['ROLE_ADMIN','ROLE_DEV'],
             '/seqvariant/save':             ['ROLE_ADMIN','ROLE_DEV'],
             '/seqvariant/edit':             ['ROLE_ADMIN','ROLE_DEV'],
             '/seqvariant/update':           ['ROLE_ADMIN','ROLE_DEV'],
             '/seqvariant/delete':           ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqVariant/revokeReview':     ['ROLE_ADMIN','ROLE_DEV'],
+            '/seqVariant/authoriseReview':  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_LAB'],
             '/seqvariant/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/curvariant/create/**':            ['ROLE_ADMIN','ROLE_DEV'],
@@ -365,19 +401,23 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/refExon/**':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
 
+            '/refGene/genedesc':            ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
             '/refGene/list':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
             '/refGene/show':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
             '/refGene/**':                  ['ROLE_ADMIN', 'ROLE_DEV'],
             '/refGene/create':              ['denyAll'],
 
+            '/civicVariant/**':             ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+            '/civicClinicalEvidence/**':    ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
+
             '/transcript/**':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
-            '/annoVariant/**':              ['ROLE_ADMIN','ROLE_DEV'],
+            '/annoVariant/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/icdO/list':                   ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB','ROLE_VIEWER'],
 
             '/clinContext/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
-            '/seqRelation/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR']
+            '/seqRelation/**':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR'],
         ]
 

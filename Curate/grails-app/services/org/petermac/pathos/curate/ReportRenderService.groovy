@@ -11,6 +11,7 @@ import com.aspose.words.*
 import groovy.sql.Sql
 import groovy.util.logging.Log4j
 import org.petermac.util.Locator
+import java.sql.Connection
 import java.sql.ResultSet
 import java.util.List
 
@@ -24,28 +25,28 @@ import java.util.List
  *
  * User: Kenneth Doig
  * Date: 29/08/13
+ *
+ * Updated: 8-June-2017 by DKGM
  */
 
 @Log4j
 class ReportRenderService
 {
-    static def ampliconRoiService = new AmpliconRoiService()    // only need a new because stand alone doesn't have Spring
-
-    static def dbConnection
+    static Connection dbConnection
 
     static Sql sql
 
     /**
      * Mainline report generator
      *
-     * @param sample    Sample to report on
+     * @param ssr       SeqSampleReport to run a report on
      * @param hidePat   Hide the patient details on the report
      * @param sql       Sql database connection Sql class
      * @param template  List of template files to use (files must be a word doc)
      * @param outfile   Output file (extension determines the file format eg .docx, .pdf, .html)
      * @return          Filename of report
      */
-    public String runReport( SeqSample sample, Boolean hidePat, Sql sql, List<File> templates, File outfile )
+    public String runPreparedReport(SeqSampleReport ssr, Boolean hidePat, Sql sql, File template, File outfile)
     {
         setAsposeLicense()
 
@@ -55,29 +56,15 @@ class ReportRenderService
         //
         dbConnection = sql.getConnection()
 
-        //  Loop through templates performing merge of data with template
+        //  Report on the sample
         //
-        Document reports = null
-        for ( template in templates )
-        {
-            //  Report on the sample
-            //
-            log.info( "Generating report for sample ${sample} from ${template} into ${outfile}")
+        log.info( "Generating report for sample ${ssr.sample} from ${template} into ${outfile}")
 
-            Document doc = mergeSampleDocument( sample, hidePat, template )
-
-            if ( reports )
-            {
-                Node last = reports.importNode( doc.getLastSection(), true )
-                reports.appendChild(last)
-            }
-            else
-                reports = doc
-        }
+        Document report = mergePreparedSampleDocument( ssr, hidePat, template )
 
         //  Save in output file
         //
-        reports.save( outfile.absolutePath )
+        report.save( outfile.absolutePath )
 
         return outfile.absolutePath
     }
@@ -105,27 +92,19 @@ class ReportRenderService
             log.error( "Aspose license file doesn't exist " + licenseFile )
     }
 
-    /**
-     * Run document merge on sample data
-     *
-     * @param sample    SeqSample
-     * @param hidePat   Hide the patient details on the report
-     * @param template  Template File
-     * @return          Merged document
-     */
-    private static Document mergeSampleDocument( SeqSample sample, Boolean hidePat, File template )
+    private static Document mergePreparedSampleDocument( SeqSampleReport ssr, Boolean hidePat, File template )
     {
         Document doc = new Document( template.path )
 
         //  Show all MailMerge fields
         //
-        def fields = doc.getMailMerge().getFieldNames()
+        String[] fields = doc.getMailMerge().getFieldNames()
         for ( field in fields )
             log.info( "Merge field: $field" )
 
         // Populate the Dataset with the parent data and the data from the child table
         //
-        DataSet dataSet = getDataSet( sample, hidePat, template.name );
+        DataSet dataSet = getPreparedDataSet( ssr, hidePat, template.name, fields );
 
         // Merge the data with the document template
         //
@@ -135,19 +114,16 @@ class ReportRenderService
         return doc;
     }
 
-    /**
-     * Create a dataset to be used to populate a MS Word merge document
-     *
-     * @param   sample              Sample to report on
-     * @param   hidePatientDetails  Hide the patient details on the report
-     * @param   template            Name of output file
-     * @return                      DataSet to be merged with document
-     */
-    private static DataSet getDataSet( SeqSample sample, Boolean hidePatientDetails, String template )  throws Exception
+
+    private static DataSet getPreparedDataSet( SeqSampleReport ssr, Boolean hidePatientDetails, String template, String[] fields )  throws Exception
     {
+
+        // Only pull citations for the fields that we're using.
+        String citations = ReportService.generateCitations(ssr.curVariantReports, ssr, fields)
+
         //  Convert sample/patient to DataTable object
         //
-        DataTable sampleHeader = createSampleTable( sample, hidePatientDetails, template )
+        DataTable sampleHeader = createPreparedSampleTable( ssr, hidePatientDetails, citations )
 
         // Note that mail merging using DataSet or DataTable classes is like working with disconnected data. All data needed for the mail merge
         // operation must be loaded into memory and must be scrollable. Either the ResultSets objects must be scrollable and open
@@ -156,15 +132,15 @@ class ReportRenderService
         DataSet dataSet = new DataSet();
         if ( ! dataSet.getTables())
         {
-            log.error( "No sample table found for [${sample}] and template [${template}]" )
+            log.error( "No sample table found for [${ssr.sample}] and template [${template}]" )
             return null
         }
         dataSet.getTables().add( sampleHeader )
 
         // If there are any reportable variants, collect them and build their relationships.
-        if ( sample.seqVariants.findAll{it.reportable}.size() ) {
+        if ( ssr.curVariantReports.size() ) {
             //  Convert variants to DataTable object
-            DataTable variants = createVariantTable( sample )
+            DataTable variants = createPreparedVariantTable( ssr, citations )
             dataSet.getTables().add( variants )
 
             // Add the relation between parent and child tables for nested MailMerge.
@@ -176,51 +152,145 @@ class ReportRenderService
             //  on the sample variable
             //
             dataSet.getRelations().add( new DataRelation(
-                                    "SamplesToVariants",
-                                    "Samples",
-                                    "Variants",
-                                    slist,
-                                    slist))
+                "SamplesToVariants",
+                "Samples",
+                "Variants",
+                slist,
+                slist))
         }
 
         return dataSet
     }
 
-    /**
-     * Create a DataTable for Aspose document renderer from SeqSample variants
-     *
-     * @param sample        Sample to use for reportable variants
-     * @param hidePatient   Supress patient details
-     * @param template      Report filename (contains assay within filename) Todo: remove this
-     * @return              DataTable object of variants (needed for Aspose library)
-     */
-    private static DataTable createSampleTable( SeqSample sample, Boolean hidePatient, String template )
+    private static DataTable createPreparedSampleTable( SeqSampleReport ssr, Boolean hidePatient, String citations )
     {
+
+        ArrayList<Long> pmids = PubmedService.listOfPMIDs(citations)
+
         //  Convert Sample/Patient data into a Map of attributes
         //
-        Map sam = getSampleMap( sample, hidePatient, template )
+        Map sam = [
+            sample              :	ssr.sample,
+            patient             :	ssr.patient(),
+            urn                 :	ssr.urn(),
+            dob                 :	ssr.dob(),
+            age                 :	ssr.age(),
+            sex                 :	ssr.sex(),
+            requester           :	ssr.requester(),
+            extref              :	ssr.extref(),
+            location            :	ssr.location(),
+            morphology          :	ssr.morphology,
+            site                :	ssr.site,
+            tumour_pct          :	ssr.tumour_pct,
+            collect_date        :	ssr.collect_date,
+            rcvd_date           :	ssr.rcvd_date,
+            ampReads            :	ssr.ampReads,
+            ampPct              :	ssr.ampPct,
+            lowAmps             :	ssr.lowAmps,
+            rois                :	ssr.rois,
+            isdraft             :	ssr.isdraft(),
+            clinContext         :	ssr.clinContext(),
+            firstReviewer       :	ssr.firstReviewer(),
+            firstReviewedDate   :	ssr.firstReviewedDate(),
+            secondReviewer      :	ssr.secondReviewer(),
+            secondReviewedDate  :	ssr.secondReviewedDate(),
+            finalReviewer       :	ssr.finalReviewer(),
+            finalReviewedDate   :	ssr.finalReviewedDate(),
+            citations           :	convertCitations(pmids, citations),
+            clinicalDetails     :   convertCitations(pmids, ssr.clinicalDetails),
+            resultSummary       :   convertCitations(pmids, ssr.resultSummary),
+            recommendations     :   convertCitations(pmids, ssr.recommendations),
+            address             :   ssr.address,
+            phone               :   ssr.phone,
+            requestAddress      :   ssr.requestAddress,
+            copyTo              :   ssr.copyTo,
+            specimen            :   ssr.specimen,
+            sampleType          :   ssr.sampleType,
+            histologicalFeatures :  ssr.histologicalFeatures,
+            uncoveredRegions    :   ssr.uncoveredRegions
+        ]
 
         //  Convert the Map of attributes into a ResultSet for Aspose ingestion
         //
-        String fields = sam.collect { kv -> "'" + kv.value.toString().replaceAll("'","''") + "' as $kv.key" }.join(',')
-        ResultSet rs= executeQuery( "select $fields from dual" )
+
+        // Create a temporary table
+        String cols = sam.collect { kv -> "$kv.key text"}.join(',')
+        String sqlc = "create temporary table t2 ($cols) CHARACTER SET utf8"
+        sql.execute( sqlc )
+
+        // Insert data
+        cols = sam.collect { kv -> "$kv.key"}.join(',')
+        String vals = sam.collect {'?'}.join(',')
+        sqlc = "insert into t2 ($cols) values ($vals)"
+        sql.execute( sqlc, sam.collect { it.value } )
+
+        // select data
+        ResultSet rs = executeQuery("select * from t2")
 
         //  Convert to DataTable object
         //
         return new DataTable( rs, "Samples")
     }
 
-    /**
-     * Create a DataTable for Aspose document renderer from SeqSample variants
-     *
-     * @param sample    Sample to use for reportable variants
-     * @return          DataTable object of variants (needed for Aspose library)
-     */
-    private static DataTable createVariantTable( SeqSample sample )
+    private static String convertCitations(ArrayList<Long> pmids, String string){
+        pmids = pmids ?: []
+        string = string ?: ""
+        try {
+            def groups = (string =~ /\[PMID: (\d+(?:, \d+)*)]/)
+
+            String[] clean = string.split(/\[PMID: \d+(, \d+)*]/)
+            String result = ""
+
+            if(clean.length > 0) {
+                result = clean[0]
+            }
+
+            groups.eachWithIndex { def group, int i ->
+                if(group[1]) {
+                    def citations = group[1]
+                        .split(", ")
+                        .collect { pmid -> pmids.indexOf(pmid as Long)+1 }
+                        .sort()
+
+                    result += "["+citations.join(', ')+"]"
+                }
+                if( i+1 < clean.length) {
+                    result += clean[i+1]
+                }
+            }
+            return result
+        } catch(e) {
+            log.warn(e)
+            return string
+        }
+    }
+
+    private static DataTable createPreparedVariantTable( SeqSampleReport ssr, String citations )
     {
+        ArrayList<Long> pmids = PubmedService.listOfPMIDs(citations)
+
         //  Create a List of Maps of variant attributes from GORM
         //
-        List vars = getVariantMaps( sample )
+        List<HashMap> vars = ssr.curVariantReports.collect({ CurVariantReport it ->
+            return [
+                sample			:	it.sample,
+                gene			:	it.gene,
+                refseq			:	it.refseq,
+                hgvsc			:	it.hgvsc,
+                hgvsp			:	it.hgvsp,
+                refseqNP        :   it.refseqNP,
+                aaChange        :   it.aaChange,
+                varreaddepth	:	it.varreaddepth,
+                totalreaddepth	:	it.totalreaddepth,
+                afpct			:	it.afpct,
+                exon			:	it.exon,
+                class			:	it.pmClass,   // Note that the mailMerge field is "class"
+                ampClass		:	it.ampClass,
+                clinicalSignificance	:	it.clinicalSignificance,
+                mut			    :	convertCitations(pmids, it.mut),
+                genedesc		:	convertCitations(pmids, it.genedesc)
+            ]}) ?: null
+
 
         if ( ! vars ) return null           // no variants
 
@@ -230,16 +300,15 @@ class ReportRenderService
         //  Use the first Map element for the header columns
         //
         String cols = vars[0].collect { kv -> "$kv.key text"}.join(',')
-        String sqlc = "create temporary table t1 ($cols)"
+        String sqlc = "create temporary table t1 ($cols) CHARACTER SET utf8"
         sql.execute( sqlc )
 
-        for ( var in vars )
-        {
-            cols = var.collect { kv -> "$kv.key"}.join(',')
-            String vals = var.collect { kv -> "'$kv.value'"}.join(',')
-            sqlc = "insert into t1 ($cols) values ($vals)"
-            sql.execute( sqlc )
-        }
+        cols = vars[0].collect { kv -> "$kv.key"}.join(',')
+        String vals = vars[0].collect {'?'}.join(',')
+        sqlc = "insert into t1 ($cols) values ($vals)"
+
+        for ( Map var in vars )
+            sql.execute( sqlc, var.collect { it.value } )
 
         //  Read temp table created into a ResultSet for loading into Aspose
         //
@@ -252,150 +321,6 @@ class ReportRenderService
         //  Convert ResultSet into DataTable and return
         //
         return new DataTable( rs, "Variants");
-    }
-
-    /**
-     * Extract all Patient and Sample reporting attributes and convert to a Map ready for rendering
-     * All Map keys must match MS-Word MailMerge fields
-     *
-     * @param sample                SeqSample to report on
-     * @param hidePatientDetails    True if Patient identifiers should be suppresssed
-     * @param template              File name of report - used to determine the TestSet
-     * @return                      Map of reporting attributes keyed by MailMerge field name
-     */
-    private static Map getSampleMap( SeqSample sample, Boolean hidePatientDetails, String template )
-    {
-        //  Calculate amplicon QC stats
-        //
-        Map ampQC = ampliconRoiService.setAmpliconQc( sample, template )
-
-        //  Calculate ROI QC stats
-        //
-        String rr = ampliconRoiService.roiReport( sample, template )
-
-        //  Calculate age
-        //
-        Date    now = new Date()
-        Double  age
-        if ( sample.patSample?.patient?.dob ) {
-            age = (now - sample.patSample.patient.dob) / 365.25
-        } else {
-            age = 999
-        }
-
-        Map sam =   [
-                    sample:         sample.sampleName,
-                    patient:        sample.patSample?.patient?.fullName,
-                    urn:            sample.patSample?.patient?.urn,
-                    dob:            sample.patSample?.patient?.dob?.format("dd-MMM-yyyy"),
-                    age:            age.intValue(),
-                    sex:            sample.patSample?.patient?.sex,
-                    requester:      sample.patSample?.requester,
-                    location:       sample.patSample?.pathlab,
-                    morphology:     sample.patSample?.repMorphology,
-                    extref:         '',
-                    site:           sample.patSample?.retSite,
-                    tumour_pct:     sample.patSample?.tumourPct,
-                    collect_date:   sample.patSample?.collectDate?.format("dd-MMM-yy"),
-                    rcvd_date:      sample.patSample?.rcvdDate?.format("dd-MMM-yy"),
-                    ampReads:       ampQC?.ampReads,
-                    ampPct:         ampQC?.ampPct,
-                    lowAmps:        ampQC?.lowAmps,
-                    rois:           rr,
-                    isdraft:        sample.finalReviewBy ? 'FINAL' : 'DRAFT',
-                    clinContext:    sample.clinContext?.toString(),
-                    firstReviewer:      sample.firstReviewBy,
-                    firstReviewedDate:  sample.firstReviewedDate,
-                    secondReviewer:     sample.secondReviewBy,
-                    secondReviewedDate: sample.secondReviewedDate,
-                    finalReviewer:      sample.finalReviewBy,
-                    finalReviewedDate:  sample.finalReviewedDate
-                    ]
-
-        //  Suppress patient identifiers
-        //
-        if ( hidePatientDetails )
-        {
-            sam.patient = 'hidden'
-            sam.urn     = 'hidden'
-            sam.dob     = ''
-            sam.sex     = 'U'
-            sam.age     = 999
-        }
-
-        return sam
-    }
-
-    /**
-     * Create a List of Maps for each reportable variant
-     * Returns the report description of the associated generic Curated Variant,
-     * And also the Curated Variant in Clinical Context of the Sequenced Sample
-     * Maps are created directly from Gorm objects
-     *
-     * @param   sample  Sample to be reported
-     * @return          List of Maps for each reportable variant
-     */
-    static private List getVariantMaps( SeqSample sample )
-    {
-        //  Find all reportable variants for sample
-        ArrayList<SeqVariant> svs = sample.seqVariants.findAll { sv -> sv.reportable }
-
-        //  Convert variants to a List of Maps
-        //
-        List vars = []
-        for ( sv in svs )
-        {
-            //  Set the report description for the null disease context
-            //
-            CurVariant cv     = sv.allCurVariants().find({ cv -> cv.clinContext == null})
-            String reportDesc = cv?.reportDesc ?: ''
-            String pmClass    = cv?.pmClass
-
-            //  Add the report description for the current disease context
-            //
-            if (sv.currentCurVariant()?.clinContext)
-            {
-                reportDesc += "\nVariant in context: ${sv.currentCurVariant().clinContext}:\n"
-                reportDesc += sv.currentCurVariant()?.reportDesc?.toString()
-                pmClass     = sv.currentCurVariant()?.pmClass
-
-            }
-
-            //  Collect all the references of the Pubmed IDs
-            //
-            String references = ''
-            PubmedService.listOfPMIDs(reportDesc).each
-            {
-                PMID ->
-                    references += "[PMID: ${PMID}] " + PubmedService.buildCitation( Pubmed.findByPmid( PMID.toString())) + "\n"
-            }
-
-            //  Get gene
-            //
-            RefGene rg = RefGene.findByGene( sv.gene )
-
-            Map var =   [
-                        sample:         sample.sampleName,
-                        gene:           sv.gene,
-                        refseq:         sv.hgvsc?.replaceAll(~/:.*/,''),
-                        hgvsc:          sv.hgvsc?.replaceAll(~/.*:/,''),
-                        hgvsp:          sv.hgvsp,
-                        varreaddepth:   sv.varDepth,
-                        totalreaddepth: sv.readDepth,
-                        afpct:          sv.varFreq,
-                        exon:           sv.exon,
-                        class:          pmClass,
-                        mut:            reportDesc,
-                        genedesc:       rg?.genedesc,
-                        citations:      references
-                        ]
-
-            vars << var
-
-            log.info( "Variant: ${var.gene}:${var.hgvsc}" )
-        }
-
-        return vars
     }
 
     /**

@@ -12,7 +12,9 @@
 			<ul>
 				<li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
 				<li><g:link class="list" action="list"><g:message code="default.list.label" args="[entityName]" /></g:link></li>
+<sec:ifAnyGranted roles="ROLE_DEV">
 				<li><g:link class="create" action="create"><g:message code="default.new.label" args="[entityName]" /></g:link></li>
+</sec:ifAnyGranted>
 			</ul>
 		</div>
 		<div id="edit-seqRelation" class="content scaffold-edit" role="main">
@@ -41,12 +43,19 @@
 						<span class="property-value">${seqRelationInstance?.relation}</span>
 					</div>
 
-					<g:render template="form"/>
-				</fieldset>
-				<fieldset class="buttons">
-					<g:actionSubmit class="save" action="update" value="${message(code: 'default.button.update.label', default: 'Update')}" />
-					<g:actionSubmit class="delete" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" formnovalidate="" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
-				</fieldset>
+					<%-- if else block to disallow user editing a derived sample seqrelation --%>
+					<g:if test="${['Minus','Union','Intersect'].contains(seqRelationInstance.relation)}">
+						<p>You cannot edit a SeqRelation made from Derived samples.</p>
+						</fieldset>
+					</g:if>
+					<g:else>
+						<g:render template="form"/>
+						</fieldset>
+						<fieldset class="buttons">
+							<g:actionSubmit class="save" action="update" value="${message(code: 'default.button.update.label', default: 'Update')}" />
+							<g:actionSubmit class="delete" action="delete" value="${message(code: 'default.button.delete.label', default: 'Delete')}" formnovalidate="" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" />
+						</fieldset>
+					</g:else>
 			</g:form>
 		</div>
 	</body>

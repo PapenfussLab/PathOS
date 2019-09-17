@@ -14,6 +14,7 @@ class Pubmed implements Taggable {
     String	doi
     Date	date
     String	journal
+    String	abbreviation
     String	title
     String	authors
     String	affiliations
@@ -22,17 +23,23 @@ class Pubmed implements Taggable {
     String	pages
     String	abstrct
     String	pdf
+    String	citation
 
     static hasMany = [ tags: Tag ]
 
-    static mapping = {
-        name date: "1970-01-01 00:00:00"
+    static mapping =
+    {
+        abstrct             ( type: 'text' )
+        affiliations        ( type: 'text' )
+        authors             ( type: 'text' )
+        title               ( type: 'text' )
+        citation            ( type: 'text' )
     }
 
     static  searchable =
-            {
-                tags component: true
-            }
+    {
+        tags component: true
+    }
 
     String toString()
     {
@@ -41,17 +48,24 @@ class Pubmed implements Taggable {
 
     static constraints =
     {
-        pmid( unique: true, nullable: false)
-        doi( nullable: true )
-        date( nullable: false )
-        journal( nullable: true )
-        title( nullable: true )
-        authors( nullable: true )
-        affiliations( nullable: true )
-        volume( nullable: true )
-        issue( nullable: true )
-        pages( nullable: true )
-        abstrct( nullable: true, maxSize: 9999 )
-        pdf( nullable: true )
+        pmid                ( unique: true, nullable: false)
+        doi                 ( nullable: true )
+        date                ( nullable: false )
+        journal             ( nullable: true )
+        abbreviation        ( nullable: true )
+        title               ( nullable: true )
+        authors             ( nullable: true )
+        affiliations        ( nullable: true )
+        volume              ( nullable: true )
+        issue               ( nullable: true )
+        pages               ( nullable: true )
+        abstrct             ( nullable: true )
+        pdf                 ( nullable: true )
+        citation            ( nullable: true )
     }
+
+    String fetchCitation() {
+        this.citation ?: PubmedService.buildCitation(this)
+    }
+
 }

@@ -12,6 +12,7 @@ import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import org.petermac.pathos.pipeline.MutalyzerUtil
 import org.petermac.util.Tsv
+import org.petermac.util.YamlUtil
 
 /**
  * Extract a unique list of variants from a list of Vcf files (or a TSV file)
@@ -43,9 +44,10 @@ class Annotator
         {
             h(  longOpt: 'help',		'this help message' )
             d(  longOpt: 'debug',		'turn on debugging' )
-            s(  longOpt: 'datasource',   args: 1, required: true, 'comma separated list of datasources to use for annotation eg mutalyzer,vep,annovar,iarc' )
+            s(  longOpt: 'datasource',   args: 1, required: true, 'comma separated list of datasources to use for annotation eg mutalyzer,vep,annovar,myvariant' )
             r(  longOpt: 'rdb',          args: 1, required: true, 'RDB to use' )
             e(  longOpt: 'errors',       args: 1, 'File name for error records' )
+            o(  longOpt: 'output',       args: 1, 'File name for dumping YAML records' )
             mut(longOpt: 'mutalyzer',    args: 1, 'Mutalyzer annotation server host [https://mutalyzer.nl]' )
         }
 
@@ -105,9 +107,9 @@ class Annotator
 
         //  Process VCFs
         //
-        int nmut = new Annotator().annotateVcf( vcfFiles, opt.rdb, dss, errFile, opt.mutalyzer ?: 'https://mutalyzer.nl' )
+        int nmut = new Annotator().annotateVcf( vcfFiles, opt.rdb, dss, errFile, opt.mutalyzer ?: 'https://mutalyzer.nl', opt.output ?: null )
 
-        log.info( "Done: processed ${vcfFiles.size()} files, annotated ${nmut} mutations" )
+        log.info( "Done: processed ${vcfFiles.size()} files, annotated ${nmut} variants." )
     }
 
     /**
@@ -116,15 +118,27 @@ class Annotator
      * @param   vcfs    List of VCF Files
      * @param   sql     RDB to cache variants in
      * @param   dss     DataSource List
+     * @param   errFile File for errors
+     * @param   mutHost Mutalyzer host
+     * @param   output  Dumpfile name
      * @return          Number of variants output
      */
-    int annotateVcf( List<File> vcfs, String rdb, List dss, File errFile, String mutHost )
+    int annotateVcf( List<File> vcfs, String rdb, List dss, File errFile, String mutHost, String output )
     {
         int nv = 0
 
-        for ( ds in dss )
+        //  dump annotations and exit
+        //
+        if ( output )
         {
-            switch (ds)
+            return outputYaml( vcfs, rdb, dss, output )
+        }
+
+        //  Add all data sources to cache
+        //
+        for ( String ds in dss )
+        {
+            switch (ds.toLowerCase())
             {
                 case 'mutalyzer':
                     List vars = uniqVars( vcfs, 'mutalyzer' )
@@ -149,6 +163,14 @@ class Annotator
                     nv      = vds.addToCache( vars )
 
                     log.info( "Added ${nv} new vars to VEP cache out of ${vars.size()}")
+                    break
+                case 'myvariant':
+                    List vars = uniqVars( vcfs, 'myvariant' )
+
+                    def mvds = new MyVariantVarDataSource( rdb )
+                    nv       = mvds.addToCache( vars )
+
+                    log.info( "Added ${nv} new vars to MYV cache out of ${vars.size()}")
                     break
                 case 'iarc':
                     def  ids  = new IarcDataSource( rdb )
@@ -246,6 +268,9 @@ class Annotator
                 case 'vep':
                     v = MutalyzerUtil.vcfVariants( vcf, ds )
                     break
+                case 'myvariant':
+                    v = MutalyzerUtil.vcfVariants( vcf, 'hgvsg' )
+                    break
                 default:
                     log.error( "Unknown datasource ${ds}" )
                     break
@@ -262,5 +287,60 @@ class Annotator
         log.info( "Total vars ${totalvars} Unique vars ${vars.size()} Percent " + String.format("%.2f%%",uniq*100))
 
         return vars
+    }
+
+    private static int outputYaml( List<File> vcfs, String rdb, List dss, String output  )
+    {
+        int nv = 0
+        def  mds     = new DataSource( rdb )
+        List vars    = uniqVars( vcfs, 'mutalyzer' )
+        List<Map> vmaps =[], vms
+
+        for ( ds in dss )
+        {
+            switch (ds)
+            {
+                case 'mutalyzer':
+                    vms = mds.getValueMaps( 'MUT', vars )
+                    nv += vms.size()
+                    log.info( "Found ${vms.size()} variants in ${ds} cache")
+                    vmaps << [ datasource: ds, database: rdb, variants: vms ]
+                    break
+                case 'vep':
+                    vms = mds.getValueMaps( 'VEP', vars )
+                    nv += vms.size()
+                    log.info( "Found ${vms.size()} variants in ${ds} cache")
+                    vmaps << [ datasource: ds, database: rdb, variants: vms ]
+                    break
+                case 'annovar':
+                    vms = mds.getValueMaps( 'ANV', vars )
+                    nv += vms.size()
+                    log.info( "Found ${vms.size()} variants in ${ds} cache")
+                    vmaps << [ datasource: ds, database: rdb, variants: vms ]
+                    break
+                case 'myvariant':
+                    vms = mds.getValueMaps( 'MYV', vars )
+                    nv += vms.size()
+                    log.info( "Found ${vms.size()} variants in ${ds} cache")
+                    vmaps << [ datasource: ds, database: rdb, variants: vms ]
+                    break
+                default:
+                    log.error( "Unknown datasource ${ds}" )
+                    break
+            }
+        }
+
+        //  Collapse and deduplicate variants
+        //
+        vmaps = vmaps.flatten()
+        log.info( "Found ${nv} variants in ${vmaps.size()} data sources")
+
+        //  Dump output in YAML format
+        //
+        File outf = new File(output)
+        outf.delete()
+        YamlUtil.dump( outf, vmaps )
+
+        return vmaps.size()
     }
 }

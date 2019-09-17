@@ -10,17 +10,27 @@ package org.petermac.util
 /**
  * Reformat aligner stats for database load Todo: get JE to do this by default
  *
- * User: doig ken
- * Date: 08/11/13
- * Time: 12:50 PM
+ * Todo: This is truly end of life and needs to be replaced with a generic QC interface from pipeline to PathOS Loader
+ *
+ * User: Ken Doig
+ * Date: 08/11/13    Original create
+ * Date: 28/02/18    Added Yaml output
  *
  */
 
 import groovy.util.logging.Log4j
+import org.petermac.yaml.YamlComposer
+import org.yaml.snakeyaml.Yaml
 
 @Log4j
 class AlignStatsToTsv
 {
+
+    //  YAML Composer for creating YAML output if required
+    //
+    static YamlComposer yc   = new YamlComposer()
+    static int          yidx = 0
+
     /**
      * Main execution thread
      *
@@ -36,9 +46,10 @@ class AlignStatsToTsv
         cli.with
         {
             h(      longOpt: 'help',   'Usage Information',    required: false)
-            s(      longOpt: 'sample', 'Sample Name', args: 1, required: false)
-            r(      longOpt: 'seqrun', 'SeqRun Name', args: 1, required: false)
-            p(      longOpt: 'panel',  'Panel Name',  args: 1, required: false)
+            s(      longOpt: 'sample', 'Sample Name',      args: 1, required: false)
+            r(      longOpt: 'seqrun', 'SeqRun Name',      args: 1, required: false)
+            p(      longOpt: 'panel',  'Panel Name',       args: 1, required: false)
+            y(      longOpt: 'yaml',   'YAML output file', args: 1, required: false)
             hyb(    longOpt: 'hybrid', 'Panel Name',           required: false)
         }
         def opt = cli.parse(args)
@@ -49,6 +60,11 @@ class AlignStatsToTsv
             cli.usage()
             return
         }
+
+        //  Set up YAML header
+        //
+        yc[['domain']] = 'sequence'
+        yc[['action']] = 'createOrUpdate'
 
         //  Get files
         //
@@ -61,12 +77,16 @@ class AlignStatsToTsv
         def nlines = 0
         if ( ! opt.hybrid )
         {
-            nlines = filter( extra[0], extra[1], opt.seqrun, opt.sample, opt.panel )
+            nlines = filter( extra[0], extra[1], opt.seqrun, opt.sample, opt.panel, opt.yaml )
         }
         else
         {
-            nlines = hybridStats( [ extra[0], extra[1] ], extra[2], opt.seqrun, opt.sample, opt.panel )
+            nlines = hybridStats( [ extra[0], extra[1] ], extra[2], opt.seqrun, opt.sample, opt.panel, opt.yaml )
         }
+
+        //  Output YAML file
+        //
+        if ( opt.yaml ) outputYaml( opt.yaml )
 
         log.info("Done, processed ${nlines} lines")
     }
@@ -82,14 +102,18 @@ class AlignStatsToTsv
      * @param panelGroup    Panel group to embed as field
      * @return              Number of lines processed
      */
-    static Integer filter( String stats, String tsv, String seqrun, String sample, String panel )
+    static Integer filter( String stats, String tsv, String seqrun, String sample, String panel, String yaml )
     {
         def statsFile = new File( stats )
         def tsvFile   = new File( tsv   )
 
-        if ( ! statsFile.exists())
+        //  Read all lines in
+        //
+        List lines = statsFile.readLines()
+
+        if ( ! statsFile.exists() || ! lines )
         {
-            log.error("Stats file doesn't exist: " + statsFile.name)
+            log.error("Stats file empty: " + statsFile.name)
             return 0
         }
 
@@ -97,10 +121,6 @@ class AlignStatsToTsv
         //
         if ( tsvFile.exists())
             tsvFile.delete()
-
-        //  Read all lines in
-        //
-        List lines = statsFile.readLines()
 
         //  Header must be first line, try a TSV format file
         //
@@ -188,7 +208,7 @@ class AlignStatsToTsv
         out << sampleStats
 
         tsvFile << out.join('\t') + '\n'
-
+        if ( yaml ) addYamlRow( out )
 
         //  Output all lines as TSV file - second pass through stats file
         //
@@ -212,33 +232,11 @@ class AlignStatsToTsv
             out << ''
 
             tsvFile << out.join('\t') + '\n'
+            if ( yaml ) addYamlRow( out )
         }
 
         return nlines
     }
-
-    static private final List<String> keepField =
-                                            [
-                                            'mean coverage',
-                                            '%_bases_above_1',
-                                            '%_bases_above_50',
-                                            '%_bases_above_100',
-                                            '%_bases_above_300',
-                                            '%_bases_above_500',
-                                            'Total reads',
-                                            'Mapped reads',
-                                            '% Reads mapped',
-                                            '% Mapped reads duplicates',
-                                            'Total reads minus duplicates',
-                                            'Mapped reads minus duplicates',
-                                            '% Reads OnTarget',
-                                            '% Target bases >=1-fold Coverage',
-                                            '% Target bases >=10-fold Coverage',
-                                            '% Target bases >=20-fold Coverage',
-                                            '% Target bases >=100-fold Coverage',
-                                            'Mean coverage for target bases',
-                                            'Median Fragment Length'
-                                            ]
 
     /**
      * Convert hybrid stats files into an AlignStats format for backwards compatibility with Amplicon stats
@@ -251,7 +249,7 @@ class AlignStatsToTsv
      * @param panel     Panel of stats
      * @return          Lines processed
      */
-    static Integer hybridStats( List<String> stats, String tsv, String seqrun, String sample, String panel )
+    static Integer hybridStats( List<String> stats, String tsv, String seqrun, String sample, String panel, String yaml )
     {
         Integer nlines = 0
         def tsvFile = new File(tsv)
@@ -301,14 +299,7 @@ class AlignStatsToTsv
 
             assert header.size() == data.size(), "Header columns ${header.size()} doesn't match data columns  ${data.size()} in ${fname}"
 
-            header.eachWithIndex
-                    {
-                        String entry, int i ->
-                            if ( keepField.contains(entry))
-                            {
-                                sampleStats += "|${entry}:${data[i]}"
-                            }
-                    }
+            header.eachWithIndex { String entry, int i -> sampleStats += "|${entry}:${data[i]}" }
             header.eachWithIndex { String entry, int i -> tsvData << [(entry): data[i]] }
         }
 
@@ -337,6 +328,8 @@ class AlignStatsToTsv
         out << sampleStats
 
         tsvFile << out.join('\t') + '\n'
+        if ( yaml ) addYamlRow( out )
+
         ++nlines
 
         //  Output dummy amplicon line: flagged with 'allroi' in Amplicon column
@@ -350,8 +343,63 @@ class AlignStatsToTsv
         out << ''                           // sample_stats
 
         tsvFile << out.join('\t') + '\n'
+        if ( yaml ) addYamlRow( out )
+
         ++nlines
 
         return nlines
+    }
+
+    /**
+     * Add the row to the YAML struct
+     *
+     * @param row   List of columns to output
+     */
+    static void addYamlRow( List row )
+    {
+        //  0   seqrun
+        //  1   sampleName
+        //  2   panelName
+        //  3   deprecated
+        //  4   amplicon
+        //  5   location
+        //  6   readsout
+        //  7   totreads
+        //  8   unmapped
+        //  9   goodamp
+        //  10  sampleStats
+
+        yc[[ 'data', yidx++, 'alignStats' ]] =  [
+                                            seqrun:         row[0],
+                                            sampleName:     row[1],
+                                            panelName:      row[2],
+                                            //deprecated:     row[3],
+                                            amplicon:       row[4],
+                                            location:       row[5],
+                                            readsout:       row[6] as int,
+                                            totreads:       row[7] as int,
+                                            unmapped:       row[8] as int,
+                                            goodamp:        row[9] as int,
+                                            sampleStats:    row[10]
+                                        ]
+    }
+
+    /**
+     * Output YAML file
+     *
+     * @param filename
+     */
+    static void outputYaml( String filename )
+    {
+        def yaml = new Yaml()
+
+        File yfile = new File( filename )
+
+        //  Clear out existing file
+        //
+        if ( yfile.exists())
+            yfile.delete()
+
+        yfile << yaml.dump( yc.thing )
     }
 }

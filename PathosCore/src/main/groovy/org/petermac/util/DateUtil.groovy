@@ -36,12 +36,35 @@ class DateUtil
         {
             parseDate = sdf.parse( rawDate )
         }
-        catch (Exception ex )
+        catch ( Exception ex )
         {
             log.error( "Couldn't parse date [${rawDate}] " + ex )
             parseDate = null
         }
 
         return parseDate
+    }
+
+    /**
+     * Parse a date safely catching exceptions
+     *
+     * @param   fmt         String with SimpleDateFormat date format
+     * @param   rawdate     date to parse
+     * @return              parsed date or null if it failed
+     */
+    static Date dateParse( String fmt, String rawDate )
+    {
+        Date dp = null
+        try
+        {
+            dp = Date.parse(fmt, rawDate)
+        }
+        catch( Exception ex )
+        {
+            log.error( "Couldn't parse date [${rawDate}] " + ex )
+            dp = null
+        }
+
+        return dp
     }
 }

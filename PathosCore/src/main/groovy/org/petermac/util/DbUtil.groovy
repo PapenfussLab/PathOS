@@ -176,9 +176,9 @@ class DbUtil
                     """
 
         sql.eachRow( sel )
-        {
-            sam << it['sample']
-        }
+                {
+                    sam << it['sample']
+                }
 
         log.info( "Found samples ${sam}")
 
@@ -200,7 +200,7 @@ class DbUtil
 
         //  Setup delete cnv command
         //
-        def del = 	"""
+        def delcnv = 	"""
                     delete	sv.*
                     from	seq_cnv as sv,
                             seq_sample  as sa,
@@ -210,7 +210,12 @@ class DbUtil
                     and		sr.id = sa.seqrun_id
                     and		sa.id = sv.seq_sample_id
                     """
-        sql.execute( del )
+        sql.execute( delcnv )
+        sql.eachRow( "select row_count()" )
+                {
+                    nrows = it['row_count()'] as Integer
+                    log.info "Deleted SeqCnv rows = ${nrows}"
+                }
 
         //  Delete tag links, else we get foreign key errors
         //
@@ -227,7 +232,6 @@ class DbUtil
                     and sa.id = sv.seq_sample_id)
                        """
         sql.execute(delTags)
-
         sql.eachRow( "select row_count()" )
                 {
                     nrows = it['row_count()'] as Integer
@@ -260,7 +264,7 @@ class DbUtil
 
         //  Setup delete variants command
         //
-        del = 	    """
+        def delvar = 	    """
                     delete	sv.*
                     from	seq_variant as sv,
                             seq_sample  as sa,
@@ -270,8 +274,7 @@ class DbUtil
                     and		sr.id = sa.seqrun_id
                     and		sa.id = sv.seq_sample_id;
                     """
-        sql.execute( del )
-
+        sql.execute( delvar )
         sql.eachRow( "select row_count()" )
                 {
                     nrows = it['row_count()'] as Integer
@@ -291,12 +294,32 @@ class DbUtil
     static Integer deleteSample( String seqrun, String sample )
     {
         Integer nrows = 0
-       
+
         log.info "Processing ${seqrun} ${sample}"
+
+        //  Setup delete cur variant report command
+        def del =   """delete cvr.*
+                    from seq_sample        as ss,
+                            seq_sample_report as ssr,
+                            seqrun            as sr,
+                            cur_variant_report as cvr
+                    where sr.seqrun = ${seqrun}
+                    and ss.sample_name =  ${sample}
+                    and sr.id = ss.seqrun_id
+                    and     ssr.seq_sample_id = ss.id
+                    and     cvr.seq_sample_report_id = ssr.id"""
+
+        sql.execute( del )
+
+        sql.eachRow( "select row_count()" )
+                {
+                    nrows = it['row_count()'] as Integer
+                    log.info "Deleted CurVariantReport rows = ${nrows}"
+                }
 
         //  Setup delete sample report command
         //
-        def del = 	"""
+        del = 	"""
                     delete	ssr.*
                     from	seq_sample        as ss,
                             seq_sample_report as ssr,
@@ -314,7 +337,62 @@ class DbUtil
                     log.info "Deleted SeqSampleReport rows = ${nrows}"
                 }
 
-        //  Setup delete sample relation command
+        //  Setup delete sample reviewed prefs command
+        //
+        del = 	"""
+                    delete	uprefs_ch.*, uprefs_cs.*
+                    from	seq_sample        as ss,
+                            user_prefs as uprefs,
+                            user_prefs_columns_hidden as uprefs_ch,
+                            user_prefs_columns_shown as uprefs_cs,
+                            seqrun            as sr
+                    where	sr.seqrun = ${seqrun}
+                    and		ss.sample_name = ${sample}
+                    and		sr.id = ss.seqrun_id
+                    and     uprefs.seq_sample_id = ss.id
+                    and     uprefs_cs.user_prefs_id=uprefs.id
+                    and     uprefs_ch.user_prefs_id=uprefs.id
+                    """
+        sql.execute( del )
+
+        del = 	"""
+                    delete	 uprefs.*
+                    from	seq_sample        as ss,
+                            user_prefs as uprefs,
+                            seqrun            as sr
+                    where	sr.seqrun = ${seqrun}
+                    and		ss.sample_name = ${sample}
+                    and		sr.id = ss.seqrun_id
+                    and     uprefs.seq_sample_id = ss.id
+                    """
+        sql.execute( del )
+
+
+        sql.eachRow( "select row_count()" )
+                {
+                    nrows = it['row_count()'] as Integer
+                    log.info "Deleted UserPrefs rows = ${nrows}"
+                }
+
+
+        //  get ids of seqrelations linked to this sample
+        //
+        def select = 	"""
+                    select  seqrel.id
+                    from	seq_sample        as ss,
+                            seq_sample_relations as ssrel,
+                            seq_relation    as seqrel,
+                            seqrun            as sr
+                    where	sr.seqrun = ${seqrun}
+                    and		ss.sample_name = ${sample}
+                    and		sr.id = ss.seqrun_id
+                    and     ssrel.seq_sample_id = ss.id
+                    and     seqrel.id=ssrel.seq_relation_id
+                    """
+        def seqrels = sql.rows( select )
+
+
+        //  Setup delete seq sample relation command (deletes ssrels with this sample involed)
         //
         del = 	"""
                     delete	ssrel.*
@@ -327,12 +405,55 @@ class DbUtil
                     and     ssrel.seq_sample_id = ss.id
                     """
         sql.execute( del )
-
+        int deleted_ssrel = 0
         sql.eachRow( "select row_count()" )
                 {
-                    nrows += it['row_count()'] as Integer
-                    log.info "Deleted SeqSampleRelation rows = ${nrows}"
+                    nrows = it['row_count()'] as Integer
+                    deleted_ssrel = nrows
                 }
+
+
+
+        //  Clean up orphans
+        //  Delete seq_sample_relation entries that are left with only one seq_sample
+        //  mark their seq_relations for deletion
+        //
+        List delete_sr_ids = []
+
+        for ( Map seqrel in seqrels )
+        {
+            select = 	"""
+                    select seq_relation_id as srid, seq_sample_id as ssid from seq_sample_relations
+                    where seq_relation_id=${seqrel.id}
+                    """
+            def selectOrphans = sql.rows( select )
+
+            if(selectOrphans.size() == 1 ) {    //  if this is an orphan, delete it
+                def ssid = selectOrphans[0].ssid
+                def del_ssr_row = """delete from seq_sample_relations where seq_sample_id=${ssid} and seq_relation_id=${seqrel.id}"""
+
+                sql.execute(del_ssr_row)
+
+                deleted_ssrel++
+                delete_sr_ids.add(seqrel.id)
+
+            }
+        }
+
+        log.info("Deleted ${deleted_ssrel++} SeqSampleRelation rows")
+
+        //  delete unneeded seq_relatipns
+        //
+        del = """
+              delete from seq_relation where id in (${delete_sr_ids.join(',')})
+              """
+        sql.execute(del)
+
+        sql.eachRow( "select row_count()" )
+        {
+            nrows = it['row_count()'] as Integer
+            log.info "Deleted SeqRelation rows = ${nrows}"
+        }
 
 
         //  Delete tag links, else we get foreign key errors
@@ -365,7 +486,7 @@ class DbUtil
         sql.eachRow( "select row_count()" )
                 {
                     nrows = it['row_count()'] as Integer
-                    log.info "Deleted Seqsample Tag linking table rows = ${nrows}"
+                    log.info "Deleted Align Stats rows = ${nrows}"
                 }
 
         //  Setup delete sample command
@@ -382,7 +503,7 @@ class DbUtil
 
         sql.eachRow( "select row_count()" )
                 {
-                    nrows += it['row_count()'] as Integer
+                    nrows = it['row_count()'] as Integer
                     log.info "Deleted SeqSample rows = ${nrows}"
                 }
 

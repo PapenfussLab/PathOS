@@ -1,0 +1,132 @@
+#!/bin/bash
+#
+#       LoadPipeline 	Load PathOS from Pipeline files
+#
+#       01      Ken Doig    14-Jun-19   Initial create
+#       02      Ken Doig    06-Aug-19   Release version
+#
+
+set -e
+
+#   process -options
+#
+HELP=0
+ALIGN=0
+CNV=0
+VCF=0
+pa_env=pa_dev
+seqrun=none
+sample=*
+basedir=none
+nargs=$#
+version='1.5.2'
+
+while getopts r:s:a:b:hvcl\? opt                    # Add additional options here
+
+do  case "$opt" in
+    r)      pa_env="$OPTARG";;
+    s)      seqrun="$OPTARG";;
+    a)      sample="$OPTARG";;
+    b)      basedir="$OPTARG";;
+    h)      HELP=1;;
+    v)      VCF=1;;
+    c)      CNV=1;;
+    l)      ALIGN=1;;
+    [?])    HELP=1;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
+#   output usage if required
+#
+if [ $nargs -eq 0 -o $seqrun == "none" -o $HELP -eq 1 ]; then    # Set number of required arguments here
+    echo "
+    Usage: `basename $0` [options]
+
+    Options:
+            -r <pa_env>     Database to load [$pa_env]
+            -s <seqrun>     Seqrun to use
+            -a <sample>     Sample to use [all]
+            -b <path>       Path prefix to pipeline files [$basedir]
+            -v              Load VCF files
+            -c              Load CNV files
+            -l              Load Alignment QC files
+
+    Pipeline loader command
+    " 1>&2
+
+    exit 1
+fi
+
+if [ $basedir == "none" ]; then
+    basedir=/pathology/NGS/Samples/$pa_env
+fi
+
+function loadAll() {
+
+echo "Loading pa_env=$pa_env seqrun=$seqrun sample=$sample from=$basedir"
+
+#   Load slurm modules
+#
+. /etc/profile.d/modules.sh
+module load ensembl/90
+module load babble/$version
+module load pathos/$pa_env
+
+export PATHOS_MUTALYZER_WAITTIME=1000
+
+#	Load VCF files
+#
+if [ $VCF -eq 1 ]; then
+	loadVcf
+fi
+
+#	Load alignment files
+#
+if [ $ALIGN -eq 1 ]; then
+	loadAlign
+fi
+
+#	Load gaffa files
+#
+if [ $CNV -eq 1 ]; then
+	loadCnv
+fi
+
+return 0
+}
+
+function loadVcf() {
+		VcfLoader 	\
+			--filter \
+			--normalise \
+			--datasource mutalyzer,vep \
+			--mutalyzer https://vmpr-res-mutalyzer1.unix.petermac.org.au \
+			--rdb $pa_env \
+			$basedir/$seqrun/$sample/${sample}.vcf
+}
+
+function loadAlign() {
+	for qcyaml in $basedir/$seqrun/$sample/QC/*.yaml
+	do
+		 LoaderCli -r $pa_env -y $qcyaml
+	done
+}
+
+function loadCnv() {
+	for samdir in $basedir/$seqrun/$sample
+	do
+	    for cnvf in $samdir/CNV/*_gaffa_pathos.tsv
+	    do
+	        cnvsample=`basename $samdir`
+	        if [ -f $cnvf ]; then
+	            cnvdir=`dirname $cnvf`
+	            cnvyaml=$cnvdir/${cnvsample}_gaffa.yaml
+		        babble -f /pathology/NGS/$pa_env/etc/babble/gaffa-to-file.yaml $seqrun $cnvsample $cnvf $cnvyaml
+		        LoaderCli -r $pa_env -y $cnvyaml
+		    fi
+		done
+	done
+}
+
+loadAll $pa_env $seqrun $sample

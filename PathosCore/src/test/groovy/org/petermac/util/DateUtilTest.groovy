@@ -26,8 +26,8 @@ class DateUtilTest extends GroovyTestCase
 
         String testDate = "Sat Feb 18 00:00:00 AEST 1"
         String da = DateUtil.dateParse( new SimpleDateFormat("EEE MMM dd yyyy"), testDate)
-
-        assert da.contains( "AEST 1" ) : "[T E S T] assert 1/2: cannot find pattern AEST 1"
+        println da
+        assert da.contains( "ST 1" ) : "[T E S T] assert 1/2: cannot find pattern ST 1" //  AES: looks for AEST but I'm in NZST!  let's not localise test too hard
         assert da.contains("Feb 18") : "[T E S T] assert 2/2: cannot find pattern Feb 18"
 
     }

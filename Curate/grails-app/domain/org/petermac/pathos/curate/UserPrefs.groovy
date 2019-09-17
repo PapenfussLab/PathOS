@@ -8,15 +8,21 @@ class UserPrefs {
 
     Set<String> columnsShown = new HashSet<String>()
     Set<String> columnsHidden = new HashSet<String>()
-    String columnOrderRemap
-    String gridInfoJson
+    String      columnOrderRemap
+    String      gridInfoJson
+
     static hasMany = [columnsShown: String, columnsHidden: String]
+
+    static mapping =
+        {
+            columnOrderRemap        (type: 'text')
+            gridInfoJson            (type: 'text')
+        }
+
     static constraints =
             {
-                columnOrderRemap nullable: true, maxSize: 9999
-                gridInfoJson nullable: true, maxSize: 9999
+                columnOrderRemap    nullable: true
+                gridInfoJson        nullable: true
             }
-    
-
 }
 

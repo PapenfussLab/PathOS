@@ -18,7 +18,7 @@
     %{--<g:javascript src="quasipartikel/jquery.min.js" />--}%
     %{--<g:javascript src="quasipartikel/jquery-ui.min.js" />--}%
     %{--<g:javascript src="quasipartikel/ui.multiselect.js" />--}%
-    <script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
+    <script src="<g:context/>/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
 
     <style type="text/css">
     .ui-jqgrid .ui-jqgrid-htable th     { vertical-align: top; }
@@ -54,7 +54,7 @@
         <grid:grid  name="variant" >
             <grid:set caption='Curated Variants'/>
             <grid:set col="authorisedFlag" width="40" align="center"  formatter="checkbox" />
-            <grid:set col="clinContext"          width="70" />
+            <grid:set col="clinContext"    width="70" formatter="f:ccFormatter" />
             <grid:set col="gene"           width="70" align="center" />
             <grid:set col="gene_type"      width="70" align="center" />
             <grid:set col="hgvsp"          width="70" />
@@ -66,11 +66,11 @@
 
 </div>
 <script>
-    var availableTags = <g:allTags/>;
+    var allTags = <g:allTags/>;
     var tagModule = PathOS.tags.buildModule({
         object: 'CurVariant',
         tags: [],
-        availableTags: availableTags
+        availableTags: Object.keys(allTags)
     });
 
     var curvar_id = false;
@@ -110,6 +110,15 @@
 
         return fld;
     }
+
+
+    function ccFormatter( cellvalue, options, rowObject )
+    {
+        if ( cellvalue == null || cellvalue.length == 0 ) return '';
+
+        return '<a href="<g:context/>/clinContext/show/'+cellvalue.id+'" title="'+cellvalue.description+'">'+cellvalue.code+'</a>';
+    }
+
 
 </r:script>
 </html>

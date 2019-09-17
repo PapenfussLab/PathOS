@@ -23,7 +23,7 @@ class GenSeqrunTest extends GroovyTestCase
         String file = "LIMS_130822_M00139_0022_000000000-A5D1J"
         String extension ="xml"
 
-        String limsxml = new File(GenSeqrunTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())
+        File limsxml = new File(GenSeqrunTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())
 
 
         String pipeline = 'mp_vcfAmplicon'
@@ -48,8 +48,6 @@ class GenSeqrunTest extends GroovyTestCase
         String file = "LIMS_130822_M00139_0022_000000000-A5D1J"
         String extension ="xml"
 
-        String limsxml = new File(GenSeqrunTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath())
-
         String pipeline = 'mp_vcfAmplicon'
 
         String baseDir = new File(GenSeqrunTest.getClass().getResource( "/${resource}/${file}.${extension}" ).getPath()).getParent()
@@ -59,7 +57,7 @@ class GenSeqrunTest extends GroovyTestCase
 
         def gsr  = new GenSeqrun()
 
-        assert false == gsr.processSeqrun(seqrun, sample, '', pipeline, baseDir, outfile)// remove ! for Bamboo
+        assert false == gsr.processSeqrun(seqrun, sample, new File('xx'), pipeline, baseDir, outfile)
 
     }
 

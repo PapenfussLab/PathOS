@@ -1,8 +1,6 @@
 package org.petermac.pathos.curate
 
 import org.petermac.util.JiraNotifier
-
- import org.petermac.util.JiraNotifier
 import org.petermac.util.Locator
 
 import java.text.MessageFormat
@@ -10,9 +8,50 @@ import java.text.MessageFormat
 class CurateService {
 
     static def loc = Locator.instance   // file locator
+    def grailsApplication
+    def utilService
 
     def SpringSecurityService
     //LinkGenerator grailsLinkGenerator
+
+    def AuditService
+
+
+    def deleteCurVariant( CurVariant cv ) {
+
+        // Null all JiraIssue links to the CurVariant record
+        //
+        def variantIssues = JiraIssue.findAllByCurVariant(cv)
+        for ( varIssue in variantIssues ) {
+            varIssue.setCurVariant(null)
+            varIssue.save(flush: true)
+        }
+
+        // Null the curVariantReport objects
+        CurVariantReport.findAllByCurVariant(cv).each { cvr ->
+            cvr.setCurVariant(null)
+            cvr.save(flush: true)
+        }
+
+        // Delete the ACMG and AMP evidence
+        cv.fetchAcmgEvidence()?.delete()
+        cv.fetchAmpEvidence()?.delete()
+
+        //  Delete the CurVariant record
+        //
+        cv.delete(flush: true)
+
+        //  Audit message
+        //
+        AuditService.audit([
+            category    : 'curation',
+            variant     : cv.toString(),
+            task        : 'variant deletion',
+            description : "Deleted CurVariant ${cv.toString()}"
+        ])
+    }
+
+
 
     /**
      *
@@ -27,30 +66,37 @@ class CurateService {
      * If there is no CV in the current seqsample's context, create it.
      *
      * Return false if we fail to create a curVariant when we should
+     * AES 7-December-2016
      *
      * @param sv
      */
     boolean createNewCurVariantsFromSeqVariant ( SeqVariant sv ) {
         ClinContext cc = sv?.seqSample?.clinContext;
 
-        //  if this SV does not have a null-clincontext CV, make a null-clincontext CV
+        // Return false without doing anything if there is no clinical context.
+        if ( !cc ) return false
+
+        def defaultCC = ClinContext.generic()
+
+        //  if this SV does not have a default-clincontext CV, make a null-clincontext CV
         //
-        if (!sv.curatedInContext(null))
+        if (!sv.curatedInContext(defaultCC))
         {
-            if(!makeCurVariant ( sv, null ))  return false
+            if(!makeCurVariant ( sv, defaultCC ))  return false
         }
 
         //  if the seqsample of this seqvar has a non-null clincontext, make a CV for that clincontext
         //
-        if(cc != null && !sv.curatedInContext(cc))
+        if(cc != defaultCC && !sv.curatedInContext(cc))
         {
+            // Try to make a CurVariant for this SV at that CC.
             if(!makeCurVariant( sv, cc ))  return false
         }
 
         return sv.curatedInContext(cc);
     }
 
-
+    
 
 
     /**
@@ -62,17 +108,29 @@ class CurateService {
      * @param cc of new cv
      * @return
      */
-    CurVariant makeCurVariant(SeqVariant sv, ClinContext cc = null) {
-        //  create a curvariant with  explicit sv parameters
-        CurVariant var = new CurVariant (variant: sv.variant, grpVariant: new GrpVariant(accession:sv.hgvsg, muttyp:'SNV'), clinContext: cc, hgvsc: sv.hgvsc, hgvsp: sv.hgvsp, gene:sv.gene, hgvsg: sv.hgvsg, consequence: sv.consequence, siftCat: sv.siftCat, chr: sv.chr, pos: sv.pos, exon: sv.exon, ens_variant: sv.ens_variant, cosmic: sv.cosmic, dbsnp: sv.dbsnp, polyphenCat: sv.polyphenCat, alamutClass: sv.alamutClass)
+    CurVariant makeCurVariant(SeqVariant sv, ClinContext cc = ClinContext.generic()) {
+        if(!cc) cc = ClinContext.generic()
 
-        //  Set up Evidence embedded class
-        //  AES: is this needed? copied from CurateService.
-        def evd = new Evidence()
-        evd.evidenceClass  = "Unclassified"
-        evd.save()
-        var.evidence       = evd
-        var.authorisedFlag = false        //  Save new CurVariant, log errors if failed
+        CurVariant var = new CurVariant()
+
+        var.variant = sv.variant
+        var.grpVariant = new GrpVariant(accession: sv.hgvsg, muttyp: 'SNV')
+        var.clinContext = cc
+        var.gene = sv.gene
+        var.chr = sv.chr
+        var.pos = sv.pos
+        var.exon = sv.exon
+        var.hgvsg = sv.hgvsg
+        var.hgvsp = sv.hgvsp
+        var.hgvsc = sv.hgvsc
+        var.consequence = sv.consequence
+        var.siftCat = sv.siftCat
+        var.ens_variant = sv.ens_variant
+        var.cosmic = sv.cosmic
+        var.dbsnp = sv.dbsnp
+        var.polyphenCat = sv.polyphenCat
+        var.alamutClass = sv.alamutClass
+        var.evidence = null
 
         if ( ! var.save(flush:true))
         {
@@ -94,15 +152,29 @@ class CurateService {
             return null
         }
 
+        AcmgEvidence acmgEvidence = new AcmgEvidence(curVariant: var)
+        AmpEvidence ampEvidence = new AmpEvidence(curVariant: var)
+        acmgEvidence.save()
+        ampEvidence.save()
+
         //  if there is a null cc CV with this accession, use its originating
         //  we only set originating afresh for brand new curvariants
-        def otherVars =  CurVariant.executeQuery("from org.petermac.pathos.curate.CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext is null and cv.id !=:id",[hgvsg:sv.hgvsg,id:var.id])
+        def otherVars =  CurVariant.executeQuery("from org.petermac.pathos.curate.CurVariant cv where cv.grpVariant.accession=:hgvsg and cv.clinContext=:default and cv.id !=:id",[hgvsg:sv.hgvsg,id:var.id,default:ClinContext.generic()])
         if(otherVars && otherVars?.size() > 0) {
             var.originating = otherVars[0].originating
         } else {
             var.originating = sv
         }
         var.save()
+
+        //  Create audit message
+        //
+        AuditService.audit([
+            category    : 'curation',
+            variant     : var.toString(),
+            task        : 'curation',
+            description : "Curated ${var.toString()} from SeqVariant ${sv} in ${sv.seqSample.seqrun} ${sv.seqSample} "
+        ])
 
 
         createJiraIssueForNewCurVariant(var,sv)
@@ -127,16 +199,16 @@ class CurateService {
             def cvlink = "(link to ${var})"
             def sslink = "(link to ${origSv.seqSample})"
             if ( env == "pa_prod" ) {
-                cvlink = 'http://bioinf-pathos:8080/PathOS/curVariant/show/' + "${var.id}"
-                sslink = 'http://bioinf-pathos:8080/PathOS/seqVariant/svlist/' + "${origSv.seqSampleId}"
+                cvlink = "http://bioinf-pathos:8080${utilService.context()}/curVariant/show/${var.id}"
+                sslink = "http://bioinf-pathos:8080${utilService.context()}/seqVariant/svlist/${origSv.seqSampleId}"
             }
             else if ( env == "pa_dev" ) {
-                cvlink = 'http://bioinf-pathos-test:8080/PathOS/curVariant/show/' + "${var.id}"
-                sslink = 'http://bioinf-pathos-test:8080/PathOS/seqVariant/svlist/' + "${origSv.seqSampleId}"
+                cvlink = "http://bioinf-pathos-test:8080${utilService.context()}/curVariant/show/${var.id}"
+                sslink = "http://bioinf-pathos-test:8080${utilService.context()}/seqVariant/svlist/${origSv.seqSampleId}"
             }
             else if ( env == "pa_uat" ) {
-                cvlink = 'http://vmut-pathos-uat1.unix.petermac.org.au:8080/PathOS/curVariant/show/' + "${var.id}"
-                sslink = 'http://vmut-pathos-uat1.unix.petermac.org.au:8080/PathOS/seqVariant/svlist/' + "${origSv.seqSampleId}"
+                cvlink = "http://vmut-pathos-uat1.unix.petermac.org.au:8080${utilService.context()}/curVariant/show/${var.id}"
+                sslink = "http://vmut-pathos-uat1.unix.petermac.org.au:8080${utilService.context()}/seqVariant/svlist/${origSv.seqSampleId}"
             }
 
             def issueSummary = "New CurVariant needs curation: ${var}"
@@ -166,7 +238,7 @@ class CurateService {
                     //  don't link if not on prod
                     String ssPresentLink = ''
                     if (env == "pa_prod" || true) {
-                        ssPresentLink = "http://bioinf-pathos:8080/PathOS/svlist/${it?.id}"
+                        ssPresentLink = "http://bioinf-pathos:8080${utilService.context()}/svlist/${it?.id}"
                     }
                     message = message + "* [${it.sampleName}|${ssPresentLink}]\n"
                 }

@@ -47,6 +47,13 @@
         </g:if>
 
         <li class="fieldcontain">
+            <span id="skipGeneMask-label" class="property-label">Gene Mask</span>
+            <span class="property-value" aria-labelledby="skipGeneMask-label">
+                ${panelInstance?.skipGeneMask ? "Don't show gene mask" : "Show gene mask"}
+            </span>
+        </li>
+
+        <li class="fieldcontain">
             <span id="samples-label" class="property-label"><g:message code="panel.samples.label" default="Samples"/></span>
             <span class="property-value" aria-labelledby="samples-label">
                 ${panelInstance?.seqSamples?.size()}

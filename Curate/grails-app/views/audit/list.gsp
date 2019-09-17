@@ -41,7 +41,7 @@
             <g:sortableColumn property="variant" title="${message(code: 'audit.variant.label', default: 'CurVariant')}"
                               params="${filterParams}"/>
 
-            <g:sortableColumn property="sample" title="${message(code: 'audit.sample.label', default: 'PatSample')}"
+            <g:sortableColumn property="sample" title="${message(code: 'audit.sample.label', default: 'Sample')}"
                               params="${filterParams}"/>
 
             <g:sortableColumn property="task" title="${message(code: 'audit.task.label', default: 'Task')}"
@@ -80,7 +80,7 @@
 
                 <td>${fieldValue(bean: auditInstance, field: "variant")}</td>
 
-                <td>${fieldValue(bean: auditInstance, field: "patSample")}</td>
+                <td>${fieldValue(bean: auditInstance, field: "sample")}</td>
 
                 <td>${fieldValue(bean: auditInstance, field: "task")}</td>
 

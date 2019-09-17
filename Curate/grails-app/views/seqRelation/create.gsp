@@ -4,7 +4,7 @@
 	<head>
 		<meta name="layout" content="main">
 		<g:set var="entityName" value="${message(code: 'seqRelation.label', default: 'SeqRelation')}" />
-		<title><g:message code="default.create.label" args="[entityName]" /></title>
+		<title>Create Relationship</title>
 	</head>
 	<body>
 		<a href="#create-seqRelation" class="skip" tabindex="-1"><g:message code="default.link.skip.label" default="Skip to content&hellip;"/></a>
@@ -36,6 +36,7 @@
 						</label>
 						<span class="property-value">
 							<g:select name="relation" from="${seqRelationInstance.constraints.relation.inList}" value="${seqRelationInstance?.relation}" valueMessagePrefix="seqRelation.relation" noSelection="['': '']"/>
+							<span id="relation_warning"></span>
 						</span>
 					</div>
 

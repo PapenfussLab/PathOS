@@ -34,13 +34,31 @@ class UrlLink
      * @param suffix    Optional suffix of the URL eg <sample>.vcf
      * @return          URL to sample data
      */
-    static String dataUrl( String seqrun, String sample, String suffix = "" )
+    static String dataUrl( String seqrun = "", String sample = "", String suffix = "" )
     {
-        def baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/${sample}/"
+        def baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/"
+
+        if ( seqrun ) baseURL = baseURL + seqrun + "/"
+
+        if ( sample ) baseURL = baseURL + sample + "/"
 
         if ( suffix ) baseURL = baseURL + suffix
 
         return baseURL
+    }
+
+    /**
+     * generate a URL to the igvSession controllers dynamically generated IGV Session XML file
+     *
+     * baseURL generated from grails, absolute URL to IgvSession controller
+     * @param baseUrl
+     * @param sample
+     * @return
+     */
+    static String igvSessionXMLUrl( String baseUrl, String seqrun, String sample,  String pos)
+    {
+        String igvURL = "http://localhost:60151/load?file=${baseUrl}/${seqrun}/${sample}.xml&amp;locus=${pos}"
+        return igvURL
     }
 
     /**
@@ -80,22 +98,34 @@ class UrlLink
     }
 
     /**
-     * Return a link to pipeline report in the data repository
+     * Return a link to the multiQC html
+     */
+    static String multiQCUrl( String seqrun ) {
+        return "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/QC/MultiQC/multiqc_report.html"
+    }
+
+    /**
+     * Return a link to a file that only exists if the pipeline has finished.
+     * i.e. we can say the run is ready if this file exists
      *
      * @param   seqrun    Seqrun to access
      * @return            URL to pipeline report html
      */
-    static String pipelineUrl( String seqrun )
+    static String pipelineUrl( String seqrun, String platform )
     {
-        // http://bioinf-ensembl.petermac.org.au/Pathology/Testing/150820_M00139_0243_000000000-AHRLU/RunPipe/mp_dualAmplicon/doc/index.html
-        //
-        def baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/RunPipe/mp_dualAmplicon/doc/index.html"
+        def baseURL = ""
+
+        if ( platform == "MiSeq") {
+            baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/RunPipe/mp_Amplicon/doc/index.html"
+        } else if ( platform == "NextSeq" ) {
+            baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/QC/MultiQC/multiqc_report.html"
+        }
 
         return baseURL
     }
 
     /**
-     * Construct an IGV link
+     * Construct an IGV link for an IGV session file on the filesystem. Deprecated as of PATHOS-3392
      *
      * @param seqrun
      * @param sample
@@ -105,11 +135,6 @@ class UrlLink
     static String igv( String seqrun, String sample, String pos, Boolean demo = false )
     {
         String igvURL = "http://localhost:60151/load?file=${dataUrl(seqrun,sample)}IGV_Session.xml&amp;locus=${pos}"
-
-        if ( demo )         // running in local laptop demo mode
-        {
-            return "http://localhost:60151/load?file=/usr/local/dev/DemoNGS/Samples/Testing/${seqrun}/${sample}/IGV_Session.xml&amp;locus=${pos}"
-        }
 
         return igvURL
     }
@@ -185,11 +210,11 @@ class UrlLink
      * @param panel     Capture panel
      * @return          Formatted URL
      */
-    static String gaffaUrl( String version, String seqrun, String sample, String panel )
+    static String gaffaUrl( String seqrun, String sample, String panel )
     {
         def baseURL = loc.cnvViewerUrl
 
-        baseURL += "/${version}/?collection=${loc.samBase}&panel=${panel}&run=${seqrun}&sample=${sample}&locked=TRUE&index_path=CNV"
+        baseURL += "/?collection=${loc.samBase}&panel=${panel}&run=${seqrun}&sample=${sample}&locked=TRUE&index_path=CNV"
 
         return baseURL
     }
@@ -206,7 +231,7 @@ class UrlLink
         String cosmicURL = ""
 
         if ( cosmicid )
-            cosmicURL = "http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=${cosmicid}"
+            cosmicURL = "https://cancer.sanger.ac.uk/cosmic/mutation/overview?genome=37&id=${cosmicid}"
 
         return cosmicURL
     }
@@ -230,10 +255,10 @@ class UrlLink
             {
                 int pos = m[0][1] as int
                 def win = 20    // Window size of AAs either side of protein mut position
-                histURL = "http://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=${gene}&start=${pos-win}&end=${pos+win}"
+                histURL = "https://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=${gene}&start=${pos-win}&end=${pos+win}"
             }
             else
-                histURL = "http://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=${gene}"
+                histURL = "https://cancer.sanger.ac.uk/cosmic/gene/analysis?ln=${gene}"
         }
 
         return histURL
@@ -250,7 +275,7 @@ class UrlLink
         String pubmedURL = ""
 
         if ( pubmedid )
-            pubmedURL  = "http://www.ncbi.nlm.nih.gov/pubmed/${pubmedid}"
+            pubmedURL  = "https://www.ncbi.nlm.nih.gov/pubmed/${pubmedid}"
 
         return pubmedURL
     }
@@ -396,7 +421,12 @@ class UrlLink
             if (hgvsParsed.muttype == 'del' && mut == '' &&  ensVar) {
                 //we have a deletion with no nucleotide listed. we need one for search, though, so we can grab one from ens_variant
                 def ensvarmap = HGVS.ensToMap(ensVar)
-                mut = ensvarmap['ref']
+
+// See PATHOS-3411
+// It seems that ens_variant was changed sometime around v1.4.0
+// The new del format is no longer parsed properly, and sometimes is returned as null
+// DKGM 19-Sept-2018
+                mut = ensvarmap ? ensvarmap['ref'] : ''
             }
 
             if (endpos != pos) {    //format the search string as in Alamut, for mutations spanning multiple nucleotides

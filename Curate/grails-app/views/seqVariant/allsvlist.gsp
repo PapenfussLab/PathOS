@@ -25,7 +25,7 @@
     <g:javascript src="quasipartikel/jquery.min.js" />
     <g:javascript src="quasipartikel/jquery-ui.min.js" />
     <g:javascript src="quasipartikel/ui.multiselect.js" />
-    <script src="/PathOS/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
+    <script src="<g:context/>/static/bundle-bundle_easygrid-jqgrid-dev_head.js" type="text/javascript" ></script>
 
     <style type="text/css">
     .ui-jqgrid .ui-jqgrid-htable th     { vertical-align: top; }
@@ -57,9 +57,6 @@
 <div id="list-seqVariant" class="content scaffold-list" role="main"
      style="white-space: nowrap; overflow-x:auto">
     <h1><g:message code="default.list.label" args="[entityName]"/></h1>
-    <g:if test="${flash.message}">
-        <div class="message" role="status">${flash.message}</div>
-    </g:if>
 </div>
 
 <div style="margin: 2em; overflow: auto;">
@@ -138,11 +135,11 @@
 </script>
 
 <script>
-    var availableTags = <g:allTags/>;
+    var allTags = <g:allTags/>;
     var tagModule = PathOS.tags.buildModule({
         object: 'seqvariant',
         tags: [],
-        availableTags: availableTags
+        availableTags: Object.keys(allTags)
     });
 
     var current_id = false;
@@ -177,7 +174,7 @@
         //  Todo: this is a maintenance risk - hard wired link and positional parameter to pass an object linkage through to Javascript
         //
 
-        return "<a href='/PathOS/curVariant/sampleLink?id=" + rowObject[0] + "'>" + fld + '</a>';
+        return "<a href='<g:context/>/curVariant/sampleLink?id=" + rowObject[0] + "'>" + fld + '</a>';
     }
 
 

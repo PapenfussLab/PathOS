@@ -1,0 +1,55 @@
+# First Patient
+sender: auslab@petermac.org
+source: [petermac, auslab, iguana]
+source-id: a7f7dc9c644b60acbf0a940662b8697b8c0f7073
+status: started
+timestamp: '2015-01-22 15:21:15.882271'
+content:
+  fullName: Uncle Scrooge
+  urn: 301T5275
+  dob: '1961-10-18'
+  sex: M
+  patSamples:
+  - sample: 17K0874 
+    owner: Migration
+    rcvdDate: '2017-03-22'
+    requestDate: '2017-03-22'
+    requester: MCGUIRE,LLOYD JAMES
+    pathlab: X
+    patAssays:
+    - testSet: M487 
+      testName: FLD_REP_MEL
+    - testSet: M488 
+      testName: FLD_REP_CRC
+  - sample: 16K0875 
+    owner: Migration
+    rcvdDate: '2017-03-22'
+    requestDate: '2017-03-22'
+    requester: MCGUIRE,LLOYD JAMES
+    pathlab: X
+    patAssays:
+    - testSet: M487 
+      testName: FAM1_BRCA
+---
+# Second Patient
+sender: auslab@petermac.org
+source: [petermac, auslab, iguana]
+source-id: a7f7dc9c644b60acbf0a940662b8697b8c0f7073
+status: started
+timestamp: '2015-01-22 15:21:15.882271'
+content:
+  fullName: Donald Duck Esq.
+  urn: 301T5276
+  dob: '1961-10-20'
+  sex: M
+  patSamples:
+  - sample: 16K0879 
+    owner: Migration
+    rcvdDate: '2017-03-24'
+    requestDate: '2017-03-25'
+    requester: Dr. Jekyll
+    pathlab: RMH
+    patAssays:
+    - testSet: M600 
+      testName: FAM1_GENE02
+...

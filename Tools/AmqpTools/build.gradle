@@ -1,0 +1,21 @@
+// build.gradle
+//
+// Build file for the AmqpTools module
+//
+
+apply from: '../../scripts/common.gradle'
+
+//  Release version
+//
+version = '1.5.2'
+
+jar {
+    baseName = 'amqp-tools'
+}
+
+dependencies {
+    compile group: 'com.rabbitmq' ,name: 'amqp-client', version: '4.0.2'
+    compile group: 'log4j', name: 'log4j', version: '1.2.16'
+    compile group: 'org.petermac.pathos' ,name: 'yaml-tools', version: version
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.18'
+}

@@ -22,12 +22,17 @@ class RefGene
     String  accession
     String  genedesc
 
+    static mapping =
+        {
+            genedesc        (type: 'text')
+        }
+
     static constraints =
     {
         gene(      unique:   true)
         hgncid(    nullable: true)
         accession( nullable: true)
-        genedesc(  nullable: true, maxSize: 5000)
+        genedesc            ( nullable: true)
     }
 
     String	toString()

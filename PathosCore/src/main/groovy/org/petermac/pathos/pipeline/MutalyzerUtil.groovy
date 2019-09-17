@@ -99,13 +99,13 @@ class MutalyzerUtil
         //
         def vcf = new Vcf( vfile )
         vcf.load()
-        List<List> rows = vcf.getRows()
+        List<Map> rows = vcf.getRowMaps()
 
         //  Convert VCF variants to HGVSg format
         //
         List<String> hgs = []
 
-        for ( List<String> row in rows )
+        for ( row in rows )
         {
             if ( row.size() < 10 )
             {
@@ -116,10 +116,10 @@ class MutalyzerUtil
             //  Convert a VCF row into a Map
             //  Map of converted variant [chr:, pos:, ref:, alt:, ensvar: "chr_pos_ref/alt", hgvsg: ]
             //
-            Map var = HGVS.normaliseVcfVar( row[0], row[1], row[3], row[4] )
+            Map var = HGVS.normaliseVcfVar( row.CHROM, row.POS, row.REF, row.ALT )
             if ( ! var.hgvsg )
             {
-                log.error( "Couldn't normalise VCF variant ${row[0]+':'+row[1]} ${row[3]} > ${row[4]}")
+                log.error( "Couldn't normalise VCF variant ${row.CHROM+':'+row.POS} ${row.REF} > ${row.ALT}")
                 continue
             }
 
@@ -144,9 +144,13 @@ class MutalyzerUtil
      * @param row
      * @return
      */
-    static String vepFormat( List<String> row, String hgvsg )
+    static String vepFormat( Map row, String hgvsg )
     {
-        return [ row[0], row[1], '.', row[3], row[4], '.', 'PASS', "HGVSg=${hgvsg}", 'GT', '0/1'].join('\t') + '\n'
+        if ( row.HGVSg )
+        {
+            hgvsg = row.HGVSg
+        }
+        return [ row.CHROM, row.POS, hgvsg, row.REF, row.ALT, '.', 'PASS', "HGVSg=${hgvsg}", 'GT', '0/1'].join('\t') + '\n'
     }
 
     /**
@@ -584,7 +588,7 @@ class MutalyzerUtil
             //
             Integer start    = gmap.pos    as Integer
             Integer end      = gmap.endpos as Integer
-            String  refbases = new Locus( gmap.chrnum as String, start-1, end ).bases()  // add previous base for VCF ref base
+            String  refbases = new Locus( gmap.chr as String, start-1, end ).bases()  // add previous base for VCF ref base
 
             if ( ! refbases )
             {
@@ -603,7 +607,7 @@ class MutalyzerUtil
             //
             Integer start    = gmap.pos    as Integer
             Integer end      = gmap.endpos as Integer
-            String  refbases = new Locus( gmap.chrnum as String, start, end ).bases()  // add previous base for VCF ref base
+            String  refbases = new Locus( gmap.chr as String, start, end ).bases()  // add previous base for VCF ref base
 
             if ( ! refbases )
             {
@@ -621,7 +625,7 @@ class MutalyzerUtil
             //  Lookup reference genome bases at the locus
             //
             Integer start    = gmap.pos    as Integer
-            String  refbases = new Locus( gmap.chrnum as String, start, start ).bases()  // find ref base
+            String  refbases = new Locus( gmap.chr as String, start, start ).bases()  // find ref base
 
             if ( ! refbases )
             {
@@ -640,7 +644,7 @@ class MutalyzerUtil
             //
             Integer start    = gmap.pos    as Integer
             Integer end      = gmap.endpos as Integer
-            String  refbases = new Locus( gmap.chrnum as String, start, end ).bases()
+            String  refbases = new Locus( gmap.chr as String, start, end ).bases()
 
             if ( ! refbases )
             {
