@@ -1,6 +1,7 @@
 [![Language](http://img.shields.io/badge/language-java-brightgreen.svg)](https://www.java.com/)
 [![Language](http://img.shields.io/badge/language-groovy-orange.svg)](http://groovy-lang.org/)
 [![Tag](https://img.shields.io/github/v/tag/papenfussLab/PathOS)](https://github.com/PapenfussLab/PathOS/releases)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/papenfussLab/PathOS)
 
 # PathOS
 PathOS is a clinical decision support tool to manage, analyse and report on DNA sequencing variants.
