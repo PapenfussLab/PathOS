@@ -93,7 +93,7 @@ Ph: +61 411 225 178 Mail: ken.doig@petermac.org
 
 ## Demonstration Instances
 A cloud instance of PathOS is maintained on the University of Melbourne Nectar cloud at 
-    http://115.146.84.72:8123/PathOS
+    http://115.146.85.170:8123/PathOS
 A virtual machine instance of PathOS is available at [VirtualMachine](https://github.com/PapenfussLab/PathOS/tree/master/VirtualMachine)
 
 Please get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
