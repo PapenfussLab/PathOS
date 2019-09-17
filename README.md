@@ -1,3 +1,5 @@
+[![Language](http://img.shields.io/badge/language-java-brightgreen.svg)](https://www.java.com/)
+
 # PathOS
 PathOS is a clinical decision support tool to manage, analyse and report on DNA sequencing variants.
 PathOS is under active development at the [Peter MacCallum Cancer Centre in Melbourne](https://www.petermac.org/about/signature-centres/centre-clinical-cancer-genomics/molecular-diagnostic-software).
