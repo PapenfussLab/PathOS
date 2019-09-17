@@ -17,18 +17,12 @@ The resulting few variants are then rendered into a clinical diagnostic report s
 
 PathOS carries out these tasks within a clinical laboratory setting where many patients must be reported on in a reliable, consistent and efficient manner.
 
-
-## Demonstration Site
-A cloud instance of PathOS is maintained on the University of Melbourne Nectar cloud at 
-    http://115.146.85.170:8123/PathOS
-
-Please get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
-
 ## Quick Start
 
-The simplest way to experiment with PathOS is by accessing the [cloud instance](http://115.146.8r54.170:8123/PathOS) set up on the Nectar research cloud.
+The best way to experiment with PathOS is by accessing the [instance](http://115.146.85.170:8123/PathOS) on the University of Melbourne research cloud.
+Get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
 
-PathOS has been containerised in Docker for easy deployment. [Docker](http://www.docker.com) allows lightweight containers to be built with minimal configuration files and then be deployed on a wide variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. Most PathOS deployments have been on Macs and Linux.
+[PathOS](https://cloud.docker.com/u/dockerpathos/repository/list) has been containerised in Docker for easy deployment. [Docker](http://www.docker.com) allows lightweight containers to be built with minimal configuration files and deployed on a variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. 
 The instructions and config files for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Docker).
 
 ## Technology Platform
@@ -89,6 +83,6 @@ Please consider citing [PathOS](https://genomemedicine.biomedcentral.com/article
 
 ## Contact
 Dr. Kenneth Doig, Head Clinical Informatics Lab, Research Department
-Peter MacCallum Cancer Centre, Victorian Comprehensive Cancer Centre Building
-Grattan Street, Melbourne Victoria 3000 Australia
+Peter MacCallum Cancer Centre, Victorian Comprehensive Cancer Centre,
+Grattan Street, Melbourne VIC 3000, Australia
 Ph: +61 411 225 178 Mail: ken.doig@petermac.org
