@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+function runOne() {
+    fn=$1
+    if [[ $fn =~ .*\.(yaml|yml)(\.gz)?$ ]]
+    then
+        java -cp /usr/share/pathos/lib/Loader-all.jar org.petermac.pathos.loader.LoaderCli \
+                    -r pa_local \
+                    -l /etc/pathos/loader-log4j.properties \
+                    -y ${fn}
+    elif [[ $fn =~ .*\.vcf$ ]]
+    then
+        java -cp /usr/share/pathos/lib/Loader-all.jar org.petermac.pathos.loader.VcfLoader \
+                    -r pa_local \
+                    -l /etc/pathos/loader-log4j.properties \
+                    -c /etc/pathos/vcfcols.txt \
+                    ${fn}
+    else
+        echo "ignoring file with unrecognized suffix: $fn" 1>&2
+    fi
+    return 0
+}
+
+export PATHOS_CONFIG=/etc/pathos/pathos.properties
+
+if [ "x$1" != "x" ]
+then
+    for f in $@
+    do
+        runOne "$f"
+    done
+    exit 0
+fi
+
+for f in $(find /pathos-loader-input.d/ -type f)
+do
+    runOne "${f}"
+done

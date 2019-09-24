@@ -1,0 +1,62 @@
+version: '2.1'
+
+services:
+    pathos_db:
+        image: mariadb
+        environment:
+          MYSQL_ROOT_PASSWORD: wibble
+          MYSQL_DATABASE: dblive
+          MYSQL_USER: pathos
+          MYSQL_PASSWORD: pathos
+        volumes:
+          - ${PWD}/pathos-db-data/:/var/lib/mysql
+        command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+        healthcheck:
+          test: ['CMD', 'mysqladmin', '-upathos', '-ppathos', 'version']
+          interval: 10s
+          timeout: 10s
+          retries: 10
+        restart: always
+
+    curate:
+        image: dockerpathos/pathos_curate:1.5.2
+        volumes:
+          - ./pathology:/pathology:ro
+        ports:
+          - 8080:8080
+        depends_on:
+          pathos_db:
+            condition: service_healthy
+        healthcheck:
+          test: ['CMD', 'curl', '--silent', '--fail', 'http://curate:8080/PathOS']
+          interval: 10s
+          timeout: 10s
+          retries: 10
+        restart: always
+
+    first_time_only:
+        image: mariadb
+        environment:
+          MYSQL_ROOT_PASSWORD: wibble
+          MYSQL_DATABASE: dblive
+          MYSQL_USER: pathos
+          MYSQL_PASSWORD: pathos
+          MYSQL_HOST: pathos_db
+        depends_on:
+          pathos_db:
+            condition: service_healthy
+          curate:
+            condition: service_healthy
+        volumes:
+          - /run-once/
+          - ${PWD}/first-time-only.sh:/first-time-only.sh:ro
+          - ${PWD}/run-once.d/:/run-once.d/:ro
+        command: ['bash', '/first-time-only.sh']
+
+    loader:
+        image: dockerpathos/pathos_loader:1.5.2
+        depends_on:
+          pathos_db:
+            condition: service_healthy
+          curate:
+            condition: service_healthy
