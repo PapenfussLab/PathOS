@@ -724,30 +724,6 @@ class SeqSampleController
         render genelist as JSON
     }
 
-
-    def sampleBasics(Long id) {
-        SeqSample ss = SeqSample.get(id)
-        Map results = [
-            seqrun      : ss.seqrun.seqrun,
-            sampleName  : ss.sampleName,
-            seqVariants : SeqVariant.countBySeqSample(ss),
-            patSample   : ss.patSample ? true : false,
-            billingCode : ss?.patSample?.patAssays.any { pa -> pa?.labAssay } ? "true" : "false"
-        ]
-
-        // Align stats?
-        results.alignStats = AlignStats.countBySeqrunAndSampleName( ss.seqrun.seqrun, ss.sampleName )
-
-        // Does the VCF exist?
-        results.vcf = SeqSampleService.retrieveSampleVcf(ss.seqrun.seqrun, ss.sampleName)?.exists()
-
-        render results as JSON
-    }
-
-
-
-
-
 }
 
 

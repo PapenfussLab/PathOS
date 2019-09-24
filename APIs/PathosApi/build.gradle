@@ -1,0 +1,22 @@
+// build.gradle
+//
+// Build file for the PathosApi
+//
+// Publishes to a local maven repo in /usr/local/dev/maven
+//
+
+apply from: '../../scripts/common.gradle'
+
+//  Release version
+//
+version = '1.5.2'
+
+jar {
+    baseName = 'pathos-api'
+}
+
+dependencies {
+    compile group: 'de.xypron.statistics', name: 'statistics', version: '1.0.7'
+    compile group: 'org.petermac.pathos' ,name: 'yaml-tools', version: version
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.18'
+}

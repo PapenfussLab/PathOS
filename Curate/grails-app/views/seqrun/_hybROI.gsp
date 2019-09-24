@@ -330,8 +330,6 @@ rawSamples.forEach(function(sample){
     }
 });
 
-try {
-
 // Now that we know the types, let's stack them.
 if(control) {
     control.stacked = true;
@@ -356,9 +354,6 @@ rawSamples.forEach(function(sample){
 
 hybGraph.applyData(samples);
 
-} catch (e) {
-    console.log("Error loading trying to draw hybROI graph", e);
-}
 
 function load_all_data(){
     $("td.action").each(function(i, button){

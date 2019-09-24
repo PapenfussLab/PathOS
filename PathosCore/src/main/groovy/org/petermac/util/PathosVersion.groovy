@@ -14,7 +14,7 @@ class PathosVersion {
     String version
 
     PathosVersion() {
-        version = '1.5.3'
+        version = '1.5.2'
     }
 
     void checkDatabaseVersion(Sql sql, String schema) {

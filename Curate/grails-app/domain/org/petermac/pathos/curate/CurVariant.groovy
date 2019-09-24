@@ -54,7 +54,6 @@ class CurVariant implements Taggable
     String	        cosmic                      //  Todo: deprecated - in AnoVariant
     String	        dbsnp                       //  Todo: deprecated - in AnoVariant
     SeqVariant      originating
-    String          metadata                    // For storing history, etc.
 //    AcmgEvidence    acmgEvidence
 
     static embedded = ['evidence', 'grpVariant'] //  Embedded Classes
@@ -115,7 +114,6 @@ class CurVariant implements Taggable
         )
         originating( nullable: true )
 //        acmgEvidence                ( nullable: true )
-        metadata                    ( nullable: true )
 
      }
 

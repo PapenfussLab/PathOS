@@ -353,7 +353,7 @@ class SeqSampleService {
         String vcfPath = ("${sampledir}/${seqrunName}/${sampleName}/${sampleName}.vcf")
         File vcf = new File(vcfPath)
         if(!vcf.exists())  {
-            log.warn("Could not find existing VCF file for ${seqrunName} ${sampleName}, looked in: ${vcfPath}'")
+            log.error("Could not find existing VCF file for ${seqrunName} ${sampleName}, looked in: ${vcfPath}'")
         }
         return vcf
     }

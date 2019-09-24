@@ -84,12 +84,6 @@
 
 // Write the new patch notes here:
     var features = {
-        "v1.5.3": [
-            "Allow multiple column sort on svlist",
-            "Add info diagram for AMP Curation",
-            "Show correct AMP and CS info on svlist hover-over",
-            "Update easygrid filters for research"
-        ],
         "v1.5.2": [
             "Integrate VcfLoader into pipelines"
         ],

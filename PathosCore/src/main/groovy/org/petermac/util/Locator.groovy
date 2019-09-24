@@ -270,7 +270,7 @@ class Locator
         }
         System.err.println("Using PathOS Configuration File ${chf.absolutePath}")
         System.err.println("PathOS Home ${pathos_home}")
-        File homeDir = new File(home.toUri())
+        def homeDir = new File(home.toUri())
         if (!homeDir.directory)
         {
             System.err.println("PathOS Home is not a directory.")

@@ -258,17 +258,6 @@ div.override-read pre {
                     <g:render template="curVariantForm"/>
                 </fieldset>
             </g:form>
-
-            <div>
-                <h1>References</h1>
-                %{--<g:displayPMIDs cv="${variantInstance.id}"/>--}%
-                <div id="references"></div>
-            </div>
-
-
-
-
-
         </div>
 
         <div id="evidence-edit" class="content col-md-6" style="border-left: 1px solid lightgrey; z-index: 0;">
@@ -347,13 +336,6 @@ To facilitate this, we're going to highlight correctly written PMIDs.
 
 
 <r:script>
-
-
-console.log("HEULLO");
-
-
-PathOS.pubmed.drawReferences(${variantInstance.id}, "references")
-
 
 
 

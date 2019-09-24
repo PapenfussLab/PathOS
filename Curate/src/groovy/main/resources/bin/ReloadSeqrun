@@ -15,7 +15,7 @@ HELP=0
 pa_env=pa_dev
 seqrun=none
 nargs=$#
-version='1.5.3'
+version='1.5.2'
 
 while getopts r:s:h\? opt                    # Add additional options here
 

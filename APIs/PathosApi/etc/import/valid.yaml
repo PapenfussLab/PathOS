@@ -1,0 +1,95 @@
+patient:
+  createOrUpdate:
+    list:
+      oneof:
+        patient:
+          map:
+            name: string
+            urn: string
+            sex: string
+            dob: string
+        patSample:
+          map:
+            urn: string
+            sample: string
+            extSample?: string
+            collectDate?: string
+            rcvdDate?: string
+            requester?: string
+            requestDate?: string
+            pathlab?: string
+            tumourType?: string
+            stage?: string
+            formalStage?: string # XXX
+        patAssay:
+          map:
+            patSample: string
+            testSet: string
+            testName: string
+  remove:
+    list:
+      map:
+        patient?: string
+        patSample?: string
+        patAssay?:
+          map:
+            patSample: string
+            testSet: string
+            testName: string
+        transitive?: boolean
+sequence:
+  create:
+    list:
+      oneof:
+        seqRun:
+          map:
+            seqRun: string
+            runDate: string
+            platform: string
+            sepe: string
+            library: string
+            experiment: string
+            scanner: string
+            readlen: string
+        seqSample:
+          map:
+            seqRun: string
+            sampleName: string
+            panel: string
+            patSample?: string
+            analysis: string
+            userName: string
+            userEmail: string
+            laneNo: string
+            sampleType?: string
+        seqRelation:
+          map:
+            relation: string
+            samples:
+              list:
+                map:
+                  seqRun: string
+                  sampleName: string
+                  sampleType?: string
+        vcf:
+          map:
+            seqRun: string
+            sampleName: string
+            annotators?: {list: string}
+            vcfURI: string
+  remove:
+    list:
+      oneof:
+        seqRun: string
+        seqSample:
+          map:
+            seqRun: string
+            sampleName: string
+        seqRelation:
+          map:
+            relation: string
+            samples:
+              list:
+                map:
+                  seqRun: string
+                  sampleName: string

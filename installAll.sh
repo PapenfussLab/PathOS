@@ -3,15 +3,12 @@
 #	Script to build monolithic PathOS and friends
 #
 
-# Reset BASH time counter
-SECONDS=0
-
 set -x
 set -e
 
 gradle install -p Tools/YamlTools
 gradle install -p Tools/AmqpTools
-gradle install -p Tools/Hl7Tools
+gradle install -p APIs/PathosApi
 
 export PATHOS_HOME=/config/binaries/pathos_core/1.5.2
 
@@ -33,6 +30,3 @@ pushd Curate
  	#
 	gradle install
 popd
-
-echo "Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
-

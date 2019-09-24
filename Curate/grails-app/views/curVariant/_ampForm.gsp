@@ -11,8 +11,6 @@
 
 <button style="margin-top: 5px;" onclick="calculateAMP()">Calculate AMP</button>
 
-<i id="AMP-rules-help" style="cursor:pointer;" onclick="window.open('http://www.pathos.co/amp/rules.png','ACMG Rules','height=800,width=600');" class="criteria-info-icon fa fa-info-circle"></i>
-<a href="https://jmd.amjpathol.org/article/S1525-1578(16)30223-9/abstract" target="_blank">Li et al. (2017) DOI: 10.1016/j.jmoldx.2016.10.002</a>
 
 <tooltip:tip code="evidence.justification.tip">
     <h2>Collected Somatic Evidence</h2>
@@ -31,7 +29,7 @@
 
 	<table id="ampEvidenceTable">
 		<tr>
-			<th></th>
+			<th>Category</th>
 			<th><p>Therapeutic</p>
 				<div class="amp-mode-div">
 					<input class="amp-mode-radio" type="radio" name="therapeuticCategory" id="therapeutic-sensitive" value="sensitive" ${amp?.therapeuticCategory == 'sensitive' ? 'checked' : ''}>
@@ -42,7 +40,6 @@
 
 					<input class="amp-mode-radio" type="radio" name="therapeuticCategory" id="therapeutic-unknown" value="unset" ${amp?.therapeuticCategory == 'unset' ? 'checked' : ''}>
 				</div>
-				<textarea id="therapeuticText" name="therapeuticText" placeholder="Evidence to support Theraputic criteria">${amp?.therapeuticText ?: ''}</textarea>
 			</th>
 			<th><p>Diagnosis</p>
 				<div class="amp-mode-div">
@@ -54,7 +51,6 @@
 
 					<input class="amp-mode-radio" type="radio" name="diagnosisCategory" id="diagnosis-unknown" value="unknown" ${amp?.diagnosisCategory == 'unset' ? 'checked' : ''}>
 				</div>
-				<textarea id="diagnosisText" name="diagnosisText" placeholder="Evidence to support Diagnosis criteria">${amp?.diagnosisText ?: ''}</textarea>
 			</th>
 			<th><p>Prognosis</p>
 				<div class="amp-mode-div">
@@ -66,7 +62,6 @@
 
 					<input class="amp-mode-radio" type="radio" name="prognosisCategory" id="prognosis-unknown" value="unknown" ${amp?.prognosisCategory == 'unset' ? 'checked' : ''}>
 				</div>
-				<textarea id="prognosisText" name="prognosisText" placeholder="Evidence to support Prognosis criteria">${amp?.prognosisText ?: ''}</textarea>
 			</th>
 		</tr>
 		<tr>

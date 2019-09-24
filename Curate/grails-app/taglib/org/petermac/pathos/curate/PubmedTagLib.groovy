@@ -33,28 +33,19 @@ class PubmedTagLib
 
             ArrayList<Long> PMIDs = PubmedService.allPMIDsFromCurVariant( cv )
 
-            PMIDs.each { pmid ->
-                result += stringifyPmid(pmid)
+            PMIDs.each {
+                Pubmed article = Pubmed.findByPmid(it)
+                if (article) {
+                    result += """<li><h3>${article.title}</h3>
+                    <p>${article.fetchCitation()}</p>
+                    <a href="${utilService.context()}/pubmed?pmid=${it}">[PMID: ${it}]</a></li>"""
+                } else {
+                    result += """<li id="pubmed-${it}">Article [PMID: ${it}] not found in PathOS database, <a class="newPubmedArticle" href="#lookUpNewArticle" onclick="PathOS.pubmed.lookUpNewArticle(${it})">click here to find it.</a></li>"""
+                }
             }
         }
         out << result
     }
-
-    private String stringifyPmid(def pmid) {
-        String result
-
-        Pubmed article = Pubmed.findByPmid(pmid)
-        if (article) {
-            result = """<li><h3>${article.title}</h3>
-                    <p>${article.fetchCitation()}</p>
-                    <a href="${utilService.context()}/pubmed?pmid=${pmid}">[PMID: ${pmid}]</a></li>"""
-        } else {
-            result = """<li id="pubmed-${pmid}">Article [PMID: ${pmid}] not found in PathOS database, <a class="newPubmedArticle" href="#lookUpNewArticle" onclick="PathOS.pubmed.lookUpNewArticle(${pmid})">click here to find it.</a></li>"""
-        }
-
-        return result
-    }
-
 }
 
 

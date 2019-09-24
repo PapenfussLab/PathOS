@@ -53,7 +53,9 @@ VcfLoader 	\
 #
 for qcyaml in /pathology/NGS/Samples/$basedir/$seqrun/$sample/QC/*.yaml
 do
-    LoaderCli -r $pa_env -y \$qcyaml
+    if [ -f \$qcyaml ];then
+        LoaderCli -r $pa_env -y \$qcyaml
+    fi
 done
 
 EOF

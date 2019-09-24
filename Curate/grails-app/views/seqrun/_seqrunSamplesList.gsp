@@ -25,7 +25,6 @@
             <thead>
             <tr>
                 <th>Seq. Sample</th>
-                <th>Readiness</th>
                 <th>QC</th>
                 <th>Raw Variants</th>
                 <th>Curated</th>
@@ -45,7 +44,6 @@
                     <td>
                         <g:link controller="seqVariant" action="svlist" id="${ss?.id}">${ss?.encodeAsHTML()}</g:link>
                     </td>
-                    <td class="readinessTd" data-ss="${ss.id}" data-sn="${ss.sampleName}"></td>
                     <td>
                         <g:link controller="seqSample"  action="showQC" id="${ss?.id}">
                             <g:if test="${ss.authorisedQcFlag}">
@@ -107,168 +105,6 @@
     var table = $('#seqrunSamplesTable').DataTable({
         paging: false
     });
-
-
-    const readinessIcons = {
-        seqVariants: {
-            name: "Sequenced Variants",
-            letter: "S",
-            icon: "tree",
-            message: "Sequenced Variants are loaded",
-            error: "No Sequenced Variants found"
-        },
-        patSample: {
-            name: "Patient Sample",
-            letter: "P",
-            icon: "user-o",
-            message: "Valid Patient in PathOS",
-            error: "No Patient Sample found"
-        },
-        billingCode: {
-            name: "Billing Code",
-            letter: "B",
-            icon: "dollar",
-            message: "Valid Billing Code in PathOS",
-            error: "No Billing Code found"
-        },
-        bam: {
-            name: "BAM - Binary Alignment Map",
-            letter: "B",
-            icon: "area-chart",
-            message: "BAM has been found",
-            error: "No BAM on file"
-        },
-        vcf: {
-            name: "VCF - Variant Call Format",
-            letter: "V",
-            icon: "file-text-o",
-            message: "VCF found",
-            error: "No VCF found"
-        },
-        alignStats: {
-            name: "Alignment Statistics",
-            letter: "A",
-            icon: "heartbeat",
-            message: "Align Stats loaded",
-            error: "Align Stats could not be found"
-        }
-<g:if test="${seqrunInstance.panelList?.contains('Pathology_hyb')}">
-        , multiQC: {
-            name: "MultiQC",
-            letter: "M",
-            icon: "bar-chart",
-            message: "MultiQC files found",
-            error: "No MultiQC files found"
-        },
-        cnvBam: {
-            name: "CNV BAM",
-            letter: "C",
-            icon: "server",
-            message: "CNV BAM found",
-            error: "No CNV BAM found"
-        }
-</g:if>
-    };
-
-
-
-
-    const seqrun = "${seqrunInstance.seqrun}";
-    const seqrunId = ${seqrunInstance.id};
-    $(document).ready(function() {
-        d3.selectAll(".readinessTd").each(function(d, i){
-            const td = d3.select(this);
-            const ss = td.attr('data-ss');
-            const sampleName = td.attr('data-sn');
-            const dataUrl = "${UrlLink.dataUrl()}"+seqrun+"/"+sampleName;
-
-// Regular Bam
-            const bamUrl = dataUrl + "/" + sampleName+".bam";
-            readinessIcons.bam.url = bamUrl;
-
-    <g:if test="${seqrunInstance.panelList?.contains('Pathology_hyb')}">
-// MultiQC
-            readinessIcons.multiQC.url = dataUrl + "/QC/MultiQC/"+sampleName+".variants_stats.tsv";
-
-// CNV bam
-            readinessIcons.cnvBam.url = dataUrl+"/CNV/bam/"+sampleName+".bam";
-    </g:if>
-
-
-    // Fetch data from server
-                $.ajax({
-                    url: "<g:context/>/SeqSample/sampleBasics?id="+ss,
-                success: function(d){
-                    try {
-
-                        Object.keys(readinessIcons).forEach(function(icon){
-                            console.log(icon, d[icon]);
-                            const params = readinessIcons[icon];
-                            const link = td.append("a").classed("halt", true);
-                            link.append("i").attrs({
-                                class: "fa fa-"+params.icon,
-                                title: params.name,
-                                'aria-hidden': 'true'
-                            });
-                            if (typeof d[icon] !== 'undefined') {
-                                link.classed("halt", false);
-                                if(d[icon] === "false" || d[icon] === 0 ) {
-                                    link.classed("fail", true);
-                                } else {
-                                    link.classed("pass", true);
-                                }
-                            } else if (readinessIcons[icon].url) {
-                                PathOS.urlExists(readinessIcons[icon].url, function(exists) {
-                                    link.classed("halt", false);
-                                    if(exists) {
-                                        link.classed("pass", true);
-                                    } else {
-                                        link.classed("fail", true);
-                                    }
-                                });
-                            }
-                        });
-
-                        console.log("Data", d);
-
-
-                        td.on("click", function(d){
-                            console.log("Hey you clicked the thing lol");
-                        })
-
-                    } catch (e) {
-                        console.log("Error", e);
-                    }
-
-                }
-            });
-
-
-
-
-        });
-    });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 </r:script>

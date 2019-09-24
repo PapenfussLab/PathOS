@@ -9,7 +9,7 @@
 
 //  Release version
 //
-version = '1.5.3'
+version = '1.5.2'
 
 apply plugin: 'groovy'
 apply plugin: 'com.github.johnrengelman.shadow'

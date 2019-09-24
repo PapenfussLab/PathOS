@@ -30,7 +30,7 @@
 				<li class="fieldcontain">
 					<span id="clinContext-label" class="property-label">Clinical Context</span>
 					<span class="property-value" aria-labelledby="clinContext-label"><b>${variantInstance.clinContext}</b>
-- <a href="#show-all-contexts" onclick='PathOS.variant.viewer({hgvsg:"${variantInstance.hgvsg}", contextCode:"${variantInstance.clinContext.code}"})'>Inspect other Clinical Contexts</a></span>
+- <a href="#show-all-contexts" onclick='PathOS.variant.viewer({hgvsg:"${variantInstance.hgvsg}"})'>Inspect other Clinical Contexts</a></span>
 				</li>
 				<li class="fieldcontain">
 					<span id="group-variant-label" class="property-label">Group Variant</span>

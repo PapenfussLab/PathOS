@@ -20,20 +20,20 @@ input:-moz-read-only, textarea:-moz-read-only {
 	cursor: not-allowed;
 }
 
-#edit-seqSampleReport label {
+label {
 	font-weight: 900;
 }
-#edit-seqSampleReport label:before {
+label:before {
 	content: "«";
 }
-#edit-seqSampleReport label:after {
+label:after {
 	content: "»";
 }
 
-#edit-seqSampleReport label.cleanlabel:before {
+label.cleanlabel:before {
 	content: "";
 }
-#edit-seqSampleReport label.cleanlabel:after {
+label.cleanlabel:after {
 	content: "";
 }
 
@@ -901,24 +901,7 @@ function addToSortableList(data, append){
 	var title = "Additional Variant";
 
 	if(data.curVariant) {
-
-	    let acmg = "<span title='ACMG Classification' class='cv-"+data.pmClass.split(":")[0]+"'>&nbsp;"+data.pmClass.split(':')[0]+ "&nbsp;</span> ";
-
-	    let ampText = data.ampClass || "Unclassified",
-	    	amp = "<span title='AMP Classification' class='amp-"+PathOS.classify(ampText)+"'>&nbsp;"+ampText+ "&nbsp;</span> ";
-
-        var overallMapping = {
-            "Unclassified": "overall-Unclassified",
-            "CS: Clinically Significant": "overall-CS",
-            "UCS: Unclear Clinical Significance": "overall-UCS",
-            "NCS: Not Clinically Significant": "overall-NCS"
-        };
-
-        let sigText = data.clinicalSignificance || "Unclassified",
-	    	sigClass = overallMapping[sigText],
-	    	significance = "<span title='Clinical Significance' class='"+sigClass+"'>&nbsp;"+sigText+ "&nbsp;</span> ";
-
-		title = acmg + amp + significance + "- " + data.gene + " " + data.hgvsc;
+		title = "<span class='cv-"+data.pmClass.split(":")[0]+"'>&nbsp;"+data.pmClass.split(':')[0]+"&nbsp;</span> - "+data.gene+" - "+data.hgvsc;
 	} else {
 		if( data.gene ) {
 			title += " - " + data.gene;
@@ -941,7 +924,7 @@ function addToSortableList(data, append){
 		.classed("ui-state-default", true)
 		.html(title);
 
-	// if( !data.curVariant ) {
+	if( !data.curVariant ) {
 		li.append("span")
 			.attr("style", "padding-right: 5px; float: right; cursor: pointer;")
 			.append("a")
@@ -949,7 +932,7 @@ function addToSortableList(data, append){
 			.classed("fa fa-trash", true)
 			.attr("href", "#removeVariant")
 			.on("click", function(){
-				if(confirm("Are you sure you want to delete this variant?")) {
+				if(confirm("Are you sure you want to delete this variant? This cannot be undone.")) {
 					// Remove this CVR from the seqSampleReport
 					$.ajax({
 						type: "POST",
@@ -964,7 +947,7 @@ function addToSortableList(data, append){
 					li.remove();
 				}
 			});
-	// }
+	}
 }
 
 
@@ -1034,78 +1017,28 @@ $(function(){
 </g:if>
 });
 
-<r:style>
-#oldCVs span p {
-	margin: 0;
-}
-#oldCVs li {
-	margin: 10px 0;
-}
-</r:style>
 // PATHOS-2530
 // If the Clinical Context or "reportable" Curated Variants have changed on the SeqSample, give the user a warning.
 // DKGM 17-July-2017
 $( document ).ready(function() {
 	var alreadyWarned = false;
 	var seqSampleReportedCurVariants = ${seqSampleReportInstance.seqSample?.reportableVariants()?.collect {
-		[ id: it?.currentCurVariant()?.id, hgvsg: it?.currentCurVariant()?.hgvsg, pmClass: it?.currentCurVariant()?.pmClass ]
+		it?.currentCurVariant()?.id
 	} as JSON} || [];
 	var curVariantCCs = ${seqSampleReportInstance.curVariantReports?.collect { it?.curVariant?.id } as JSON} || [];
 	var seqSampleCurVariants = ${seqSampleReportInstance.seqSample?.curVariants() as JSON} || [];
 
 	seqSampleReportedCurVariants.forEach(function(cv){
-		if(!alreadyWarned && curVariantCCs.indexOf(cv.id) < 0) {
+		if(!alreadyWarned && curVariantCCs.indexOf(cv) < 0) {
 			$("#mismatchSS")
 				.text('The "reportable" Curated Variants in the Sequenced Sample are different to the Report. You may want to regenerate this page by clicking "Clear Draft".')
 				.css("display", "block");
 			alreadyWarned = true;
 		}
-
-		if( cv && seqSampleReportedCurVariants.indexOf(cv.id) < 0 && cv.pmClass != "C5: Pathogenic" && cv.pmClass != "C4: Likely pathogenic" && curVariantCCs.indexOf(cv.id) < 0 ) {
-			let li = d3.select("#oldCVs")
-				.style("display", "block")
-				.append("li");
-
-			let span = li.append("span");
-			span.append("p")
-				.html('The CurVariant "<a target="_blank" href="<g:context/>/curVariant/show/'+cv.id+'">'+cv.hgvsg+'</a>" is marked as Reportable but it is not included in this Report.');
-
-			span.append("a")
-				.attr("href", "#addReportableCurVariant")
-				.on('click', function(d){
-					var package = {
-						id: ${seqSampleReportInstance?.id},
-						hgvsg: cv.hgvsg
-						// , curVariant: cv.id
-					};
-
-					$.ajax({
-						type: "POST",
-						url: "<g:context/>/SeqSampleReport/makeNewCurVariantReport",
-						complete: function(d){
-							console.info("Make New CurVariant Report: ", d);
-							addToSortableList(d.responseJSON, true);
-							buildCVR(d.responseJSON, cv.hgvsg, false);
-							$("#loading-banner").removeClass("show");
-
-							// alert("Added "+cv.hgvsg+" to the report");
-							span.remove();
-							li.text(cv.hgvsg+" has been added to the Report.");
-						},
-						contentType: "application/json; charset=utf-8",
-						dataType: "json",
-						data: JSON.stringify(package)
-					});
-
-
-				})
-				.text("Click here to add this Curated Variant to this Report");
-		}
-
 	});
 
 	curVariantCCs.forEach(function(cv){
-		if(!alreadyWarned && cv && seqSampleReportedCurVariants.map(d => d.id).indexOf(cv) < 0) {
+		if(!alreadyWarned && cv && seqSampleReportedCurVariants.indexOf(cv) < 0) {
 			$("#mismatchSS")
 				.text('The Curated Variants in this Report are different to the "reportable" Curated Variants in the Sequenced Sample. You may want to regenerate this page by clicking "Clear Draft".')
 				.css("display", "block");
@@ -1116,44 +1049,12 @@ $( document ).ready(function() {
 	seqSampleCurVariants.forEach(function(cv){
 	    if(cv.pmClass == "C5: Pathogenic" || cv.pmClass == "C4: Likely pathogenic") {
 			if(curVariantCCs.indexOf(cv.id) < 0) {
-				let li = d3.select("#oldCVs")
+				d3.select("#oldCVs")
 					.style("display", "block")
-					.append("li");
-
-				let span = li.append("span");
-				span.append("p")
-					.html('The CurVariant "<a target="_blank" href="<g:context/>/curVariant/show/'+cv.id+'">'+cv.hgvsg+'</a>" is "'+cv.pmClass+'" but it has not been reported.');
-
-				span.append("a")
-					.attr("href", "#addSignificantCurVariant")
-					.on('click', function(d){
-					    var package = {
-							id: ${seqSampleReportInstance?.id},
-							hgvsg: cv.hgvsg
-							// , curVariant: cv.id
-					    };
-
-						$.ajax({
-							type: "POST",
-							url: "<g:context/>/SeqSampleReport/makeNewCurVariantReport",
-							complete: function(d){
-								console.info("Make New CurVariant Report: ", d);
-								addToSortableList(d.responseJSON, true);
-								buildCVR(d.responseJSON, cv.hgvsg, false);
-								$("#loading-banner").removeClass("show");
-
-								// alert("Added "+cv.hgvsg+" to the report");
-								span.remove();
-								li.text(cv.hgvsg+" has been added to the Report.");
-							},
-							contentType: "application/json; charset=utf-8",
-							dataType: "json",
-							data: JSON.stringify(package)
-						});
-
-
-					})
-					.text("Click here to add this Curated Variant to this Report");
+					.append("li")
+					.append("a")
+					.attr("href", "<g:context/>/curVariant/show/"+cv.id)
+					.text('The CurVariant "'+cv.hgvsg+'" is "'+cv.pmClass+'" but it has not been reported.');
 			}
 	    }
 	});

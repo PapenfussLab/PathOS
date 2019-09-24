@@ -1,6 +1,6 @@
 //  Release version
 //
-version = '1.5.3'
+version = '1.5.2'
 
 apply from: '../scripts/common.gradle'
 

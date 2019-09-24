@@ -1,7 +1,8 @@
 /*jshint esversion: 6 */
 var PathOS = PathOS || {};
 
-PathOS.version = "PathOS.js build: 16th of September 2019";
+// Todo: If merging with Traceback branch, don't forget to use context instead of hardcoding /PathOS
+PathOS.version = "PathOS.js build: 21st of August 2018";
 
 PathOS.application = application || "/PathOS";
 
@@ -450,22 +451,22 @@ PathOS.graphSpace = function(config) {
  * So I'm commenting it out.
  * DKGM 22-Nov-2017
  */
-PathOS.escapeHtml = function(string) {
-    var entityMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-        '/': '&#x2F;',
-        '`': '&#x60;',
-        '=': '&#x3D;'
-    };
-
-    return String(string).replace(/[&<>"'`=\/]/g, function (s) {
-        return entityMap[s];
-    });
-};
+// PathOS.escapeHtml = function(string) {
+//     var entityMap = {
+//         '&': '&amp;',
+//         '<': '&lt;',
+//         '>': '&gt;',
+//         '"': '&quot;',
+//         "'": '&#39;',
+//         '/': '&#x2F;',
+//         '`': '&#x60;',
+//         '=': '&#x3D;'
+//     };
+//
+//     return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+//         return entityMap[s];
+//     });
+// };
 
 /**
  * This function adds a module to the sidebar.
@@ -528,16 +529,11 @@ PathOS.module = function(config) {
 	function buildHistoryRow(d){
 
 		var type = '';
-		if( d.title.toLowerCase().indexOf('seqrun') >= 0 ||
-			d.title.toLowerCase().indexOf('show sequencing run') >= 0) {
+		if(d.title.toLowerCase().indexOf('seqrun') >= 0) {
 			type = 'Seqrun';
 		} else if(d.title.toLowerCase().indexOf('pubmed') >= 0) {
 			type = 'Pubmed';
-		} else if(
-			d.title.toLowerCase().indexOf('sequenced variants list') >= 0 ||
-			d.title.toLowerCase().indexOf('edit report') >= 0 ||
-            d.title.toLowerCase().indexOf('show sequenced samples') >= 0 ||
-            d.title.toLowerCase().indexOf('sequenced samples list') >= 0
+		} else if(d.title.toLowerCase().indexOf('sequenced variants list') >= 0 || d.title.toLowerCase().indexOf('edit report') >= 0
 		) {
 			type = 'SeqSample';
 		} else if(d.title.toLowerCase().indexOf('curvar') >= 0 || d.title.toLowerCase().indexOf('curated variants list') >= 0) {
@@ -869,20 +865,6 @@ menuItems = [
 		field: "svlistRows"
 	},
 	{
-        category: "Sample page",
-        type: "dragAndDrop",
-        title: "Sequenced Variants Sorting priority",
-        options: {
-            acmgCurVariant: "ACMG in current Clinical Context",
-            allCuratedVariants: "ACMG in all Clinical Contexts",
-            ampCurVariant: "AMP classifcation",
-            overallCurVariant: "Clinical Significance",
-			reportable: "Reportable"
-		},
-        description: "What values should the Sequenced Variants be sorted on for you?",
-        field: "sortPriority"
-	},
-	{
 		category: "Home page",
 		type: "number",
 		title: "Latest Sequenced Runs",
@@ -1006,6 +988,7 @@ PathOS.modules = {
 			menu.append("div").attr('id', 'mmHeader')
 				.append('h1').text("PathOS Options");
 
+			// Todo: Don't hardcode PathOS in Traceback, etc.
 			$.ajax({
 				url: `${PathOS.application}/preferences/fetchPreferences`,
                 error: function(d){
@@ -1068,27 +1051,6 @@ PathOS.modules = {
 											}
                                         });
                                         break;
-
-									case "dragAndDrop":
-                                        console.log(preferences);
-
-										var dsp = box.append('ol').attr("id", 'draggable-sortPriority');
-										var priority = preferences.sortPriority || "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable";
-
-										priority = priority.split(",");
-
-										console.log(priority);
-										priority.forEach(function(field) {
-											dsp.append("li").classed("ui-state-default ui-sortable-handle", true)
-												.datum(field)
-												.append("span").text(d.options[field]);
-										});
-
-										$("#draggable-sortPriority")
-											.sortable()
-											.disableSelection();
-
-										break;
 
                                     case "number":
 
@@ -1296,7 +1258,6 @@ $('#svlistRows option:selected').text()
 									numberOfSeqruns: $("#numberOfSeqruns").val(),
 									svlistRows: $("#svlistRows").val(),
 									// skipGeneMask: $("#skipGeneMask").is(':checked'),
-									sortPriority: d3.selectAll("#draggable-sortPriority li").data().join(','),
 									compressedView: $("#compressedView").is(':checked'),
                                     d3heatmap: $("#d3heatmap").is(':checked')
 								};
@@ -1432,8 +1393,6 @@ PathOS.svlist = {
         BP6: "Sources report as benign",
         BP7: "Predicted as benign synonymous variant"
 	},
-	ampCriteria: {
-	},
 	// Clin Context Comparitor
 	// DKGM 18-Nov-2016
 	// Rewrite this better. This is just hacked for a demo.
@@ -1538,8 +1497,7 @@ PathOS.variant = {
 console.log("loading variant viewer", data);
 
 		var hgvsg = data.hgvsg || "",
-			svid = data.svid || null,
-			contextCode = data.contextCode || "";
+			svid = data.svid || null;
 
 		var box = {
 			overlay: PathOS.overlay.init()
@@ -1577,51 +1535,13 @@ console.log("loading variant viewer", data);
 		box.info.samples.append("td").text("Samples");
 		box.info.sampleTd = box.info.samples.append("td").text("No samples");
 
+		// Curated Variant section
 
-		box.tabs = box.overlay.append("div").attrs({
-			id: 'overlay-tabs'
-		}).append("fieldset");
-
-
-		box.tabs.append("input").attrs({
-			id: 'overlay-acmg-radio',
-			name: 'overlayRadio',
-			type: 'radio',
-			checked: true
-		});
-
-        box.tabs.append("input").attrs({
-            id: 'overlay-amp-radio',
-            name: 'overlayRadio',
-            type: 'radio'
-        });
-
-        box.tabs.append("input").attrs({
-            id: 'overlay-legacy-radio',
-            name: 'overlayRadio',
-            type: 'radio'
-        });
-
-		box.tabs.append("label").attrs({
-			for: 'overlay-acmg-radio'
-		}).append("span").text("ACMG Variants");
-
-        box.tabs.append("label").attrs({
-            for: 'overlay-amp-radio'
-        }).append("span").text("AMP Variants");
-
-        box.tabs.append("label").attrs({
-			class: 'hidden',
-            for: 'overlay-legacy-radio'
-        }).append("span").text("Legacy Variants");
-
-
-
-
-		// ACMG Variant section
 		box.cv = {
-			row: box.tabs.append("div").classed('row', true).attr("id", 'cv-list')
+			row: box.overlay.append("div").classed('row', true).attr("id", 'cv-list')
 		};
+
+		box.cv.row.append("h2").text("Curated Variants:");
 
 		box.cv.table = box.cv.row.append('table');
 
@@ -1636,16 +1556,12 @@ console.log("loading variant viewer", data);
 			width: "15%"
 		});
 		box.cv.thead.append("th").text("Report Description");
-		box.cv.thead.append("th").classed("overlay-acmg-column", true).text("ACMG Evidence");
-		box.cv.thead.append("th").classed("overlay-acmg-column", true).text("ACMG Classification");
-        box.cv.thead.append("th").classed("overlay-amp-column", true).text("AMP Evidence");
-        box.cv.thead.append("th").classed("overlay-amp-column", true).text("AMP Classification");
-        box.cv.thead.append("th").classed("overlay-legacy-column", true).text("Legacy Evidence");
-        box.cv.thead.append("th").classed("overlay-legacy-column", true).text("Legacy Classification");
+		box.cv.thead.append("th").text("Evidence Description");
+		box.cv.thead.append("th").text("Classification");
 		box.cv.tbody = box.cv.table.append("tbody");
 
 		if ( hgvsg !== "" ) {
-			PathOS.variant.doHgvsgStuff(box, hgvsg, contextCode);
+			PathOS.variant.doHgvsgStuff(box, hgvsg);
 		} else if (svid) {
 			$.ajax(`${PathOS.application}/seqVariant/lookUpSV/${svid}`, {
 				error: function(d){
@@ -1655,14 +1571,14 @@ console.log("loading variant viewer", data);
 				},
 				success: function(d){
 					PathOS.variant.drawSV(box, d);
-					PathOS.variant.doHgvsgStuff(box, d.hgvsg, d.contextCode);
+					PathOS.variant.doHgvsgStuff(box, d.hgvsg);
 				}
 			});
 		}
 	},
-	doHgvsgStuff: function(box, hgvsg, contextCode) {
+	doHgvsgStuff: function(box, hgvsg) {
 		box.title.text("Variant: " + hgvsg);
-		PathOS.variant.drawCVs(box, hgvsg, contextCode);
+		PathOS.variant.drawCVs(box, hgvsg);
 
 		$.ajax(`${PathOS.application}/seqVariant/countSVs/?hgvsg=${hgvsg}`, {
             error: function(d){
@@ -1755,9 +1671,12 @@ console.log("loading variant viewer", data);
 
         span.append("p").text(temp);
 
+		setTimeout(function(){
+			$(".cvRow-"+data.contextCode).addClass("expand");
+		}, 300);
 
 	},
-	drawCVs: function (box, hgvsg, contextCode) {
+	drawCVs: function (box, hgvsg) {
 		$.ajax(`${PathOS.application}/curVariant/allCurVariantsFor?hgvsg=${hgvsg}`, {
             error: function(d){
                 console.log("error", d);
@@ -1777,9 +1696,6 @@ console.log("loading variant viewer", data);
 						row.attrs({
 							class: "cvRow-"+cv.contextCode
 						});
-						if(contextCode == cv.contextCode) {
-							row.classed("expand", true);
-						}
 
 						row.append('td').styles({
 							'padding-left': '5px',
@@ -1811,134 +1727,42 @@ console.log("loading variant viewer", data);
 			.append('textarea')
 			.text(data.reportDesc);
 
-		var acmgJustification = "",
+		var justification = "",
 			blob = {};
-		if(data.acmgEvidence && data.acmgEvidence.acmgJustification) {
+		if(data.evidence && data.evidence.acmgJustification) {
 			try {
-				blob = JSON.parse(data.acmgEvidence.acmgJustification);
-                acmgJustification = blob.acmgJustification;
+				blob = JSON.parse(data.evidence.acmgJustification);
+                justification = blob.acmgJustification;
             } catch(e) {
-                acmgJustification = data.acmgEvidence.acmgJustification;
+                justification = data.evidence.acmgJustification;
             }
 		}
 
 		row.append("td")
-			.classed("description overlay-acmg-column", true)
+			.classed("description", true)
 			.append('textarea')
-			.text(acmgJustification);
+			.text(justification);
 
-		var acmgEvidence = row.append("td").classed("evidence-td overlay-acmg-column", true);
+		var evidence = row.append("td").classed("evidence-td", true);
 		var pmClass = data.pmClass.split(":")[0];
-        acmgEvidence.append("p")
+		evidence.append("p")
 			.text(data.pmClass)
 			.classed("cvlabel cv-"+pmClass, true);
 
-		var acmgList = acmgEvidence.append("ul")
+		var count = 0;
+
+		var list = evidence.append("ul")
 			.attr("id", "evidence-list-"+data.id)
 			.classed("evidence-list", true);
 
-		if (data.acmgEvidence) {
+		if (data.evidence) {
 			Object.keys(PathOS.svlist.acmgCriteria).forEach(function(key){
-				if(data.acmgEvidence[key] == 'yes') {
-                    acmgList.append('li').html(`<b>${key}:</b> ${PathOS.svlist.acmgCriteria[key]}`);
+				if(data.evidence[key] == 'yes') {
+					count++;
+					list.append('li').html(`<b>${key}:</b> ${PathOS.svlist.acmgCriteria[key]}`);
 				}
 			});
 		}
-
-
-		var ampJustification = "",
-			ampblob = {};
-		if(data.ampEvidence && data.ampEvidence.ampJustification) {
-			try {
-				ampblob = JSON.parse(data.ampEvidence.ampJustification);
-				ampJustification = ampblob.ampJustification;
-			} catch (e) {
-				ampJustification = data.ampEvidence.ampJustification;
-			}
-		}
-		row.append("td")
-			.classed("description overlay-amp-column", true)
-			.append('textarea')
-			.text(ampJustification);
-
-		var ampEvidence = row.append("td").classed("overlay-amp-column", true);
-		try {
-            ampEvidence.text(JSON.stringify(data.ampEvidence)).style("word-break","break-all");
-
-            var ampText = [];
-            var text = "";
-
-            if (data.ampEvidence.diagnosisRating != 'unset') {
-            	text = "Diagnosis Rating is " + data.ampEvidence.diagnosisRating;
-            	if (data.ampEvidence.diagnosisCategory != 'unset') {
-            		text += " and "+ data.ampEvidence.diagnosisCategory;
-				}
-                ampText.push(text);
-			}
-
-            if (data.ampEvidence.prognosisRating != 'unset') {
-                text = "Prognosis Rating is " + data.ampEvidence.prognosisRating;
-                if (data.ampEvidence.diagnosisCategory != 'unset') {
-                    text += " and "+ data.ampEvidence.prognosisCategory;
-                }
-                ampText.push(text);
-            }
-
-            if (data.ampEvidence.therapeuticRating != 'unset') {
-                text = "Therapeutic Rating is " + data.ampEvidence.therapeuticRating;
-                if (data.ampEvidence.diagnosisCategory != 'unset') {
-                    text += " and "+ data.ampEvidence.therapeuticCategory;
-                }
-                ampText.push(text);
-            }
-
-			ampEvidence.html("")
-				.append("ul").classed('evidence-list', true)
-				.selectAll('li')
-				.data(ampText)
-				.enter()
-				.each(function(d){
-					d3.select(this).append("li").text(d);
-				});
-        } catch (e) {
-			console.log("Error adding AMP evidence text", e);
-		}
-
-
-		if(data.legacyEvidence) {
-            d3.select('label[for="overlay-legacy-radio"]').classed('hidden', false);
-
-		// Legacy stuff
-			var legacyJustification = "";
-			if(data.legacyEvidence.justification) {
-                legacyJustification = data.legacyEvidence.justification;
-			}
-			row.append("td")
-				.classed("description overlay-legacy-column", true)
-				.append('textarea')
-				.text(legacyJustification);
-
-
-			var evidence = row.append("td").classed("evidence-td overlay-legacy-column", true);
-			pmClass = data.legacyEvidence.evidenceClass.split(":")[0];
-			evidence.append("p")
-				.text(data.pmClass)
-				.classed("cvlabel cv-"+pmClass, true);
-
-			var list = evidence.append("ul")
-				.attr("id", "evidence-list-"+data.id)
-				.classed("evidence-list", true);
-
-
-			if (data.legacyEvidence) {
-				Object.keys(PathOS.svlist.evidence).forEach(function(key){
-					if(data.legacyEvidence[key]) {
-						list.append('li').html(PathOS.svlist.evidence[key]);
-					}
-				});
-			}
-        }
-
 
 	}
 };
@@ -2436,21 +2260,6 @@ PathOS.printQC = function(data) {
 
 };
 
-PathOS.urlExists = function (url, callback) {
-    const client = new XMLHttpRequest();
-    if(callback) {
-		client.onloadend = function(d){
-			callback(d.currentTarget.status != 404);
-		};
-
-        client.open('HEAD', url);
-        client.send();
-	} else {
-		client.open('HEAD', url, false);
-		client.send();
-		return client.status!=404;
-    }
-};
 
 
 
@@ -2460,7 +2269,7 @@ PathOS.urlExists = function (url, callback) {
 PathOS.igv = {
 	loaded: false,
 	options: {},
-	init: function(igvDiv, dataUrl, sample, panel, samplingDepth, location) {
+	init: function(igvDiv, dataUrl, sample, panel, samplingDepth) {
 		console.log("Running IGV init");
 
 		var baiUrl = dataUrl+sample+".bai",
@@ -2513,26 +2322,6 @@ PathOS.igv = {
 			]
 		};
 
-//  Todo: Better abort handling?
-//	Dress up the window, allow for a retry, etc.
-//  Add this safety to addBam?
-        if(PathOS.urlExists(baiUrl) && PathOS.urlExists(bamUrl)) {
-        	console.log("IGV.js init has found bams");
-            PathOS.igv.search(location);
-        } else {
-            if (confirm("There are missing BAMS. Continue?")) {
-                PathOS.igv.search(location);
-			} else {
-            	console.log("Aborting IGV.js");
-            	d3.select("#igvDiv").append('h1')
-					.text("Error: BAM files missing")
-					.styles({
-						"text-align": "center",
-						"color": "red"
-					});
-			}
-        }
-
 	},
 	search: function(locus) {
 		if(!PathOS.igv.loaded) { // First load! Let's do init stuff
@@ -2570,19 +2359,13 @@ PathOS.igv = {
 		if(sample && dataUrl) {
 			var baiUrl = dataUrl+sample+".bai",
 				bamUrl = dataUrl+sample+".bam";
+			var newTrack = new PathOS.igv.BAM(baiUrl, bamUrl, sample, samplingDepth);
 
-			if(PathOS.urlExists(baiUrl) && PathOS.urlExists(bamUrl)) {
-				var newTrack = new PathOS.igv.BAM(baiUrl, bamUrl, sample, samplingDepth);
-
-				if(PathOS.igv.loaded) {
-					igv.browser.loadTrack(newTrack);
-				} else {
-					PathOS.igv.options.tracks.push(newTrack);
-				}
-            } else {
-                console.log("BAM file not found", bamUrl);
-                alert("Warning, BAM file not found");
-            }
+			if(PathOS.igv.loaded) {
+				igv.browser.loadTrack(newTrack);
+			} else {
+				PathOS.igv.options.tracks.push(newTrack);
+			}
 		} else {
 			alert("There was an error, data not found.");
 		}
@@ -2621,58 +2404,6 @@ PathOS.igv = {
 
 
 PathOS.pubmed = {
-	drawReferences: function(cv, id) {
-        var box = d3.select(`#${id}`);
-
-        $.ajax({
-            url: `${PathOS.application}/curVariant/citations/${cv}`,
-            success: function(d){
-                console.log(d);
-
-                drawCitationGroup("Report Description", d.report);
-                box.append("h2").text("ACMG");
-                Object.keys(d.evidence.acmg).forEach(function(criteria){
-                    drawCitationGroup(criteria, d.evidence.acmg[criteria]);
-				});
-                box.append("h2").text("AMP");
-                Object.keys(d.evidence.amp).forEach(function(criteria){
-                    drawCitationGroup(criteria, d.evidence.amp[criteria]);
-                });
-                drawCitationGroup("Archive", d.evidence.archive.evidence);
-            }
-        });
-
-        function drawCitationGroup( label, data ) {
-
-			if(data.pmids.length > 0) {
-				box.append('h2').text(label.charAt(0).toUpperCase() + label.slice(1));
-
-				box.append('ul')
-					.selectAll('li')
-					.data(data.citations)
-					.enter()
-					.append("li").each(function(d, i){
-					const li = d3.select(this),
-						pmid = data.pmids[i];
-
-					if(d) {
-						li.append('h3').text(data.titles[i]);
-						li.append('p').text(d);
-						li.append('a').attr('href', `${PathOS.application}/pubmed?pmid=${pmid}`)
-							.text(`[PMID: ${pmid}]`);
-					} else {
-						li.attr("id", `pubmed-${pmid}`)
-							.text(`Article [PMID: ${pmid}] not found in PathOS database, `)
-							.append('a').attrs({
-							class: 'newPubmedArticle',
-							href: '#lookUpNewArticle',
-							onclick: `PathOS.pubmed.lookUpNewArticle(${pmid})`
-						}).text('click here to find it.');
-					}
-				});
-            }
-		}
-	},
 	findCitations: function(text){
 		var re = /\[PMID: (\d+)(?:, (\d+))*\]/g;
 		var array;

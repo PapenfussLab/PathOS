@@ -321,13 +321,6 @@ class CurVariantController
 
 
 
-            data.history = [
-                time: time,
-                user: user,
-                workgroup: "Peter Mac",
-                summary: "NONE",
-                actions: [:]
-            ]
 
 
 
@@ -396,7 +389,7 @@ class CurVariantController
                     if ( data.curVariant.pmClass != data.acmgEvidence.classification ) {
                         data.curVariant.pmClass = data.acmgEvidence.classification
                         data.curVariant.classOverrideReason = ""
-//                        data.curVariant.classified = currentUser
+                        data.curVariant.classified = currentUser
                         data.curVariant.lastUpdated = new Date()
                     }
                 } else {
@@ -406,7 +399,7 @@ class CurVariantController
                     if (data.curVariant.pmClass ||
                         reasonNeedsStamp(data.curVariant.classOverrideReason, cv.classOverrideReason)
                     ) {
-//                        data.curVariant.classified = currentUser
+                        data.curVariant.classified = currentUser
                         data.curVariant.lastUpdated = new Date()
                         data.curVariant.classOverrideReason += "\nSet by ${user} at ${time}"
                     }
@@ -431,10 +424,7 @@ class CurVariantController
 //                    println "setting this data..."
 //                    println data.ampEvidence
 
-                    AmpEvidence ampEvidence = cv.fetchAmpEvidence()
-                    ampEvidence.setProperties(data.ampEvidence)
-                    ampEvidence.save(flush: true)
-
+                    cv.fetchAmpEvidence().setProperties(data.ampEvidence)
                 } else {
 //                    println "Amp evidence does not exist, so create a new one and save it to the curVariant"
 
@@ -460,7 +450,7 @@ class CurVariantController
                     if ( data.curVariant.ampClass != data.ampEvidence.classification ) {
                         data.curVariant.ampClass = data.ampEvidence.classification
                         data.curVariant.ampReason = ""
-//                        data.curVariant.classified = currentUser
+                        data.curVariant.classified = currentUser
                         data.curVariant.lastUpdated = new Date()
                     }
                 } else {
@@ -468,7 +458,7 @@ class CurVariantController
                     if (data.curVariant.ampClass ||
                         reasonNeedsStamp(data.curVariant.ampReason, cv.ampReason)
                     ) {
-//                        data.curVariant.classified = currentUser
+                        data.curVariant.classified = currentUser
                         data.curVariant.lastUpdated = new Date()
                         data.curVariant.ampReason += "\nSet by ${user} at ${time}"
                     }
@@ -481,7 +471,7 @@ class CurVariantController
 // See if Clinical Significance has changed, and stamp accordingly.
                 if (data.curVariant.overallClass || data.curVariant.overallReason) {
                     if (data.curVariant.overallClass ||  reasonNeedsStamp(cv.overallReason, data.curVariant.overallReason)) {
-//                        data.curVariant.classified = currentUser
+                        data.curVariant.classified = currentUser
                         data.curVariant.lastUpdated = new Date()
                         if (data.curVariant.overallClass == "Unclassified") {
                             data.curVariant.overallReason = ""
@@ -525,9 +515,6 @@ class CurVariantController
             // If acmg evidence class has changed
             if ( prevAcmgClass != cv.pmClass )
             {
-                data.curVariant.classified = currentUser
-                cv.setProperties(data.curVariant)
-                cv.save(flush: true)
 
 // TOdo: Improve JIRA notifier
                 if( loc.getJiraUsername() ) {
@@ -554,10 +541,6 @@ class CurVariantController
             // If amp evidence class has changed
             if ( prevAmpClass != cv.ampClass )
             {
-                data.curVariant.classified = currentUser
-                cv.setProperties(data.curVariant)
-                cv.save(flush: true)
-
                 if( loc.getJiraUsername() ) {
                     // Create notifier
                     try {
@@ -582,10 +565,6 @@ class CurVariantController
             // If overall evidence class has changed
             if ( prevOverallClass != cv.overallClass )
             {
-                data.curVariant.classified = currentUser
-                cv.setProperties(data.curVariant)
-                cv.save(flush: true)
-
                 if( loc.getJiraUsername() ) {
                     // Create notifier
                     try {
@@ -622,9 +601,6 @@ class CurVariantController
         }
     }
 
-    def citations ( Long id ) {
-        render PubmedService.citeCurVariant(CurVariant.get(id)) as JSON
-    }
 
 
     /**
@@ -843,11 +819,6 @@ class CurVariantController
         }
     }
 
-    /**
-     * Fetch all curVariant data (including ACMG, AMP and Legacy evidence) that matches a hgvsg
-     * from all clinical contexts
-     */
-
     def allCurVariantsFor(String hgvsg) {
         HashMap results = [
             curVariants: []
@@ -866,9 +837,7 @@ class CurVariantController
                     contextCode: cv.clinContext.code,
                     reportDesc: cv.reportDesc,
                     pmClass: cv.pmClass,
-                    acmgEvidence: cv.fetchAcmgEvidence(),
-                    ampEvidence: cv.fetchAmpEvidence(),
-                    legacyEvidence: cv.evidence  // careful, this can be null!
+                    evidence: cv.fetchAcmgEvidence()
                 ])
             }
         }

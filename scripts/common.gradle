@@ -1,0 +1,52 @@
+// common.gradle
+//
+// Gradle build file shared with all modules
+//
+
+apply plugin: 'distribution'
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'maven'
+
+if (!project.hasProperty("nexusUrl")) {
+    ext.nexusUrl = "http://localhost:8081"
+    ext.nexusUsername = "username"
+    ext.nexusPassword = "password"
+}
+
+group = 'org.petermac.pathos'
+
+task uberJar(type: Jar) {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+	jcenter()
+ 	maven
+ 	{
+ 		url "${nexusUrl}/repository/maven-public/"
+ 	}
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        repository(url: "${nexusUrl}/repository/maven-releases") {
+			authentication( userName: nexusUsername, password: nexusPassword)
+		}
+        snapshotRepository(url: "${nexusUrl}/repository/maven-snapshots") {
+			authentication( userName: nexusUsername, password: nexusPassword)
+		}
+    }
+}
+
+dependencies {
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.9'
+
+    testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
+}
+
+distTar {
+	compression = Compression.GZIP
+}

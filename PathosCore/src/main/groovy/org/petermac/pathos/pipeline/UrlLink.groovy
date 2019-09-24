@@ -34,13 +34,9 @@ class UrlLink
      * @param suffix    Optional suffix of the URL eg <sample>.vcf
      * @return          URL to sample data
      */
-    static String dataUrl( String seqrun = "", String sample = "", String suffix = "" )
+    static String dataUrl( String seqrun, String sample, String suffix = "" )
     {
-        def baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/"
-
-        if ( seqrun ) baseURL = baseURL + seqrun + "/"
-
-        if ( sample ) baseURL = baseURL + sample + "/"
+        def baseURL = "${loc.dataServer}/Pathology/${loc.samBase}/${seqrun}/${sample}/"
 
         if ( suffix ) baseURL = baseURL + suffix
 

@@ -165,30 +165,22 @@ a.cv-button {
             </div>
 
             <grid:grid  name="curation">
-                <grid:set multiSort="true"/>
+                <grid:set sortname="acmgCurVariant"/>
                 <grid:set sortorder="desc"/>
-
-
-%{--  We can set arbitrary multiple sort orders!!!!  --}%
-%{--  We should let users order the columns as they wish  --}%
-%{--  We should default it with ACMG and Other Contexts first  --}%
-                %{--<grid:set sortname="acmgCurVariant+desc%2C+ampCurVariant+desc"/>--}%
-                %{--<grid:set sortname="acmgCurVariant desc,allCuratedVariants desc,ampCurVariant desc,overallCurVariant desc,reportable desc"/>--}%
-                <grid:set sortname="${sortPriority.tokenize(",").each { it + " desc"}.join(",")}"/>
-
-                %{--<grid:set sortname="overallCurVariant"/>--}%
-
+                <grid:set multiSort="false"/>
                 <grid:set rowNum="${svlistRows}"/>
                 <grid:set caption='${svSize} Total Sequenced Variants'/>
 
                 <grid:set col='act' width="45" formatter="f:editAction"/>
 
-                <grid:set col='acmgCurVariant' formatter="f:acmgCVFormatter" cellattr='f:acmgTooltip' width="100" />
+                <grid:set col='acmgCurVariant' formatter="f:acmgCVFormatter" cellattr='f:curatedTooltip' width="100" />
 
-                <grid:set col='ampCurVariant' formatter="f:ampCVFormatter" cellattr='f:ampTooltip' width="100"/>
-                <grid:set col='overallCurVariant' formatter="f:overallCVFormatter" cellattr='f:csTooltip' width="90" />
+                <grid:set col='ampCurVariant' formatter="f:ampCVFormatter" width="100" />
+                <grid:set col='overallCurVariant' formatter="f:overallCVFormatter" width="90" />
 
                 <grid:set col='allCuratedVariants' formatter="f:allCVFormatter" cellattr="f:allCVcellattr" width="65" editable="false"/>
+
+                %{--<grid:set col="acmgEvidence"    title="ACMG" width="130" formatter="f:acmgFormatter" editable='false'/>--}%
 
                 <grid:set col='gene'            width="70"  formatter='f:geneFormatter' editable='false'/>
                 <grid:set col='siftCat'         width="45"  formatter='f:classFormatter' editable='false'/>
@@ -1105,7 +1097,7 @@ function drawCV(cv, sv, hgvsg) {
 *
 * @returns {string} Cell title attribute title="tooltip description"
 */
-function acmgTooltip(rowId, val, rawObject, cm, rdata)
+function curatedTooltip(rowId, val, rawObject, cm, rdata)
 {
     var warning = "";
 
@@ -1114,20 +1106,24 @@ function acmgTooltip(rowId, val, rawObject, cm, rdata)
     }
 
     if ( val == '' ) return '';
+    var ttl = warning + rdata['curated_evd'];
 
-    let titleText = warning + JSON.parse(rdata['curated_evd']).acmg;
+    var entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;',
+        '`': '&#x60;',
+        '=': '&#x3D;'
+    };
 
-    titleText = PathOS.escapeHtml(titleText);
+    ttl = String(ttl).replace(/[&<>"'`=\/]/g, function (s) {
+        return entityMap[s];
+    });
 
-    return 'title="' + titleText + '"';
-}
-
-function ampTooltip(rowId, val, rawObject, cm, rdata) {
-    return 'title="'+PathOS.escapeHtml(JSON.parse(rdata['curated_evd']).amp)+'"';
-}
-
-function csTooltip(rowId, val, rawObject, cm, rdata) {
-    return 'title="'+PathOS.escapeHtml(JSON.parse(rdata['curated_evd']).cs)+'"';
+    return 'title="' + ttl + '"';
 }
 
 /**
@@ -2079,19 +2075,25 @@ function addToIGV(sample, dataUrl, id){
                     message.append("a").text("Downsample and open with in-browser IGV").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = true;
-                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500, location);
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
+                        PathOS.igv.loaded = false;
+                        PathOS.igv.search(location);
                     });
                 } else if ( downsample === false || igvAutoLoad == "auto" ) {
-                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000, location);
+                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
+                    PathOS.igv.search(location);
                 } else if ( downsample === true || igvAutoLoad == "downsample" ) {
-                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500, location);
+                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
+                    PathOS.igv.search(location);
                 } else {
                     var message = d3.select("#pathos-footer").insert("div", "#igvDiv").attr("id", "footer-message");
 
                     message.append("h1").attr("id", "main-button").append("a").text("Launch In-browser IGV").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = false;
-                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000, location);
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
+                        PathOS.igv.loaded = false;
+                        PathOS.igv.search(location);
                     });
 
                     message.append('h1').attr("id", "igv-message").text("If your browser runs slowly, you might want to try downsampling or using Desktop IGV")
@@ -2099,7 +2101,8 @@ function addToIGV(sample, dataUrl, id){
                     message.append("a").text("Launch In-browser IGV with downsampling").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = true;
-                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500, location);
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
+                        PathOS.igv.search(location);
                     });
 
                     message.append("a").text("View using Desktop IGV").attr("href", "<g:context/>/seqVariant/igvAction?id="+current_id);
