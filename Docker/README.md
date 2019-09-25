@@ -1,73 +1,101 @@
-# Dockerized PathOS
+# Dockerised PathOS
 
-PathOS has a number of components, and elements of configuration
-that all have to work together to build a functioning system. Using
-Docker makes this easier.
+PathOS has a number of components and configuration elements that all have to work together for a functioning system. Using Docker makes this much easier. PathOS comes with a docker-compose.yaml file, which tells Docker how to download and join everything together to get up a working system, complete with a persistent database. With Docker, PathOS can be ran with a single command.
 
-Dockerised PathOS is implemented as a set of cooperating containers that work together to create a working
-system. This is shown schematically [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/Containers.png).
+### Installing Docker
 
-## To bring up an instance
+You must first install Docker, if you haven't yet. 
 
-Follow these [commands](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/docker_commands_readme.txt) for building on Linux or MacOS without a proxy in the way.
-In summary:
-- clone/download this repository
-- build a WAR file for PathOS
-- invoke: docker-compose build
-  This will download the necessary docker images and build the
-  required derived images.
-- populate a demonstration database
-- invoke: docker-compose up
-  This will create the necessary containers.
-  It may take a minute or two to start up.
-- browse to http://localhost/PathOS
+Unix users should install [Docker Engine](https://docs.docker.com/install/#server) and then [Docker Compose](https://docs.docker.com/compose/install/).
 
-Dealing with proxies can be tricky and is covered [here](https://github.com/PapenfussLab/PathOS/tree/master/Dockish-PathOS/docker/pathos-build) 
-and below. It is recomended to perform the build process outside an organisation's proxy to reduce any networking problems. We are in the process
-of making pre-built images available to simplify deployments.
+Users on a Windows system can use [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/install/).
 
-## Using Docker Machine
+Users on a Mac can use [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/install/).
 
-Create the virtual machine:
+Users on the NECTAR cluster should be able to install Docker and Docker Compose by running:
 
-    docker-machine create --driver=virtualbox --virtualbox-memory=2048 pathos-machine
+```
+sudo bash
+apt update
+apt upgrade -y
+apt install -y docker docker-compose
+```
 
-If you're behind a proxy, you'll need to set the proxy. If it's
-feasible to put the proxy settings directly in the VM, you can
-follow the instructions at
+### Quick-Start
 
-    http://mflo.io/2015/08/13/docker-machine-behind-proxy/
+To run PathOS from the Docker image, you must first clone/download the PathOS repository.
 
-However, if you have to authenticate to the proxy, then it is
-undesirable to put your credentials in the clear text profile. To
-avoid this we assume you're running the cntlm local proxy which
-takes care of the authentication for you. To that end, you need to
-use port forwarding. For the VM, you need to set proxy environment
-variables that point to a port on the VM will be forwared to a port
-on the host. (The indented commands are to be executed in the ssh.)
+```
+git clone https://github.com/PapenfussLab/PathOS.git
+```
 
-    docker-machine ssh pathos-machine
-        sudo -s
-        echo export HTTP_PROXY=http://localhost:3128 >> /var/lib/boot2docker/profile
-        echo export HTTPS_PROXY=http://localhost:3128 >> /var/lib/boot2docker/profile
-        exit
-        exit
+Then, execute the following commands.
 
-    docker-machine restart pathos-machine
+  ```
+  # navigate to the Docker/database directory
+  #
+  cd PathOS/Docker/database
 
-Now we need to start port-forwarding:
-    
-    docker-machine ssh pathos-machine -R localhost:3128:localhost:3128 -f -N
+  # the below will run the PathOS docker container in the background
+  #
+  docker-compose up -d
 
-Now to get the HTTP port 80, or HTTPS port 443 visible to the outside world, we 
-need to forward the relevant port from the host to the VM:
+  # the below will load sample data into pathos. skip this step if you do not want example data.
+  # you should wait for the command to complete before proceeding to use PathOS.
+  # since data persists between sessions this only needs to be ran once.
+  #
+  docker-compose run -v $PWD/load_dir/:/pathos-loader-input.d loader 
+  ```
 
-    docker-machine ssh pathos-machine -L localhost:8088:localhost:80 -f -N
+PathOS will then be available on localhost:8080/PathOS. You can log in with the default username _pathosadmin_ and password _pathos_.
 
-With these in place, we can now bootsrap the docker-machine for our application:
+You can stop the running image by executing `docker-compose down`.
 
-    eval $(docker-machine env pathos-machine)
-    docker-compose build
-    docker-compose create
-    docker-compose up -d
+Data will be saved between sessions, persisting on the file system in the PathOS/Docker/database/pathos-db-data directory.
 
+### Build a custom PathOS image
+
+To build a custom PathOS Docker image - say, once you have made changes to the source code - follow the instructions below.
+
+First, you must first re-build PathOS.
+
+```
+  # navigate to the root PathOS dir
+  #
+  cd <path to your PathOS directory>
+
+  # run script to clean PathOS
+  #
+  sh cleanAll.sh
+
+  # run script to build PathOS
+  #
+  sh installAll.sh
+```
+
+Next, build a custom Docker image. 
+
+  ```
+  # set the necessary version and pathos_home variables. note that if you changed the PathOS
+  # version (this has to be done across all .gradle files in the repo), change the version
+  # variable below accordingly.
+  #
+  version=1.5.2                                           # change this to whatever our version is
+  pathos_home = <path to your PathOS directory>/Curate    # set an absolute path to PathOS/Curate
+
+  cd <path to your PathOS directory>/Docker/build         # navigate to Docker/Build
+
+  # copy over the necessary war and jar files
+  #
+  cp $pathos_home/target/Curate-${version}.war PathOS.war
+  cp $pathps_home/build/libs/Loader-all-${version} Loader-all.jar 
+
+  # build a docker image
+  #
+  docker build -t my_curate -f Dockerfile-curate
+  docker build -t my_loader -f Dockerfile-loader
+  ```
+
+You can now change the docker-compose.yaml file in the Docker/database directory to use this new image. Edit the file and change line 22 to `image: my_curate` and line 57 to `image: my_loader`. This will make the docker-compose file point to your new custom image instead of the public one. 
+
+Now running `docker-compose up -d` from the Docker/database directory will run this custom PathOS image.
