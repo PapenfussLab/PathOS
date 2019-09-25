@@ -88,7 +88,7 @@ Next, build a custom Docker image.
   # copy over the necessary war and jar files
   #
   cp $pathos_home/target/Curate-${version}.war PathOS.war
-  cp $pathps_home/build/libs/Loader-all-${version} Loader-all.jar 
+  cp $pathos_home/build/libs/Loader-all-${version} Loader-all.jar 
 
   # build a docker image
   #
