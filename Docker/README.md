@@ -1,25 +1,16 @@
 # Dockerised PathOS
 
-PathOS has a number of components and configuration elements that work together for a functioning system. Docker makes this much easier. The docker-compose.yaml file tells Docker how to run images and create a local database. With Docker, PathOS started with a single command.
+PathOS has several components and configuration elements that must work together for a functioning system. We can use Docker to take care of this for us. The docker-compose.yaml file tells Docker how to set up all neccessary components, complete with a local datababse, and link them together so that PathOS can be ran with a single command.
 
 ### Installing Docker
 
 You must first install Docker. 
 
-Unix users should install [Docker Engine](https://docs.docker.com/install/#server) and then [Docker Compose](https://docs.docker.com/compose/install/).
+Unix users should install [Docker](https://docs.docker.com/install/#server) and then [Docker Compose](https://docs.docker.com/compose/install/).
 
 Windows users can use [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/install/).
 
 Mac users can use [Docker Desktop for Mac](https://docs.docker.com/docker-for-mac/install/).
-
-Users running linux can install Docker with:
-
-```
-sudo bash
-apt update
-apt upgrade -y
-apt install -y docker docker-compose
-```
 
 ### Quick-Start
 
@@ -80,7 +71,7 @@ Next, build a custom Docker image.
   # version (this has to be done across all .gradle files in the repo), change the version
   # variable below accordingly.
   #
-  version=1.5.2                                           # change this to whatever our version is
+  version=1.5.2                                           # set the version
   pathos_home = <path to your PathOS directory>/Curate    # set an absolute path to PathOS/Curate
 
   cd <path to your PathOS directory>/Docker/build         # navigate to Docker/Build
