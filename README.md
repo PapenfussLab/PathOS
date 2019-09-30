@@ -48,11 +48,10 @@ The PathOS search engine is implemented in Apache Lucene allowing customised sea
 ## Installation
 PathOS has been deployed in a number of clinical environments but is a large complex application with a number of interfaces to external systems that need to be integrated for full featured operation. It has been built from the ground up to meet the clinical workflow needs of the Peter MacCallum Cancer Centre and this is reflected in some of the architectural decisions. 
 
-If building PathOS from scratch, build artifacts (PathosCore.jar,Loader.jar and PathOS.war) can be found under the Releases tab to minimise the effort of dealing with any build dependency issues.
-This repository can be built using the pathos_deploy.sh bash script at the top level. This script runs on Linux or OSX but will need to be customised for local requirements and adapted for Windows environments. 
+This repository can be built using the installAll.sh bash script at the top level. This script runs on Linux or OSX but would need to be customised for local requirements and ported for Windows environments. 
 
 
-There are a number of dependencies including the following
+Dependencies including following
 - Java JDK 1.7 from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html)
 - Grails (we use 2.3.7 at time of writing) from https://github.com/grails/grails-core/releases/download/v2.3.7/grails-2.3.7.zip
 - Gradle (we use 1.10 at time of writing) [Gradle 1.10](https://services.gradle.org/distributions/gradle-1.10-bin.zip)
@@ -63,19 +62,6 @@ There are a number of dependencies including the following
 - Some of the pipeline utilities and HGVS libraries use the Genome Analysis Toolkit (Currently GATK 3.3) and the Sting utility JAR (currently 2.1.8) available from here https://software.broadinstitute.org/gatk/download/
 - JNI wrapper to the striped Smith-Waterman alignment library SSW see https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library
 
-
-
-## Configuration
-The following files can be edited post deployment to configure file locations, servers, databases and security servers.
-
-**Configuration Files:**
-
-|File/Path   | Purpose                                              |
-|:-------:|-------------------------------------------------------|
-|PathOSHome/etc/pathos.properties| Master properties file controlling servers, database access and schemas and most file locations|
-|PathOSHome/Report/Default Var Template.docx|Default variant report template. A MSWord mail megre template document|
-|PathOSHome/Report/Default Neg Template.docx|Default negative report template. A MSWord mail megre template document|
-|PathOSHome/Report/Default Fail Template.docx|Default failed sample report template. A MSWord mail megre template document|
 
 ## Citation
 Please consider citing [PathOS](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-017-0427-z) if you use it in your analysis.
