@@ -6,8 +6,6 @@ A docker-compose.yaml file tells Docker how to set up all neccessary components,
 
 ### Installing Docker
 
-You must first install Docker. 
-
 Unix users should install [Docker](https://docs.docker.com/install/#server) and then [Docker Compose](https://docs.docker.com/compose/install/).
 
 Windows users can use [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/install/).
@@ -22,7 +20,7 @@ To run PathOS from the Docker image, first clone the PathOS repository.
 git clone https://github.com/PapenfussLab/PathOS.git
 ```
 
-Then, execute the following commands.
+Then execute the following commands to start PathOS.
 
   ```
   # Navigate to the Docker/database directory
@@ -50,7 +48,7 @@ Data will be saved between sessions, persisting on the local file system in the 
 
 To build a custom PathOS Docker image - say, once you have made changes to the source code - follow the instructions below.
 
-First, you must first re-build PathOS.
+You must first re-build PathOS.
 
 ```
   # navigate to the root PathOS dir in your cloned repository
