@@ -27,7 +27,7 @@ PathOS carries out these tasks within a clinical laboratory setting where many p
 The best way to experiment with PathOS is by accessing the [instance](http://115.146.85.170:8123/PathOS) on the University of Melbourne research cloud.
 Get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
 
-[PathOS](https://cloud.docker.com/u/dockerpathos/repository/list) has been containerised in Docker for easy deployment. [Docker](http://www.docker.com) allows lightweight containers to be built with minimal configuration files and deployed on a variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. 
+[PathOS](https://hub.docker.com/u/dockerpathos) has been containerised in Docker for easy deployment. [Docker](http://www.docker.com) allows lightweight containers to be built with minimal configuration files and deployed on a variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. 
 The instructions and config files for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Docker).
 
 ## Technology Platform
