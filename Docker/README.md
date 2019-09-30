@@ -1,6 +1,8 @@
 # Dockerised PathOS
 
-PathOS has several components and configuration elements that must work together for a functioning system. We can use Docker to take care of this for us. The docker-compose.yaml file tells Docker how to set up all neccessary components, complete with a local datababse, and link them together so that PathOS can be ran with a single command.
+PathOS has several components and configuration elements that must work together for a functioning system. We can use Docker to take care of this for us. [Docker](http://www.docker.com) is a tool that allows complex software to be easily deployed & ran using lightweight containers linked together by configuration files, and works on most operating systems.
+
+A single docker-compose.yaml file tells Docker how to set up all neccessary components, complete with a local datababse, and link them together so that PathOS can be ran with one command.
 
 ### Installing Docker
 
@@ -90,3 +92,7 @@ Next, build a custom Docker image.
 You can now change the docker-compose.yaml file in the Docker/database directory to use this new image. Edit the file and change line 22 to `image: my_curate` and line 57 to `image: my_loader`. This will make the docker-compose file point to your new custom image instead of the public one. 
 
 Now running `docker-compose up -d` from the Docker/database directory will run your custom PathOS image.
+
+### PathOS on Docker Hub
+
+PathOS Docker images can be found on Docker Hub [here](https://hub.docker.com/u/dockerpathos).
