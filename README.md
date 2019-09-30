@@ -27,8 +27,7 @@ PathOS carries out these tasks within a clinical laboratory setting where many p
 The best way to experiment with PathOS is by accessing the [instance](http://115.146.85.170:8123/PathOS) on the University of Melbourne research cloud.
 Get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
 
-[PathOS](https://hub.docker.com/u/dockerpathos) has been containerised in Docker for easy deployment. [Docker](http://www.docker.com) allows lightweight containers to be built with minimal configuration files and deployed on a variety of operating systems such as: Linux,MacOS,AWS,Azure and even Windows and Windows Server. 
-The instructions and config files for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Docker).
+We also provide Docker configuration files for PathOS, so that PathOS can be deployed & ran with a single command using the Docker software. This is the easiest way to run PathOS on your local system. Instructions for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Docker).
 
 ## Technology Platform
 PathOS uses many open-source Java libraries to implement a clincal-grade application suitable for hospital use and secure storage of patient medical data. It interfaces to laboratory LIMS systems for input of patient demographic details and sample and assay registration data. An HL7 interface is used to interface with the hospital records systems.
