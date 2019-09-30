@@ -2,7 +2,7 @@
 
 PathOS has several components and configuration elements that must work together for a functioning system. We can use Docker to take care of this for us. [Docker](http://www.docker.com) is a tool that allows complex software to be easily deployed & ran using lightweight containers linked together by configuration files, and works on most operating systems.
 
-A single docker-compose.yaml file tells Docker how to set up all neccessary components, complete with a local datababse, and link them together so that PathOS can be ran with one command.
+A docker-compose.yaml file tells Docker how to set up all neccessary components, complete with a local datababse, and link them together so that PathOS can be ran with a single command.
 
 ### Installing Docker
 
