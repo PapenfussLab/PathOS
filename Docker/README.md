@@ -83,8 +83,8 @@ Next, build a custom Docker image.
 
   # build a docker image
   #
-  docker build -t my_curate -f Dockerfile-curate
-  docker build -t my_loader -f Dockerfile-loader
+  docker build -t my_curate -f Dockerfile-curate .
+  docker build -t my_loader -f Dockerfile-loader .
   ```
 
 You can now change the docker-compose.yaml file in the Docker/database directory to use this new image. Edit the file and change line 22 to `image: my_curate` and line 57 to `image: my_loader`. This will make the docker-compose file point to your new custom image instead of the public one. 
