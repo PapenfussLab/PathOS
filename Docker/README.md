@@ -72,14 +72,14 @@ Next, build a custom Docker image.
   # variable below accordingly.
   #
   version=1.5.2                                           # set the version
-  pathos_home = <path to your PathOS directory>/Curate    # set an absolute path to PathOS/Curate
+  pathos_home=<path to your PathOS directory>/Curate    # set an absolute path to PathOS/Curate
 
   cd <path to your PathOS directory>/Docker/build         # navigate to Docker/Build
 
   # copy over the necessary war and jar files
   #
   cp -v $pathos_home/target/Curate-${version}.war PathOS.war
-  cp -v $pathos_home/build/libs/Loader-all-${version} Loader-all.jar 
+  cp -v $pathos_home/build/libs/Loader-all-${version}.jar Loader-all.jar 
 
   # build a docker image
   #
