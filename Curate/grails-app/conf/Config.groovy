@@ -324,7 +324,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/panel/show':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/panel/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/panel/fetchAllData':          ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/panel/*':                     ['ROLE_DEV'],
+            '/panel/*':                     ['ROLE_DEV','ROLE_ADMIN'],
 
             '/patassay/show':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patassay/list':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],

@@ -23,7 +23,6 @@
         <g:message code="panel.panelGroup.label" default="Panel Group"/>
 
     </label>
-    <g:select name="panelGroup" from="${panelInstance.constraints.panelGroup.inList}"
-              value="${panelInstance?.panelGroup}" valueMessagePrefix="panel.panelGroup" noSelection="['': '']"/>
+    <g:textField name="panelGroup" value="${panelInstance?.panelGroup}"/>
 </div>
 
