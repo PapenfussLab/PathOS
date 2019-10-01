@@ -48,7 +48,7 @@ Data will be saved between sessions, persisting on the local file system in the 
 
 To build a custom PathOS Docker image - say, once you have made changes to the source code - follow the instructions below.
 
-You must first re-build PathOS.
+You must first re-build PathOS. At time of writing, we use Java 7, Gradle 1.10, and Grails 2.3.7 to build PathOS. Building PathOS is unlikely to work with other versions.
 
 ```
   # navigate to the root PathOS dir in your cloned repository
