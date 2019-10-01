@@ -435,6 +435,7 @@ class VcfLoader
 
         log.info( "Normalising variants with ${mutHost}")
 
+        //todo try catch here, covertVcf can throw an exception
         for ( vcf in vcfs )
         {
             File normVcf = FileUtil.tmpFixedFile()
