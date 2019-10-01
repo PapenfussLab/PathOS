@@ -2,7 +2,7 @@
 
 PathOS has several components and configuration elements that must work together for a functioning system. We can use Docker to take care of this for us. [Docker](http://www.docker.com) is a tool that allows complex software to be easily deployed and ran using lightweight containers linked together by configuration files.
 
-A docker-compose.yaml file tells Docker how to set up all neccessary components, complete with a local datababse, and link them together so that PathOS can be ran with a single command.
+A docker-compose.yaml file tells Docker how to set up all the neccessary components, complete with a local database, and link them together so that PathOS can be ran with a single command.
 
 ### Installing Docker
 
@@ -53,7 +53,7 @@ You must first re-build PathOS.
 ```
   # navigate to the root PathOS dir in your cloned repository
   #
-  cd PathOS
+  cd <path to your PathOS directory>
 
   # run script to clean PathOS
   #
