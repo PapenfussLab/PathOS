@@ -6,7 +6,7 @@ A docker-compose.yaml file tells Docker how to set up all the neccessary compone
 
 ### Installing Docker
 
-Unix users should install [Docker](https://docs.docker.com/install/#server) and then [Docker Compose](https://docs.docker.com/compose/install/).
+Unix users should install [Docker](https://docs.docker.com/install/#server) and [Docker Compose](https://docs.docker.com/compose/install/).
 
 Windows users can use [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/install/).
 
@@ -27,13 +27,13 @@ Then execute the following commands to start PathOS.
   #
   cd PathOS/Docker/database
 
-  # Run the PathOS docker container in the background
+  # Run the PathOS docker containers in the background
   #
   docker-compose up -d
 
   # Load the sample data into pathos. Skip this step if you don't want example data.
   # you should wait for the command to complete before proceeding to use PathOS.
-  # since data persists between sessions this only needs to be run once.
+  # since data persists between sessions, this only needs to be run once.
   #
   docker-compose run -v $PWD/load_dir/:/pathos-loader-input.d loader 
   ```
@@ -48,18 +48,18 @@ Data will be saved between sessions, persisting on the local file system in the 
 
 To build a custom PathOS Docker image - say, once you have made changes to the source code - follow the instructions below.
 
-You must first re-build PathOS. At time of writing, we use Java 7, Gradle 1.10, and Grails 2.3.7 to build PathOS. Building PathOS is unlikely to work with other versions.
+You must first re-build PathOS. At time of writing, we use Java 7, Gradle 1.10, and Grails 2.3.7 to build PathOS. Building PathOS is unlikely to work with versions other than these.
 
 ```
-  # navigate to the root PathOS dir in your cloned repository
+  # Navigate to the root PathOS dir in your cloned repository
   #
   cd <path to your PathOS directory>
 
-  # run script to clean PathOS
+  # Run script to clean out previous builds
   #
   sh cleanAll.sh
 
-  # run script to build PathOS
+  # Run script to build PathOS
   #
   sh installAll.sh
 ```
@@ -87,9 +87,9 @@ Next, build a custom Docker image.
   docker build -t my_loader -f Dockerfile-loader .
   ```
 
-You can now change the docker-compose.yaml file in the Docker/database directory to use this new image. Edit the file and change line 22 to `image: my_curate` and line 57 to `image: my_loader`. This will make the docker-compose file point to your new custom image instead of the public one. 
+You can now change the docker-compose.yaml file in the Docker/database directory to use this new image. Edit the file and change line 22 to `image: my_curate` and line 57 to `image: my_loader`. This will make the docker-compose file point to your new custom images instead of the public one. 
 
-Now running `docker-compose up -d` from the Docker/database directory will run your custom PathOS image.
+Now, running `docker-compose up -d` from the Docker/database directory will run your custom PathOS images.
 
 ### PathOS on Docker Hub
 
