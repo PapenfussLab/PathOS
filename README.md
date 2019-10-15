@@ -29,6 +29,12 @@ Get in touch with the [authors](mailto:ken.doig@petermac.org) for a login accoun
 
 We also provide Docker configuration files for PathOS, so that PathOS can be deployed & ran with a single command using the Docker software. This is the easiest way to run PathOS on your local system. Instructions for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Docker).
 
+##  Using PathOS
+
+A video providing an overview of PathOS and describing how to use it for variant curation can be viewed [here](https://www.dropbox.com/s/529kiku4yjl170g/PathOS%20overview.mov?dl=0)
+
+A video describing how to use PathOS for generating reports is avaliable [here](https://www.dropbox.com/s/nid073h1mqxs0cn/PathOS%20report%20builder.mov?dl=0)
+
 ## Technology Platform
 PathOS uses many open-source Java libraries to implement a clincal-grade application suitable for hospital use and secure storage of patient medical data. It interfaces to laboratory LIMS systems for input of patient demographic details and sample and assay registration data. An HL7 interface is used to interface with the hospital records systems.
 
