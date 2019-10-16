@@ -1,5 +1,5 @@
 package org.petermac.pathos.curate
-import org.petermac.util.AnomalyRest
+
 import org.apache.commons.io.FileUtils
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -12,7 +12,6 @@ import groovy.json.JsonSlurper
 import org.petermac.pathos.curate.VcfAnomaly
 import java.nio.file.Files
 import java.nio.file.Paths
-import org.codehaus.groovy.grails.web.mapping.LinkGenerator
 
 import java.util.concurrent.*
 import javax.annotation.*
@@ -38,52 +37,6 @@ class VcfUploadController {
      **/
     static Closure validateClosure = { File file ->
         return validateVcfFileList([file])
-    }
-
-    /**
-     * provide a
-     */
-    def status() {
-        println params.tagName
-        println params.seqrunName
-        println params.sampleName
-
-        //  check anomaly to see status of tag
-        //
-        String anomalyMessage = ''
-        Boolean checkDbStatus = true
-        switch(AnomalyRest.checkVcf(params.tagName)) {
-            case (AnomalyRest.runningMessage):
-                anomalyMessage =  'Sample is still being processed by Anomaly'
-                checkDbStatus = false
-                break;
-            case (AnomalyRest.completeMessage):
-                anomalyMessage =  'Anomaly has finished processing this sample'
-
-                break;
-            case (AnomalyRest.notFoundMessage):
-                anomalyMessage =  'Something went wrong when Anomaly processed this sample. Upload failed.'
-                break;
-            default:
-                anomalyMessage = 'Something went wrong trying to get the Anomaly running status'
-                break;
-        }
-
-        // if needed, check the DB to see if the sample has been loaded
-        //
-        String dbMessage = ""
-        if(checkDbStatus) {
-            dbMessage = "Sample is not in the PathOS database"
-            Seqrun sr = Seqrun.findBySeqrun(params.seqrunName)
-            SeqSample ss = SeqSample.findBySeqrunAndSampleName(sr, params.sampleName)
-            if (ss && ss.seqVariants.size() > 0) {
-                dbMessage = "Sample and its variants now exist in PathOS"
-            } else if (ss) {
-                dbMessage = "Variants not yet loaded into PathOS"
-            }
-        }
-
-        render(view: 'status', model: [seqrunName: params.seqrunName, tagName: params.tagName, sampleName: params.sampleName, anomalyMessage: anomalyMessage, dbMessage: dbMessage])
     }
 
     /**
@@ -124,7 +77,7 @@ class VcfUploadController {
         if (params.process && params.uploadedFilesJson) {    // submit button clicked, so process the files uploaded through dropzone & call vcfloader
              loadresult = performVcfLoad(params)
              if (loadresult.uploads) {
-                 redirect(action: 'uploadsuccess', params: [uploadedFiles:loadresult.uploads,messages:loadresult.messages])   // we've successfully kicked off load
+               redirect(action: 'uploadsuccess', params: [uploadedFiles:loadresult.uploads,messages:loadresult.messages])   // we've successfully kicked off load
              }
         }
 
@@ -135,7 +88,7 @@ class VcfUploadController {
         else {  panelList = [CUSTOM_PANEL_MESSAGE]
         }
 
-        render(view: 'upload', model: [defaultEmail: currentUser.email, env: env, panelList: panelList, errorMsg: loadresult?.error, showEmail: loc.vcfUploadEmailNotify])
+        render(view: 'upload', model: [defaultEmail: currentUser.email, env: env, panelList: panelList, errorMsg: loadresult?.error])
     }
 
     def uploadsuccess() {
@@ -515,30 +468,7 @@ class VcfUploadController {
             for(ss in loadparams.allSeqSamples) {
                 messages.add("Submitted VCF for loading into SeqSample ${ss.sampleName} ${ss.seqrun.seqrun}")
             }
-
-            String msg = "VCF Loading is in progress."
-            if (loc.vcfUploadEmailNotify) {
-                msg +=  " You will receive an email at ${loadparams.userEmail} once it is complete."
-            }
-            messages.add(msg)
-
-            messages.add("")
-            //  formulate 'check status' messages
-            //
-            if(loc.vcfUploadMethod.toString().trim().toLowerCase() == "anomaly") {
-                for (String upfile in loadparams.uploadedFiles) {
-                    File f = new File(upfile)
-                    String fileTag = AnomalyRest.formulateTagFromFile(f)
-                    String seqrun = loadparams.seqrunName
-                    String seqsample = new Vcf(f).sampleName()
-                    //  String url =  grailsLinkGenerator.link(controller: 'seqVariant', action: 'status')
-                    //String url = grailsLinkGenerator.serverBaseURL + "/status/${seqrun}/${seqsample}/${fileTag}"
-                    String url = createLink(controller: 'vcfUpload', action: "status") + "/${seqrun}/${seqsample}/${fileTag}"
-
-                    messages.add("Check progress of ${seqsample} here: <a href='${url}' target='_blank'>${seqsample}</a>")
-
-                }
-            }
+            messages.add("VCF Loading is in progress. You will receive an email at ${loadparams.userEmail} once it is complete.")
 
             return [uploads: loadparams.uploadedFiles, messages: messages]
 
@@ -547,8 +477,8 @@ class VcfUploadController {
     }
 
     void callUpload(Map loadparams) {
-        switch( loc.vcfUploadMethod.trim().toLowerCase() ) {
-            case "vcfloader":
+        switch( loc.vcfUploadMethod.trim() ) {
+            case "VcfLoader":
                 performVcfLoaderUpload(loadparams)
                 break;
             default:
@@ -578,15 +508,14 @@ class VcfUploadController {
             for (String filepath in loadparams.uploadedFiles) {
                 uploads.add(new File(filepath))
             }
-            if( loc.vcfUploadEmailNotify ) {
-                mailUserUploadResult(uploads,Seqrun.findBySeqrun(loadparams.seqrunName),loadparams.userEmail,link)
-            }
+            mailUserUploadResult(uploads,Seqrun.findBySeqrun(loadparams.seqrunName),loadparams.userEmail,link)
 
         }
 
         executor.shutdown()
     }
 
+    //  todo pathos-4116 this should be in seqsampleservice
     /**
      * perform an upload with VcfAnomaly
      * @param loadparams
@@ -609,9 +538,6 @@ class VcfUploadController {
             }
 
             log.info("Processing " + uploads)
-            for(f in uploads) {
-                println "Getting tag " + AnomalyRest.formulateTagFromFile(f) + " from file: " + f
-            }
             Integer processed = anomaly.processFiles(seqrun, uploads, loadparams.panel.toString() ?: '')
 
             log.info("Finished processing ${processed} files")

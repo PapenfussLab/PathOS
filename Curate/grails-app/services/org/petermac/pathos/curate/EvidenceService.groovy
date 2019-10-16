@@ -82,8 +82,8 @@ class EvidenceService
      * get out cleaned ACMG stuff
      */
     static Map processACMG( Map data, Map defaultCriteria ) {
-        System.out.println("dealing with ACMG data")
-        System.out.println(data)
+//        System.out.println("dealing with ACMG data")
+//        System.out.println(data)
 
 //  Read JSON if it exists...
 //  Read the new changes

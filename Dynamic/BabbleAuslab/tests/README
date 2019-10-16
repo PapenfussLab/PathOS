@@ -1,0 +1,29 @@
+To run this test babble, you will need a "database" of patients.
+This can be created from an HL7 dump
+
+babble -b file-to-file hl7 ../../../messages.hl7 yaml mymessages.yaml
+
+then using the main function from the query hook:
+
+java -cp ../build/libs/babble-auslab-all-1.3.5.jar org.petermac.babble.auslab.QueryHook mymessages.yaml testdb.yaml
+
+The queries are taken from the Iguana log, excluding the heartbeat
+messages (these could be left in but would slow the test).
+
+A direct test can be run using direct-config.yaml file.
+
+A more complete test can be run by running two babble instances,
+and using an Iguana server.
+
+The first instance is a fake auslab server for answering the queries,
+and can be run using the viaiguana-config-auslab.yaml file.
+
+Then an Iguana channel should be established with that server as
+it's destination, and an LLP Listener configured as its source.
+
+Then a second babble instance should be run to send messages to the
+Iguana server and retrieve the results from the log.
+
+To make it run successfully, some IP addresses, ports, and passwords
+will need to be set. For obvious reasons, these are not included
+in the repository.

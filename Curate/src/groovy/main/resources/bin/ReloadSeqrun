@@ -15,7 +15,7 @@ HELP=0
 pa_env=pa_dev
 seqrun=none
 nargs=$#
-version='1.5.2'
+mario_version='1.5.3'
 
 while getopts r:s:h\? opt                    # Add additional options here
 
@@ -81,7 +81,7 @@ cat > ${babbleScripLocation} << EOF
 dynamic:
   translators:
   - name: lims-expander
-    path: file:/pathology/NGS/$env/lib/babble-mario-${version}-all.jar
+    path: file:/pathology/NGS/$env/lib/babble-mario-${mario_version}-all.jar
     class: org.petermac.babble.mario.MarioLimsHandler
 
 channels:

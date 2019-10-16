@@ -79,7 +79,7 @@ $Tag:				#67402C;
 $Transcript:		#3C6526;
 $RefExon:			#084558;
 $CurVariant:		#BC2E11;
-$neutral:			#eee;
+$neutral:			#EEEEEE;
 
 
 $pm-un: #fff;
@@ -430,6 +430,20 @@ body {
 							width: 20px;
 						}
 					}
+
+					#draggable-sortPriority {
+						list-style: none;
+						padding: 0;
+						width: 40%;
+						li {
+							cursor: pointer;
+							&:before {
+								font: normal normal normal 14px/1 FontAwesome;
+								content: "\f07d ";
+								padding: 0 3px;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -480,7 +494,7 @@ body {
 			margin-bottom: 0;
 		}
 
-		#show-cv, #variantViewer {
+		#variantViewer {
 			min-height: 90%;
 			width: calc(100% - 40px);
 			margin: auto;
@@ -489,6 +503,57 @@ body {
 				text-align: center;
 				font-size: 36px;
 			}
+
+			#overlay-tabs {
+				input[type='radio'] {
+					display: none;
+					&#overlay-acmg-radio:checked {
+						~label[for='overlay-acmg-radio'] span {
+							background: lightgrey;
+						}
+						~#cv-list th.overlay-acmg-column,
+						~#cv-list td.overlay-acmg-column {
+							display: table-cell;
+						}
+					}
+					&#overlay-amp-radio:checked {
+						~label[for='overlay-amp-radio'] span {
+							background: lightgrey;
+						}
+						~#cv-list th.overlay-amp-column,
+						~#cv-list td.overlay-amp-column {
+							display: table-cell;
+						}
+					}
+					&#overlay-legacy-radio:checked {
+						~label[for='overlay-legacy-radio'] span {
+							background: lightgrey;
+						}
+						~#cv-list th.overlay-legacy-column,
+						~#cv-list td.overlay-legacy-column {
+							display: table-cell;
+						}
+					}
+				}
+				label {
+					span {
+						background: white;
+						padding: 2px;
+						border-top-left-radius: 5px;
+						border-top-right-radius: 5px;
+						border: solid 1px black;
+						border-bottom: none;
+						margin: 2px;
+						&:hover {
+							background: grey !important;
+						}
+					}
+					&.hidden {
+						display: none;
+					}
+				}
+			}
+
 			#cv-infobox-div {
 				padding: 10px;
 
@@ -498,17 +563,35 @@ body {
 				text-align: center;
 			}
 
+			textarea {
+				height: inherit;
+			}
+
 			#cv-list {
+				//display: none;
 				table {
-					margin-top: -17px;
+					//margin-top: -17px;
 					border-top: 0 solid rgba(0,0,0,0);
 					border-radius: 5px;
+					width: 100%;
 					tr {
 						margin: 5px;
 					}
 					td, th {
+						&.overlay-acmg-column,
+						&.overlay-amp-column,
+						&.overlay-legacy-column {
+							display: none;
+						}
 						line-height: 1.1em;
 						border: 1px solid lightgrey;
+						vertical-align: top;
+						textarea {
+							width: 100%;
+						}
+						i:before {
+							content: "\f150"
+						}
 
 						.cvlabel {
 							border: 1px solid #ddd;
@@ -549,9 +632,111 @@ body {
 					border: 5px dashed darkblue;
 				}
 
+				a i {
+					top: 0;
+					right: 0;
+					padding: 3px;
+					float: none;
+				}
+				td {
+					background: white;
+					&.description {
+						padding: 0;
+					}
+				}
+				th:last-child, td:last-child {
+					p {
+						margin-top: 0;
+					}
+					width: 15%;
+				}
+				td.evidence-td {
+					.evidence-list {
+						display: none;
+					}
+				}
+				tr.expand {
+					textarea {
+						min-height: 300px;
+						height: 100%;
+					}
+					td {
+						height: 100%;
+						i:before {
+							content: "\f151";
+						}
+					}
+					.evidence-list {
+						display: block;
+						padding-left: 17px;
+						list-style: none;
+						li {
+							padding-bottom: 5px;
+							&:before {
+								content: '\f046';
+								display: inline-block;
+								font: normal normal normal 14px/1 FontAwesome;
+								width: 0;
+								position: relative;
+								right: 15px;
+							}
+						}
+					}
+				}
+			}
+			#svInfoTable {
+				tr:nth-child(n+3) {
+					display: none;
+				}
+				&.showDetails {
+					tr {
+						display: inherit;
+					}
+				}
 			}
 
+			.infoTable {
+				td {
+					vertical-align: top;
+					padding: 5px;
+					margin: 0;
 
+					a span {
+						color: black;
+
+						i#hgvsToggle,
+						i#sampleToggle {
+							float: left;
+							padding: 8px;
+
+							&.toggle:before {
+								content: "\f150";
+							}
+							&.toggled:before {
+								content: "\f151";
+							}
+						}
+					}
+
+				}
+				ul#hgvs-list {
+					list-style: none;
+					margin: 0;
+					line-height: 1.2em;
+
+					li:nth-child(n+2) {
+						display: none;
+					}
+					&.showList {
+						li:first-child {
+							display: none;
+						}
+						li {
+							display: inherit;
+						}
+					}
+				}
+			}
 		}
 
 	}
@@ -1183,6 +1368,11 @@ $sidebar-easing: 300px;
 		&#tables table.content td:first-child a,
 		&#history .content table td:first-child a {
 			@include colordot(rgba(0,0,0,0));
+			&:before {
+				background: #EEEEEE;
+				border: solid 1px lightgrey;
+			}
+
 			&.PatSample {
 				@include colordot($PatSample);
 			}
@@ -2032,6 +2222,7 @@ $sidebar-easing: 300px;
 	}
 	.overall-Unclassified,
 	.amp-Unclassified,
+	.amp-unclassified,
 	.cv-Unclassified {
 		color: #000;
 		background-color: $pm-un;
@@ -2039,6 +2230,7 @@ $sidebar-easing: 300px;
 	}
 	.overall-NCS,
 	.amp-Tier-IV,
+	.amp-tier-iv,
 	.cv-C1 {
 		color: #000;
 		background-color: $pm-c1;
@@ -2049,17 +2241,20 @@ $sidebar-easing: 300px;
 	}
 	.overall-UCS,
 	.amp-Tier-III,
+	.amp-tier-iii,
 	.cv-C3 {
 		color: #000;
 		background-color: $pm-c3;
 	}
 	.amp-Tier-II,
+	.amp-tier-ii,
 	.cv-C4 {
 		color: #fff;
 		background-color: $pm-c4;
 	}
 	.overall-CS,
 	.amp-Tier-I,
+	.amp-tier-i,
 	.cv-C5 {
 		color: #fff;
 		background-color: $pm-c5;
@@ -2315,129 +2510,6 @@ $sidebar-easing: 300px;
 	}
 }
 
-#variantViewer {
-	textarea {
-		height: inherit;
-	}
-
-	#cv-list {
-		a i {
-			top: 0;
-			right: 0;
-			padding: 3px;
-			float: none;
-		}
-		table {
-			width: 100%;
-		}
-		th, td {
-			vertical-align: top;
-			textarea {
-				width: 100%;
-			}
-			i:before {
-				content: "\f150"
-			}
-		}
-		td {
-			background: white;
-			&.description {
-				padding: 0;
-			}
-		}
-		th:last-child, td:last-child {
-			p {
-				margin-top: 0;
-			}
-			width: 15%;
-			.evidence-list {
-				display: none;
-			}
-		}
-		tr.expand {
-			textarea {
-				min-height: 300px;
-				height: 100%;
-			}
-			td {
-				height: 100%;
-				i:before {
-					content: "\f151";
-				}
-			}
-			.evidence-list {
-				display: block;
-				padding-left: 17px;
-				list-style: none;
-				li {
-					padding-bottom: 5px;
-					&:before {
-						content: '\f046';
-						display: inline-block;
-						font: normal normal normal 14px/1 FontAwesome;
-						width: 0;
-						position: relative;
-						right: 15px;
-					}
-				}
-			}
-		}
-	}
-	#svInfoTable {
-		tr:nth-child(n+3) {
-			display: none;
-		}
-		&.showDetails {
-			tr {
-				display: inherit;
-			}
-		}
-	}
-
-	.infoTable {
-		td {
-			vertical-align: top;
-			padding: 5px;
-			margin: 0;
-
-			a span {
-				color: black;
-
-				i#hgvsToggle,
-				i#sampleToggle {
-					float: left;
-					padding: 8px;
-
-					&.toggle:before {
-						content: "\f150";
-					}
-					&.toggled:before {
-						content: "\f151";
-					}
-				}
-			}
-
-		}
-		ul#hgvs-list {
-			list-style: none;
-			margin: 0;
-			line-height: 1.2em;
-
-			li:nth-child(n+2) {
-				display: none;
-			}
-			&.showList {
-				li:first-child {
-					display: none;
-				}
-				li {
-					display: inherit;
-				}
-			}
-		}
-	}
-}
-
 #seqrunSamplesList {
 	h2 {
 		margin: 15px 0px 0px 15px;
@@ -2447,6 +2519,71 @@ $sidebar-easing: 300px;
 		font-size: 12px;
 		line-height: 0;
 	}
+
+	td.readinessTd {
+		text-align: left;
+		cursor: pointer;
+		padding: 2px 8px;
+		p {
+			margin-top: 9px;
+			margin-left: 2px;
+		}
+		span {
+			margin: 1px;
+			//float: left;
+			p {
+				color: black;
+			}
+			&:nth-child(odd) {
+				//background: #dddd;
+			}
+		}
+		span.pass {
+			color: #4caf50;
+			background-color: #4caf50;
+		}
+		span.halt {
+			color: #ff9800;
+			background-color: #ff9800;
+		}
+		span.fail {
+			color: #f44336;
+			background-color: #f44336;
+		}
+		span.name {
+			font-size: 14px;
+			line-height: .8em;
+		}
+		span.name, span.billingCodes, span.patientLink, p, br {
+			display: none;
+		}
+		letter {
+			//font-weight: 900;
+			color: white;
+			//border: solid 1px grey;
+			padding: 0 2px;
+			//border-radius: 5px;
+			//background: #EEE;
+		}
+		&.expand {
+			span {
+				background-color: rgba(0,0,0,0);
+			}
+			letter {
+				display: none;
+			}
+			div {
+				float: none;
+			}
+			span.name, span.billingCodes, span.patientLink, p, br {
+				display: inline-block;
+			}
+			i {
+				margin-right: 3px;
+			}
+		}
+	}
+
 }
 
 #seqrunQcCharts {
@@ -3029,6 +3166,11 @@ This is for flash messages from grails.
 	width: 100%;
 
 	th {
+		vertical-align: top;
+		textarea {
+			font-weight: 300;
+			height: 80px;
+		}
 		div.amp-mode-div {
 			user-select: none;
 			input.amp-mode-radio {
@@ -3101,6 +3243,16 @@ This is for flash messages from grails.
 
 #acmgEvidence {
 
+	table.floatingHead {
+		thead {
+			background: white;
+		}
+		tr.size-row th{
+			border: 1px solid white;
+			border-bottom: 1px solid black;
+		}
+	}
+
 	table td,
 	table th {
 		border: solid 1px black;
@@ -3127,6 +3279,15 @@ This is for flash messages from grails.
 		}
 		td.criteria-text {
 			background: lightgrey;
+		}
+	}
+
+	table tr.green {
+		td.acmg-marker,
+		td.acmg-description,
+		td.criteria-text,
+		td.acmg-yes {
+			background: #8bc34a8c;
 		}
 	}
 

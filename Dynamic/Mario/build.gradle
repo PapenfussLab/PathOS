@@ -1,0 +1,43 @@
+// build.gradle
+//
+// Build file for the Auslab plugin for Babble
+//
+
+apply from: '../../scripts/common.gradle'
+
+//  Release version
+//
+version = '1.5.3'
+
+jar {
+    baseName = 'babble-mario'
+}
+
+artifacts {
+    archives uberJar {
+        baseName = 'babble-mario'
+		classifier = 'all'
+        with jar
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        addFilter('babble-mario') { a, f ->
+            a.name == 'babble-mario'
+        }
+        addFilter('babble-mario-all') { a, f ->
+            a.name == 'babble-mario-all'
+        }
+    }
+}
+
+
+dependencies {
+    compile group: 'au.com.bytecode' ,name: 'opencsv', version: '2.4'
+    compile group: 'log4j', name: 'log4j', version: '1.2.16'
+    compile group: 'org.codehaus.groovy.modules.http-builder' ,name: 'http-builder', version: '0.7.2'
+    compile group: 'org.petermac.pathos' ,name: 'babble-api', version: '1.5.2'
+    compile group: 'org.petermac.pathos' ,name: 'hl7-tools',  version: '1.5.2'
+    compile group: 'org.petermac.pathos' ,name: 'yaml-tools', version: '1.5.2'
+}

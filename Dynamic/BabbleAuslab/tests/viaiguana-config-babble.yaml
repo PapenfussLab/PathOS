@@ -1,0 +1,38 @@
+dynamic:
+  hooks:
+    - name: answer
+      path: file:/usr/local/dev/DemoNGS/PathOS/lib/babble-auslab-all-1.3.5.jar
+      class: org.petermac.babble.auslab.QueryHook
+    - name: sendack
+      path: file:/usr/local/dev/DemoNGS/PathOS/lib/babble-auslab-all-1.3.5.jar
+      class: org.petermac.babble.auslab.SendAck
+    - name: viaiguana
+      path: file:/usr/local/dev/DemoNGS/PathOS/lib/babble-auslab-all-1.3.5.jar
+      class: org.petermac.babble.auslab.IguanaLogHook
+  translators:
+    - name: to-pathos
+      path: file:/usr/local/dev/DemoNGS/PathOS/lib/babble-auslab-all-1.3.5.jar
+      class: org.petermac.babble.auslab.AuslabToPathos
+channels:
+    - label: 'pathos to auslab'
+      source:
+        file:
+          name: queries.hl7
+          encoding: hl7
+      destination:
+        hooked:
+          destination:
+            mllp:
+              host: pmc-testlims.petermac.org.au
+              port: 7890
+          hook:
+            viaiguana:
+              host: pmc-testlims.petermac.org.au
+              port: 6543
+              username: 'bioinf'
+              password: 'my secret password'
+              source: 'Babble 2 Test Channel'
+              destination:
+                file:
+                  name: viaiguana-output.yaml
+                  encoding: yaml

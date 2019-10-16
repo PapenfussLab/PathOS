@@ -71,7 +71,7 @@ grails.project.dependency.resolution =
 
                         runtime 'mysql:mysql-connector-java:5.1.25'
 
-                        compile( group: 'org.petermac.pathos' , name: 'PathosCore',  version: '1.5.2', classifier: 'all' ) {
+                        compile( group: 'org.petermac.pathos' , name: 'PathosCore',  version: '1.5.3', classifier: 'all' ) {
                             changing = true
                         }
 

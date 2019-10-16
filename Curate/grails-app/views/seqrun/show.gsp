@@ -278,11 +278,10 @@
         } else {
             var igvDiv = document.getElementById("igvDiv");
 
-            PathOS.igv.init(igvDiv, d.dataUrl, d.sample, d.panel, 2500);
-            PathOS.igv.loaded = false;
+            PathOS.igv.init(igvDiv, d.dataUrl, d.sample, d.panel, 2500, "TP53");
             // This is part of TP53, a good a place as any to set our default view
             // PathOS.igv.search("chr17:7,579,423-7,579,856");
-            PathOS.igv.search("TP53");
+            // PathOS.igv.search("TP53");
             // PathOS.igv.search({
             //     "chromsome": "chr17",
             //     "start": 7579423,
@@ -293,15 +292,13 @@
         $("#igv-open-" + d.sample).html("Loaded!");
     }
 
-    $.ajax({
-        url: "${UrlLink.pipelineUrl( seqrunInstance.seqrun, seqrunInstance.platform )}",
-        success: function(d){
-            d3.select("#run-status-value").text("This run is ready.");
-        },
-        error: function(){
-            d3.select("#run-status-value").text("This run is still being processed.");
-        }
-    })
+    if (PathOS.urlExists("${UrlLink.pipelineUrl( seqrunInstance.seqrun, seqrunInstance.platform )}")) {
+        d3.select("#run-status-value").text("This run is ready.");
+        console.log("It exists");
+    } else {
+        d3.select("#run-status-value").text("This run is still being processed.");
+        console.log("cant find it");
+    };
 
 </r:script>
 </body>

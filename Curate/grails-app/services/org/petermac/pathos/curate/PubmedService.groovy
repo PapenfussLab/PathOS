@@ -7,6 +7,7 @@
 
 package org.petermac.pathos.curate
 
+import grails.converters.JSON
 import groovy.util.logging.Log4j
 import org.apache.commons.collections.set.ListOrderedSet
 import org.petermac.util.Pubmed as PubmedUtility
@@ -24,6 +25,68 @@ import org.petermac.util.Pubmed as PubmedUtility
 @Log4j
 class PubmedService
 {
+    /***
+     * DKGM 24-July-2019
+     * Find all the citations for a CurVariant
+     */
+    static HashMap citeCurVariant ( CurVariant cv ) {
+
+        AcmgEvidence acmg = cv.fetchAcmgEvidence()
+        AmpEvidence amp = cv.fetchAmpEvidence()
+
+        HashMap result = [
+            report: [
+                pmids: PubmedService.listOfPMIDs( cv?.reportDesc )
+            ],
+            evidence: [
+                acmg: [
+                    evidence: [
+                        pmids: PubmedService.listOfPMIDs( acmg?.fetchAcmgJustification() )
+                    ]
+                ],
+                amp: [
+                        evidence: [
+                        pmids: PubmedService.listOfPMIDs( amp?.ampJustification )
+                    ],
+                    therapeutic: [
+                        pmids: PubmedService.listOfPMIDs( amp?.therapeuticText )
+                    ],
+                    diagnosis: [
+                        pmids: PubmedService.listOfPMIDs( amp?.diagnosisText )
+                    ],
+                    prognosis: [
+                        pmids: PubmedService.listOfPMIDs( amp?.prognosisText )
+                    ]
+                ],
+                archive: [
+                        evidence: [
+                        pmids: PubmedService.listOfPMIDs( cv?.evidence?.justification )
+                    ]
+                ]
+            ]
+        ]
+
+        try {
+            JSON.parse( acmg?.acmgJustification ).criteria.each {
+                if(it.value) result.evidence.acmg[it.key] = [pmids: PubmedService.listOfPMIDs(it.value)]
+            }
+        } catch( e ) {}
+
+        fetchCitations(result.report)
+        result.evidence.acmg.each { fetchCitations(it.value as HashMap) }
+        result.evidence.amp.each { fetchCitations(it.value as HashMap) }
+        fetchCitations(result.evidence.archive.evidence)
+
+        return result
+    }
+
+    private static void fetchCitations( HashMap set ) {
+        set.citations = set.pmids.collect { Pubmed.findByPmid(it)?.fetchCitation() ?: "" }
+        set.titles = set.pmids.collect { Pubmed.findByPmid(it)?.title ?: "" }
+    }
+
+
+
 
     /**
      * DKGM 6-December-2016

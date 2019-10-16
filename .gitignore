@@ -1,6 +1,8 @@
 .gradle
 build/
 
+Docker/database/pathos-db-data/
+
 # Ignore Gradle GUI config
 gradle-app.setting
 

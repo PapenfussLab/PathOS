@@ -118,6 +118,7 @@ class PreferencesController
             preferences.setNumberOfSeqruns(Integer.parseInt(data.numberOfSeqruns) ?: 10)
             preferences.setCompressedView(data.compressedView ?: false)
 //            preferences.setSkipGeneMask(data.skipGeneMask ?: false)
+            preferences.setSortPriority(data.sortPriority ?: "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable")
             preferences.setSvlistRows(Integer.parseInt(data.svlistRows) ?: 20)
             preferences.setD3heatmap(data.d3heatmap ?: false)
 

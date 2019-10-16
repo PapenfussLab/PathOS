@@ -7,8 +7,8 @@ var $ 			= require("gulp-load-plugins")({});
 var rimraf 		= require("rimraf");
 var envProd 	= false;
 var runSequence = require('run-sequence');
-var gutil = require('gulp-util');
-var uglify = require('gulp-uglifyes');
+var gutil       = require('gulp-util');
+var terser      = require('gulp-terser');
 
 
 // Editable - any file extensions added here will trigger the watch task and will be instantly copied to your /dist folder
@@ -100,7 +100,7 @@ gulp.task( "javascript", ["jshint"], function() {
 		out.pipe($.sourcemaps.init({loadMaps: true}))
 			.pipe($.sourcemaps.write());
 	} else {
-		out.pipe(uglify().on('error', function(err) {
+		out.pipe(terser().on('error', function(err) {
             gutil.log(gutil.colors.red('[Error]'), err.toString());
             this.emit('end');
         }));

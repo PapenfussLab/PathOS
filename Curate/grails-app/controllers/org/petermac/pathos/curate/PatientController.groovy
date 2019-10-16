@@ -11,4 +11,10 @@ class PatientController
 {
     static scaffold = true
 
+
+    def find(String urn) {
+        Patient patient = Patient.findByUrn(urn)
+        redirect(action: "show", id: patient.id)
+    }
+
 }

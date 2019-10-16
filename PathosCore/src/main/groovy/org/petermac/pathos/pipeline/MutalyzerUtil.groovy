@@ -507,8 +507,10 @@ class MutalyzerUtil
             }
             catch( NumberFormatException e )
             {
-                log.fatal( "Position conversion error: " + e.toString())
-                return vcf
+                log.warn( "Position conversion error on ${row}: " + e.toString())
+            }
+            catch( NullPointerException e) {
+                log.warn("${e.toString()} Could not move variant ${row}")
             }
         }
 

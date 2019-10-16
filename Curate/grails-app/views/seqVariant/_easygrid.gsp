@@ -165,22 +165,30 @@ a.cv-button {
             </div>
 
             <grid:grid  name="curation">
-                <grid:set sortname="acmgCurVariant"/>
+                <grid:set multiSort="true"/>
                 <grid:set sortorder="desc"/>
-                <grid:set multiSort="false"/>
+
+
+%{--  We can set arbitrary multiple sort orders!!!!  --}%
+%{--  We should let users order the columns as they wish  --}%
+%{--  We should default it with ACMG and Other Contexts first  --}%
+                %{--<grid:set sortname="acmgCurVariant+desc%2C+ampCurVariant+desc"/>--}%
+                %{--<grid:set sortname="acmgCurVariant desc,allCuratedVariants desc,ampCurVariant desc,overallCurVariant desc,reportable desc"/>--}%
+                <grid:set sortname="${sortPriority.tokenize(",").each { it + " desc"}.join(",")}"/>
+
+                %{--<grid:set sortname="overallCurVariant"/>--}%
+
                 <grid:set rowNum="${svlistRows}"/>
                 <grid:set caption='${svSize} Total Sequenced Variants'/>
 
                 <grid:set col='act' width="45" formatter="f:editAction"/>
 
-                <grid:set col='acmgCurVariant' formatter="f:acmgCVFormatter" cellattr='f:curatedTooltip' width="100" />
+                <grid:set col='acmgCurVariant' formatter="f:acmgCVFormatter" cellattr='f:acmgTooltip' width="100" />
 
-                <grid:set col='ampCurVariant' formatter="f:ampCVFormatter" width="100" />
-                <grid:set col='overallCurVariant' formatter="f:overallCVFormatter" width="90" />
+                <grid:set col='ampCurVariant' formatter="f:ampCVFormatter" cellattr='f:ampTooltip' width="100"/>
+                <grid:set col='overallCurVariant' formatter="f:overallCVFormatter" cellattr='f:csTooltip' width="90" />
 
                 <grid:set col='allCuratedVariants' formatter="f:allCVFormatter" cellattr="f:allCVcellattr" width="65" editable="false"/>
-
-                %{--<grid:set col="acmgEvidence"    title="ACMG" width="130" formatter="f:acmgFormatter" editable='false'/>--}%
 
                 <grid:set col='gene'            width="70"  formatter='f:geneFormatter' editable='false'/>
                 <grid:set col='siftCat'         width="45"  formatter='f:classFormatter' editable='false'/>
@@ -806,7 +814,12 @@ function ampCVFormatter( cellvalue, options, rowObject )
             }
         });
 
-        return "<a target='_blank' href='<g:context/>/curVariant/show?id="+current_cc_match.id+"' class='cvlabel cv-"+ampClassLookup[cellvalue]+"'>"+cellvalue+"</a> "
+        var authorised = "";
+        if(current_cc_match.authorisedFlag) {
+            authorised = " authorised";
+        }
+
+        return "<a target='_blank' href='<g:context/>/curVariant/show?id="+current_cc_match.id+"' class='cvlabel cv-button cv-"+ampClassLookup[cellvalue]+authorised+"'>"+cellvalue+"</a> "
     } else {
         return "";
     }
@@ -832,7 +845,12 @@ function overallCVFormatter( cellvalue, options, rowObject )
             }
         });
 
-        return "<a target='_blank' href='<g:context/>/curVariant/show?id="+current_cc_match.id+"' class='cvlabel cv-"+overallClassLookup[cellvalue]+"'>"+cellvalue.split(":")[0]+"</a> "
+        var authorised = "";
+        if(current_cc_match.authorisedFlag) {
+            authorised = " authorised";
+        }
+
+        return "<a target='_blank' href='<g:context/>/curVariant/show?id="+current_cc_match.id+"' class='cvlabel cv-button cv-"+overallClassLookup[cellvalue]+authorised+"'>"+cellvalue.split(":")[0]+"</a> "
     } else {
         return "";
     }
@@ -1097,7 +1115,7 @@ function drawCV(cv, sv, hgvsg) {
 *
 * @returns {string} Cell title attribute title="tooltip description"
 */
-function curatedTooltip(rowId, val, rawObject, cm, rdata)
+function acmgTooltip(rowId, val, rawObject, cm, rdata)
 {
     var warning = "";
 
@@ -1106,24 +1124,20 @@ function curatedTooltip(rowId, val, rawObject, cm, rdata)
     }
 
     if ( val == '' ) return '';
-    var ttl = warning + rdata['curated_evd'];
 
-    var entityMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-        '/': '&#x2F;',
-        '`': '&#x60;',
-        '=': '&#x3D;'
-    };
+    let titleText = warning + JSON.parse(rdata['curated_evd']).acmg;
 
-    ttl = String(ttl).replace(/[&<>"'`=\/]/g, function (s) {
-        return entityMap[s];
-    });
+    titleText = PathOS.escapeHtml(titleText);
 
-    return 'title="' + ttl + '"';
+    return 'title="' + titleText + '"';
+}
+
+function ampTooltip(rowId, val, rawObject, cm, rdata) {
+    return 'title="'+PathOS.escapeHtml(JSON.parse(rdata['curated_evd']).amp)+'"';
+}
+
+function csTooltip(rowId, val, rawObject, cm, rdata) {
+    return 'title="'+PathOS.escapeHtml(JSON.parse(rdata['curated_evd']).cs)+'"';
 }
 
 /**
@@ -1746,7 +1760,7 @@ var topIBMD =
         { "field": "filterFlag", "op": "nc", "data": "blk" },
         { "field": "filterFlag", "op": "nc", "data": "pnl" },
         { "field": "filterFlag", "op": "nc", "data": "gaf" },
-        { "field": "gene","op": "in","data": "ACD,ANKRD26,CEBPA,CSF3R,CTC1,DDX41,DKC1,ELANE,ERCC6L2,ETV6,FANCA,FANCC,FANCG,FANCM,G6PC3,GATA1,GATA2,HAX1,JAGN1,MPL,NHP2,PARN,RBM8A,RPL11,RPL15,RPL26,RPL35A,RPL5,RPS10,RPS19,RPS24,RPS26,RPS29,RPS7,RTEL1,RUNX1,SBDS,SRP72,TCIRG1,TERT,TINF2,VPS45,WAS"}
+        { "field": "gene","op": "in","data": "ACD,ANKRD26,CEBPA,CSF3R,CTC1,DDX41,DKC1,ELANE,ERCC6L2,ETV6,FANCA,FANCC,FANCG,FANCM,G6PC3,GATA1,GATA2,HAX1,JAGN1,MPL,NHP2,PARN,RBM8A,RPL11,RPL15,RPL26,RPL35A,RPL5,RPS10,RPS19,RPS24,RPS26,RPS29,RPS7,RTEL1,RUNX1,SBDS,SRP72,TCIRG1,TERC,TERT,TINF2,VPS45,WAS"}
       ]
 };
 
@@ -2075,25 +2089,19 @@ function addToIGV(sample, dataUrl, id){
                     message.append("a").text("Downsample and open with in-browser IGV").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = true;
-                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
-                        PathOS.igv.loaded = false;
-                        PathOS.igv.search(location);
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500, location);
                     });
                 } else if ( downsample === false || igvAutoLoad == "auto" ) {
-                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
-                    PathOS.igv.search(location);
+                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000, location);
                 } else if ( downsample === true || igvAutoLoad == "downsample" ) {
-                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
-                    PathOS.igv.search(location);
+                    PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500, location);
                 } else {
                     var message = d3.select("#pathos-footer").insert("div", "#igvDiv").attr("id", "footer-message");
 
                     message.append("h1").attr("id", "main-button").append("a").text("Launch In-browser IGV").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = false;
-                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000);
-                        PathOS.igv.loaded = false;
-                        PathOS.igv.search(location);
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 50000, location);
                     });
 
                     message.append('h1').attr("id", "igv-message").text("If your browser runs slowly, you might want to try downsampling or using Desktop IGV")
@@ -2101,8 +2109,7 @@ function addToIGV(sample, dataUrl, id){
                     message.append("a").text("Launch In-browser IGV with downsampling").attr("href", "#").on("click", function(){
                         $("#footer-message").remove();
                         downsample = true;
-                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500);
-                        PathOS.igv.search(location);
+                        PathOS.igv.init(igvDiv, dataUrl, sample, panel, 2500, location);
                     });
 
                     message.append("a").text("View using Desktop IGV").attr("href", "<g:context/>/seqVariant/igvAction?id="+current_id);

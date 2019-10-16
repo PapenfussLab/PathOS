@@ -9,7 +9,7 @@ apply from: '../../scripts/common.gradle'
 
 //  Release version
 //
-version = '1.5.2'
+version = '1.5.3'
 
 jar {
     baseName = 'pathos-api'
@@ -17,6 +17,6 @@ jar {
 
 dependencies {
     compile group: 'de.xypron.statistics', name: 'statistics', version: '1.0.7'
-    compile group: 'org.petermac.pathos' ,name: 'yaml-tools', version: version
+    compile group: 'org.petermac.pathos' ,name: 'yaml-tools', version: '1.5.2'
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.18'
 }

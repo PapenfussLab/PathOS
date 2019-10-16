@@ -1,0 +1,22 @@
+// build.gradle
+//
+// Build file for the PathosApi
+//
+// Publishes to a local maven repo in /usr/local/dev/maven
+//
+
+apply from: '../../scripts/common.gradle'
+
+//  Release version
+//
+version = '1.5.2'
+
+jar {
+    baseName = 'babble-api'
+}
+
+dependencies {
+    compile group: 'log4j', name: 'log4j', version: '1.2.16'
+    compile group: 'org.reflections', name: 'reflections', version: '0.9.11'
+    compile group: 'org.petermac.pathos', name: 'yaml-tools', version: version
+}

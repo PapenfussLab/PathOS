@@ -126,6 +126,7 @@ class AnomalyRest {
                 schema = opt.schema
             }
 
+            //todo throw on datetime at end of tag? hammer out exactly how anomaly handles multiple tags
             log.info("Submitting ${vcfFile.getName()} under tag: ${tag}")
 
             switch(opt.action) {

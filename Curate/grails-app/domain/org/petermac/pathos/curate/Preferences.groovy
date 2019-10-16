@@ -13,6 +13,7 @@ class Preferences {
     Boolean     compressedView = false
     Boolean     skipGeneMask = false
     Boolean     d3heatmap = false
+    String      sortPriority = "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable"
 
     static mapping =
     {

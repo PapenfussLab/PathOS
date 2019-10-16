@@ -7,6 +7,7 @@
 
 package org.petermac.pathos.curate
 
+import grails.converters.JSON
 import grails.persistence.Entity
 
 @Entity
@@ -101,12 +102,6 @@ class AcmgEvidence
         classification
     }
 
-
-    @Override
-    public int compareTo(AcmgEvidence other) {
-        return Integer.compare(classifications[this.classification], classifications[other.classification])
-    }
-
     Boolean anyUnset() {
         if ( PVS1 == 'unset' ) return true
         if ( PS1 == 'unset' ) return true
@@ -137,6 +132,14 @@ class AcmgEvidence
         if ( BP6 == 'unset' ) return true
         if ( BP7 == 'unset' ) return true
         return false
+    }
+
+    String fetchAcmgJustification() {
+        String result = this.acmgJustification
+        try {
+            result = JSON.parse(this.acmgJustification).acmgJustification
+        } catch (e) {}
+        return result
     }
 
 }

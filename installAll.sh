@@ -3,14 +3,23 @@
 #	Script to build monolithic PathOS and friends
 #
 
+# Reset BASH time counter
+SECONDS=0
+
 set -x
 set -e
 
+echo sdk u gradle 1.10   # set gradle
+echo sdk u grails 2.3.7  # set grails
+
 gradle install -p Tools/YamlTools
 gradle install -p Tools/AmqpTools
-gradle install -p APIs/PathosApi
+gradle install -p Tools/Hl7Tools
 
-export PATHOS_HOME=/config/binaries/pathos_core/1.5.2
+gradle install -p APIs
+gradle install -p Dynamic
+
+export PATHOS_HOME=/config/binaries/pathos_core/1.5.3
 
 pushd repos
 	gradle build --parallel install -p aspose-word &
@@ -30,3 +39,6 @@ pushd Curate
  	#
 	gradle install
 popd
+
+echo "Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+

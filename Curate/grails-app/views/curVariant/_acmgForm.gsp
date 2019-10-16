@@ -1,5 +1,7 @@
 <%@ page import="org.petermac.pathos.curate.Evidence" %>
 
+<script src="<g:context/>/js/jquery.floatThead.min.js?v=<g:render template='/gitHash'/>"></script>
+
 <h2>Calculated ACMG Classification</h2>
 
 <div id="calculatedACMG"></div>
@@ -7,6 +9,7 @@
 <button style="margin-top: 5px;" onclick="calculateACMG()">Calculate ACMG</button>
 
 <i id="ACMG-rules-help" style="cursor:pointer;" onclick="window.open('http://www.pathos.co/acmg/rules.png','ACMG Rules','height=800,width=600');" class="criteria-info-icon fa fa-info-circle"></i>
+<a href="https://www.nature.com/articles/gim201530" target="_blank">Richards et al. (2015) DOI: 10.1038/gim.2015.30</a>
 
 <h2>Collected ACMG Evidence</h2>
 
@@ -29,7 +32,8 @@
 
         <g:each in="${['pathogenic','benign']}" var="type">
             <div class="col-sm-6">
-                <table>
+                <table id="table-${type}" class="floatingHead">
+                    <thead>
                     <tr>
                         <th>N/A</th>
                         <th style="border-right: none;"></th>
@@ -37,13 +41,15 @@
                         <td>Met</td>
                         <td>Not met</td>
                     </tr>
+                    </thead>
+                    <tbody>
                     <g:each in="${acmg.count}" var="i">
                         <g:if test="${acmg[type][i]}">
                             <g:set var="box" value="${acmg[type][i]}"/>
                             <g:set var="boxClass" value="${box.toString().split(/\d$/)[0]}"/>
                             <g:set var="boxVal" value="${acmgEvidence[box]}"/>
 
-                            <tr id="${box}-row" class="${boxVal == 'na' || boxVal == 'unset' && defaultCriteria[type][box]?.na ? 'disabled' : ''}">
+                            <tr id="${box}-row" class="${boxVal == 'na' || boxVal == 'unset' && defaultCriteria[type][box]?.na ? 'disabled' : boxVal == 'yes' ? 'green' : ''}">
                                 <td rowspan="2" class="na-checkbox">
                                     <g:if test="${true || acmg.na.contains(box)}">
                                     <input boxtype="${box}" class="na-label na-input" type="radio" name="${box}" id="${box}-na" value="na" ${boxVal == 'na' || boxVal == 'unset' && defaultCriteria[type][box]?.na ? 'checked' : ''}>
@@ -61,13 +67,13 @@
 
                                 </td>
                                 <td rowspan="2" class="acmg-yes">
-                                    <input type="radio" name="${box}" id="${box}-yes" value="yes" ${boxVal == 'yes' ? 'checked' : ''}>
+                                    <input boxtype="${box}" type="radio" name="${box}" id="${box}-yes" value="yes" ${boxVal == 'yes' ? 'checked' : ''}>
                                 </td>
                                 <td rowspan="2" class="acmg-no">
                                     <input type="radio" name="${box}" id="${box}-no" value="no" ${boxVal == 'no' ? 'checked' : ''}>
                                 </td>
                             </tr>
-                            <tr id="${box}-meta-row" class="${boxVal == 'na' || boxVal == 'unset' && defaultCriteria[type][box]?.na ? 'disabled' : ''}">
+                            <tr id="${box}-meta-row" class="${boxVal == 'na' || boxVal == 'unset' && defaultCriteria[type][box]?.na ? 'disabled' : boxVal == 'yes' ? 'green' : ''}">
                                 <td colspan="2" class="criteria-text">
                                     <i id="${box}-toggle-text" onclick="$(this).toggleClass('show-text').addClass('has-text');" class="toggle-text fa fa-pencil-square-o"></i>
 
@@ -82,7 +88,7 @@
                                             <option value="${option}" <g:if test="${option == defaultCriteria[type][box].default}">default selected</g:if>>${option}</option>
                                         </g:each>
                                     </select>
-                                    <textarea class="criteria-metadata" id="${box}-text" name="${box}-text" form="acmgEvidenceForm"></textarea>
+                                    <textarea class="criteria-metadata" id="${box}-text" name="${box}-text" form="acmgEvidenceForm" placeholder="Evidence to support ${box} criteria"></textarea>
 
                                     <div id="${box}-history" class="acmg-history">
                                         <p>Edit history for ${box}:</p>
@@ -92,6 +98,7 @@
                             </tr>
                             </g:if>
                     </g:each>
+                    </tbody>
 
                 </table>
             </div>
@@ -181,6 +188,14 @@
     $("#acmgEvidence .na-label").on('click', function( event ){
         var boxtype = d3.select(this).attr("boxtype");
         d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("disabled", true);
+        d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", false);
+    });
+
+    $("#acmgEvidence .acmg-yes input[type='radio']").on('click', function( event ){
+        var boxtype = d3.select(this).attr("boxtype");
+        console.log("lol, this clickkk", boxtype);
+        d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("disabled", false);
+        d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", true);
     });
 
     $("#acmgEvidence label.acmg-label").on('click', function( event ){
@@ -189,22 +204,25 @@
         var yes = $("#"+id);
         var no = $("#"+id.replace('yes', 'no'));
         var unset = $("#"+id.replace('yes', 'unset'));
+        var boxtype = id.split("-")[0];
 
         if (yes.is(":checked")) {
             yes.prop("checked", false);
             unset.prop("checked", false);
             no.prop("checked", true);
+            d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", false);
         } else if (no.is(":checked")) {
             yes.prop("checked", false);
             no.prop("checked", false);
             unset.prop("checked", true);
+            d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", false);
         } else {
             unset.prop("checked", false);
             no.prop("checked", false);
             yes.prop("checked", true);
+            d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", true);
         }
 
-        var boxtype = id.split("-")[0];
         d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("disabled", false);
 
     });
@@ -213,12 +231,14 @@
         var that = $(this);
         var boxtype = $(this).attr("id").split('-')[0];
         d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("disabled", false);
+        d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", false);
         var unset = $("#"+boxtype+"-unset");
 
         if (that.is(":checked")) {
             setTimeout(function(){
                 that.prop("checked", false);
                 unset.prop("checked", true);
+                d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("green", false);
                 d3.selectAll("#"+boxtype+"-row, #"+boxtype+"-meta-row").classed("disabled", false);
             }, 300);
         }
@@ -252,6 +272,12 @@
         });
 
     }
+
+
+    $('table.floatingHead').floatThead({
+        top: 40,
+        position: 'fixed'
+    });
 
 
 </r:script>

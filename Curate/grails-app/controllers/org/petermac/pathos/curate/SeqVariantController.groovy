@@ -459,16 +459,47 @@ class SeqVariantController
         {
             curated_id          { value { SeqVariant sv -> sv.currentCurVariant()?.id }; jqgrid { hidden true; hidedlg true }}
             curated_evd {
-                value {
-
-                    SeqVariant sv ->
-                        def curUser
-                        if (sv.currentCurVariant()?.classified?.username) {
+                value { SeqVariant sv ->
+                    Map result = [
+                        acmg: '',
+                        amp: '',
+                        cs: ''
+                    ]
+                    CurVariant cv = sv.currentCurVariant()
+                    if (cv) {
+                        String curUser
+                        if (cv.classified?.username) {
                             curUser = sv.currentCurVariant().classified.username
                         } else {
                             curUser = "Unknown"
                         }
-                        sv.currentCurVariant()?.evidence?.justification ? sv.currentCurVariant()?.evidence?.justification + " Curated by: " + curUser : (sv.currentCurVariant() ? (curUser ? 'NO EVIDENCE' + " Curated by: ${curUser}" : 'NO EVIDENCE') : null)
+                        String blob = cv.fetchAcmgEvidence()?.acmgJustification
+                        String acmg = 'NO EVIDENCE'
+
+                        if (blob) {
+                            try {
+                                Object jsonObj = new JsonSlurper().parseText( blob )
+                                acmg = jsonObj?.acmgJustification ?: 'NO EVIDENCE'
+                            } catch (e) {}
+                        }
+
+                        result.acmg = "${acmg} Curated By ${curUser}"
+
+                        blob = cv.fetchAmpEvidence()?.ampJustification
+                        String amp = 'NO EVIDENCE'
+                        if (blob) {
+                            try {
+                                Object jsonObj = new JsonSlurper().parseText( blob )
+                                amp = jsonObj?.ampJustification ?: 'NO EVIDENCE'
+                            } catch (e) {
+                                amp = blob
+                            }
+                        }
+                        result.amp = "${amp} Curated By ${curUser}"
+
+                        result.cs = cv.overallReason ?: "Unclassified"
+                    }
+                    return (result as JSON) as String
                 }; jqgrid { hidden true; hidedlg true }
             }
 
@@ -930,9 +961,12 @@ class SeqVariantController
         Integer svlistRows = preferences?.getSvlistRows() ?: 200
         Boolean skipGeneMask = thisSeqSample?.panel?.skipGeneMask ?: false
 
+        String sortPriority = preferences?.sortPriority ?: "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable"
+//        String sortPriority = "acmgCurVariant,allCuratedVariants,ampCurVariant,overallCurVariant,reportable";
+
         def labAssays = thisSeqSample.labAssays()
 
-        return  [seqSample: thisSeqSample, isFirstReviewed: isFirstReviewed, isFinalReviewed: isFinalReviewed, ownFirstReview: ownFirstReview, ownSecondReview: ownSecondReview, prefsShowCols: thisPrefs?.prefsColumnsShown,prefsHideCols: thisPrefs?.prefsColumnsHidden,prefsColumnRemap: thisPrefs?.prefsColumnRemap,prefsGridInfo: thisPrefs?.prefsGridInfo, svSize: svSize, cnvSize: cnvSize, viewReports: viewReports, clinContextList: clinContextList, svlistRows: svlistRows, skipGeneMask: skipGeneMask, compressedView:compressedView, labAssays: labAssays, vcfExists: vcfExists ]
+        return  [seqSample: thisSeqSample, isFirstReviewed: isFirstReviewed, isFinalReviewed: isFinalReviewed, ownFirstReview: ownFirstReview, ownSecondReview: ownSecondReview, prefsShowCols: thisPrefs?.prefsColumnsShown,prefsHideCols: thisPrefs?.prefsColumnsHidden,prefsColumnRemap: thisPrefs?.prefsColumnRemap,prefsGridInfo: thisPrefs?.prefsGridInfo, svSize: svSize, cnvSize: cnvSize, viewReports: viewReports, clinContextList: clinContextList, svlistRows: svlistRows, skipGeneMask: skipGeneMask, compressedView:compressedView, labAssays: labAssays, vcfExists: vcfExists, sortPriority: sortPriority ]
     }
 
 
@@ -1567,24 +1601,34 @@ class SeqVariantController
 
             Set<CivicVariant> civicIds = []
 
-            String hgvsg_suffix = sv.hgvsg.split(":")[1] ?: ""
-            if(CivicVariant.findByHgvs_expressionsLike( "%${hgvsg_suffix}%" )){
-                CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsg_suffix}%" )
-                civicIds.add(civ)
-            }
-
-            String hgvsc_suffix = sv.hgvsg.split(":")[1] ?: ""
-            if(CivicVariant.findByHgvs_expressionsLike( "%${hgvsc_suffix}%" )){
-                CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsc_suffix}%" )
-                civicIds.add(civ)
-            }
-
-            if(sv.hgvsp) {
-                String hgvsp_suffix = sv.hgvsp.split(":")[1] ?: ""
-                if(CivicVariant.findByHgvs_expressionsLike( "%${hgvsp_suffix}%" )){
-                    CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsp_suffix}%" )
+            String hgvsg_suffix = ""
+            try {
+                hgvsg_suffix = sv.hgvsg.split(":")[1] ?: ""
+                if(hgvsg_suffix && CivicVariant.findByHgvs_expressionsLike( "%${hgvsg_suffix}%" )){
+                    CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsg_suffix}%" )
                     civicIds.add(civ)
                 }
+            } catch (e) {}
+
+
+            String hgvsc_suffix = ""
+            try {
+                sv.hgvsc.split(":")[1] ?: ""
+                if(hgvsc_suffix && CivicVariant.findByHgvs_expressionsLike( "%${hgvsc_suffix}%" )){
+                    CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsc_suffix}%" )
+                    civicIds.add(civ)
+                }
+            } catch (e) {}
+
+            if(sv.hgvsp) {
+                String hgvsp_suffix = ""
+                try {
+                    sv.hgvsp.split(":")[1] ?: ""
+                    if(hgvsp_suffix && CivicVariant.findByHgvs_expressionsLike( "%${hgvsp_suffix}%" )){
+                        CivicVariant civ = CivicVariant.findByHgvs_expressionsLike( "%${hgvsp_suffix}%" )
+                        civicIds.add(civ)
+                    }
+                } catch (e) {}
             }
 
             civicIds.each { CivicVariant civ ->

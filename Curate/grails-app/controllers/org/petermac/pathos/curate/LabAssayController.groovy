@@ -93,4 +93,9 @@ class LabAssayController {
             redirect(action: "show", id: id)
         }
     }
+
+    def find(String billingCode) {
+        LabAssay labAssayInstance = LabAssay.findByTestSet(billingCode)
+        redirect(action: "show", id: labAssayInstance.id)
+    }
 }

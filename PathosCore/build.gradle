@@ -10,7 +10,7 @@
 
 //  Release version
 //
-version = '1.5.2'
+version = '1.5.3'
 
 import org.apache.tools.ant.filters.ReplaceTokens
 
@@ -147,16 +147,16 @@ dependencies //http://stackoverflow.com/questions/30728533/gradle-override-trans
     compile group: 'xerces', name: 'xercesImpl', version: '2.9.1'
     compile group: 'xml-apis', name: 'xml-apis', version: '1.4.01'
     compile group: 'xml-resolver', name: 'xml-resolver', version: '1.2'
-//    compile group: 'com.rabbitmq' ,name: 'amqp-client', version: '4.0.2'
-//    compile group: 'org.petermac.pathos' ,name: 'hl7-tools', version: version
+    compile group: 'com.rabbitmq' ,name: 'amqp-client', version: '4.0.2'
+    compile group: 'org.petermac.pathos' ,name: 'hl7-tools', version: '1.5.2'
+    compile group: 'org.petermac.pathos' ,name: 'amqp-tools', version: '1.5.2'
     compile group: 'org.petermac.pathos' ,name: 'pathos-api', version: version
-    compile group: 'org.petermac.pathos' ,name: 'pathos-amqp', version: version
 
     //  for Babble
 
     compile group: 'log4j', name: 'log4j', version: '1.2.16'
-//    compile group: 'ca.uhn.hapi', name: 'hapi-structures-v251', version: '2.2'
-//    compile group: 'ca.uhn.hapi', name: 'hapi-base', version: '2.2'
+    compile group: 'ca.uhn.hapi', name: 'hapi-structures-v251', version: '2.2'
+    compile group: 'ca.uhn.hapi', name: 'hapi-base', version: '2.2'
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.18'
     compile group: 'joda-time', name: 'joda-time', version: '2.3'
 

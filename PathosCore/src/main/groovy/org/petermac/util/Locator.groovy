@@ -139,7 +139,6 @@ class Locator
     static String dbPassword = null
 
     //  Database Port (defauly mysql 3306)
-    //
     static String dbPort = '3306'
 
     //  Database Host and Schema
@@ -167,10 +166,6 @@ class Locator
     //  VCF Upload method = either Anomaly or VcfLoader
     //
     static String vcfUploadMethod = 'Anomaly'
-
-    //  Allow email notifications for VcfUpload
-    //
-    static Boolean vcfUploadEmailNotify = false
 
     //  Method to reload samples (ie when changing gene mask) - either Anomaly or VcfLoader
     //
@@ -275,7 +270,7 @@ class Locator
         }
         System.err.println("Using PathOS Configuration File ${chf.absolutePath}")
         System.err.println("PathOS Home ${pathos_home}")
-        def homeDir = new File(home.toUri())
+        File homeDir = new File(home.toUri())
         if (!homeDir.directory)
         {
             System.err.println("PathOS Home is not a directory.")
@@ -365,11 +360,6 @@ class Locator
         //  Are we using AD for Curate auth?
         //
         if ( prop.getProperty('use.ad.authentication')) useADAuthentication = prop.getProperty('use.ad.authentication').toBoolean()
-
-        //  Are we allowing email notifications for VcfUpload?
-        //
-        if ( prop.getProperty('vcf.upload.email.notify')) vcfUploadEmailNotify = prop.getProperty('vcf.upload.email.notify').toBoolean()
-
 
         //  Location of AD config file?
         //

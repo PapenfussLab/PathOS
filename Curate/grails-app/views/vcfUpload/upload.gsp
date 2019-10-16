@@ -91,13 +91,13 @@
                         </td>
                         <td width="260px;"><span id="new_seqrun_warning" class="warning">Seqrun does not exist and will be created</span></td>
                     </tr>
-                    <g:if test="${showEmail}">
+
                     <tr class="fieldcontain">
                         <td>Email</td>
                         <td>
                         <g:textField name="email" class="emailField" value="${params?.email?:defaultEmail}" />
                         </td>
-                    </tr></g:if>
+                    </tr>
 
                     <tr class="fieldcontain">
                         <td for="panellist" >Panel</td>

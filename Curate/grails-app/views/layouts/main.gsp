@@ -323,8 +323,7 @@
 
 
 <g:if test="${pageProperty(name: 'page.footer')=='on'}">
-    <script type="text/javascript" src="<g:context/>/igv/igv.js?v=<g:render template='/gitHash'/>"></script>
-    %{--<link rel="stylesheet" type="text/css" href="<g:context/>/igv/igv.css?v=<g:render template='/gitHash'/>">--}%
+    <script type="text/javascript" src="<g:context/>/igv/igv.min.js?v=<g:render template='/gitHash'/>"></script>
 
     <div class="footer-filler"></div>
     <div title="Press / to toggle IGV.js" id="footer-toggle">

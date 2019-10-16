@@ -146,16 +146,10 @@ class BootStrap
         }
     }
 
-    void makeBasePanels() {
-        Panel noPanel = Panel.find{manifest=="NoPanel"}
-        if(!noPanel) {
-            def newPanel = new Panel(manifest:"NoPanel",panelGroup:"NoPanel").save(flush: true,failOnError:false)
-        }
-
-    }
-
-
-        void makeBaseSpringUsers()
+    
+    
+    
+    void makeBaseSpringUsers()
     {
 
         //  make debug users
@@ -268,7 +262,6 @@ class BootStrap
             //
             if(loc.pathosEnv != 'pa_prod') {
                 makeBaseSpringRoles()
-                makeBasePanels()
                 makeBaseSpringUsers()
                 makeBaseClinContexts()
                 makeCvWeights()

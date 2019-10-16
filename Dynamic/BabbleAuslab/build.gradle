@@ -1,0 +1,42 @@
+// build.gradle
+//
+// Build file for the Auslab plugin for Babble
+//
+
+apply from: '../../scripts/common.gradle'
+
+//  Release version
+//
+version = '1.5.3'
+
+jar {
+    baseName = 'babble-auslab'
+}
+
+artifacts {
+    archives uberJar {
+        baseName = 'babble-auslab'
+		classifier = 'all'
+        with jar
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        addFilter('babble-auslab') { a, f ->
+            a.name == 'babble-auslab'
+        }
+        addFilter('babble-auslab-all') { a, f ->
+            a.name == 'babble-auslab-all'
+        }
+    }
+}
+
+
+dependencies {
+    compile group: 'log4j', name: 'log4j', version: '1.2.16'
+    compile group: 'org.codehaus.groovy.modules.http-builder' ,name: 'http-builder', version: '0.7.2'
+    compile group: 'org.petermac.pathos' ,name: 'babble-api', version: '1.5.2'
+    compile group: 'org.petermac.pathos' ,name: 'hl7-tools',  version: '1.5.2'
+    compile group: 'org.petermac.pathos' ,name: 'yaml-tools', version: '1.5.2'
+}

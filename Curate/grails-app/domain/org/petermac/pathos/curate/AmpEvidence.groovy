@@ -17,14 +17,20 @@ class AmpEvidence
     String      ampJustification  = ""
     String      therapeuticRating = "unset"
     String      therapeuticCategory = "unset"
+    String      therapeuticText = ""
     String      diagnosisRating = "unset"
     String      diagnosisCategory = "unset"
+    String      diagnosisText = ""
     String      prognosisRating = "unset"
     String      prognosisCategory = "unset"
+    String      prognosisText = ""
     CurVariant  curVariant
 
     static mapping = {
         ampJustification       (type: 'text')
+        therapeuticText        (type: 'text')
+        diagnosisText          (type: 'text')
+        prognosisText          (type: 'text')
     }
 
     static List<String> ratingTypes = [
@@ -38,6 +44,9 @@ class AmpEvidence
         therapeuticRating   ( inList: ratingTypes )
         diagnosisRating     ( inList: ratingTypes )
         prognosisRating     ( inList: ratingTypes )
+        therapeuticText     ( nullable: true )
+        diagnosisText       ( nullable: true )
+        prognosisText       ( nullable: true )
     }
 
     static searchable = true

@@ -9,7 +9,7 @@
 
 //  Release version
 //
-version = '1.5.2'
+version = '1.5.3'
 
 apply plugin: 'groovy'
 apply plugin: 'com.github.johnrengelman.shadow'
@@ -163,9 +163,8 @@ dependencies
 
     //  Peter Mac dependencies
     //
-    compile group: 'org.petermac.pathos', name: 'yaml-tools', version: version
+    compile group: 'org.petermac.pathos', name: 'yaml-tools', version: '1.5.2'
     compile group: 'org.petermac.pathos', name: 'pathos-api', version: version
-    compile group: 'org.petermac.pathos', name: 'pathos-amqp', version: version
-    compile( group: 'org.petermac.pathos' , name: 'PathosCore',  version: version, classifier: 'all' )
+    compile group: 'org.petermac.pathos', name: 'PathosCore', version: version, classifier: 'all'
 }
 

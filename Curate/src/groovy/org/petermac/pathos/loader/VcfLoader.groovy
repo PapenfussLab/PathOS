@@ -435,7 +435,6 @@ class VcfLoader
 
         log.info( "Normalising variants with ${mutHost}")
 
-        //todo try catch here, covertVcf can throw an exception
         for ( vcf in vcfs )
         {
             File normVcf = FileUtil.tmpFixedFile()
@@ -446,9 +445,9 @@ class VcfLoader
             }
             catch( Exception e )
             {
-                StackTraceUtils.sanitize(e).printStackTrace()
-                log.fatal( "Exiting: Couldn't normalise file ${vcf} " + e.toString())
-                System.exit(1)
+                //StackTraceUtils.sanitize(e).printStackTrace()
+                log.error( "Exiting VcfLoader: Couldn't normalise file ${vcf} " + e.toString())
+                throw e
             }
 
             normFiles << normVcf

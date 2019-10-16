@@ -299,6 +299,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/patsample/list':              ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patsample/updatecomment':     ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
+            '/patient/find':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patient/show':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patient/list':                ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
 
@@ -324,7 +325,7 @@ grails.plugin.springsecurity.controllerAnnotations.staticRules =
             '/panel/show':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/panel/list':                  ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/panel/fetchAllData':          ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
-            '/panel/*':                     ['ROLE_DEV','ROLE_ADMIN'],
+            '/panel/*':                     ['ROLE_DEV'],
 
             '/patassay/show':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
             '/patassay/list':               ['ROLE_ADMIN','ROLE_DEV','ROLE_CURATOR','ROLE_EXPERT','ROLE_LAB'],
