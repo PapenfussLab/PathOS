@@ -20,7 +20,7 @@ To run PathOS from the Docker image, first clone the PathOS repository.
 git clone https://github.com/PapenfussLab/PathOS.git
 ```
 
-Then execute the following commands to start PathOS.
+Then execute the following commands to start PathOS on Unix and friends.
 
   ```
   # Navigate to the Docker/database directory
