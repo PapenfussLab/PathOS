@@ -19,7 +19,7 @@ services:
         restart: always
 
     curate:
-        image: dockerpathos/pathos_curate:1.5.2
+        image: dockerpathos/pathos_curate:1.5.3
         volumes:
           - ./pathology:/pathology:ro
         ports:
@@ -54,7 +54,7 @@ services:
         command: ['bash', '/first-time-only.sh']
 
     loader:
-        image: dockerpathos/pathos_loader:1.5.2
+        image: dockerpathos/pathos_loader:1.5.3
         depends_on:
           pathos_db:
             condition: service_healthy
