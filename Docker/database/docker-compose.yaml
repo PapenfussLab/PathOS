@@ -48,7 +48,7 @@ services:
           curate:
             condition: service_healthy
         volumes:
-          - /run-once/
+          - ${PWD}/run-once/:/run-once/
           - ${PWD}/first-time-only.sh:/first-time-only.sh:ro
           - ${PWD}/run-once.d/:/run-once.d/:ro
         command: ['bash', '/first-time-only.sh']
