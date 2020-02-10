@@ -1,4 +1,4 @@
-CREATE TABLE `db_lock` (
+CREATE TABLE IF NOT EXISTS `db_lock` (
   `id` int(11) DEFAULT NULL,
   `host` varchar(50) DEFAULT NULL,
   `pid` varchar(50) DEFAULT NULL,
