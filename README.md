@@ -24,7 +24,7 @@ PathOS carries out these tasks within a clinical laboratory setting where many p
 
 ## Quick Start
 
-The best way to experiment with PathOS is by accessing the [instance](http://45.113.235.69:8123/PathOS) on the University of Melbourne research cloud.
+The best way to experiment with PathOS is by accessing the [instance](http://45.113.235.35:8123/PathOS) on the University of Melbourne research cloud.
 Get in touch with the [authors](mailto:ken.doig@petermac.org) for a login account.
 
 We also provide Docker configuration files for PathOS, so that PathOS can be deployed & ran with a single command using the Docker software. This is the easiest way to run PathOS on your local system. Instructions for Docker deployment can be found [here](https://github.com/PapenfussLab/PathOS/tree/master/Docker).
